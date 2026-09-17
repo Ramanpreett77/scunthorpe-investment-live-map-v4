@@ -57,6 +57,57 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
 .alert-amber{background:#fffbeb;color:#92400e;border-color:#fde68a}
 .alert-green{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
 @media(max-width:1200px){.container{flex-direction:column;height:auto}.left,.right{width:100%}.center{height:60vh}}
+/* ===== DEAL SOURCING STARTER PACK - embedded documents ===== */
+.doc-overlay{position:fixed;inset:0;z-index:5000;background:rgba(2,6,23,.72);display:none;padding:22px 14px;overflow-y:auto}
+.doc-overlay.open{display:block}
+.doc-sheet{max-width:860px;margin:0 auto;background:#fff;color:#0f172a;border-radius:14px;padding:22px 24px 30px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.doc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border-bottom:2px solid #0f172a;padding-bottom:12px;margin-bottom:6px}
+.doc-head h3{font-size:19px;font-weight:800;line-height:1.2;margin-bottom:5px}
+.doc-head p{font-size:11.5px;color:#475569;max-width:62ch;line-height:1.5}
+.doc-close{flex:0 0 auto;padding:6px 11px;border-radius:20px;border:1px solid #cbd5e1;background:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1}
+.doc-close:hover{background:#f1f5f9}
+.doc-meta{display:flex;flex-wrap:wrap;gap:4px 18px;margin:10px 0 20px;font-size:10px;color:#64748b;font-weight:600}
+.doc-sheet section{margin-bottom:22px}
+.doc-sheet section>h4{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#0f172a;border-bottom:1px solid #e2e8f0;padding-bottom:5px;margin-bottom:9px}
+.doc-sheet h5{font-size:12px;font-weight:800;margin:14px 0 6px;color:#0f172a}
+.doc-hint{font-size:11px;color:#64748b;line-height:1.55;margin-bottom:10px;max-width:66ch}
+.doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px}
+.doc-grid.one{grid-template-columns:1fr}
+.doc-f{display:flex;flex-direction:column;gap:3px}
+.doc-f label{font-size:10px;color:#475569;font-weight:700}
+.doc-f input,.doc-f textarea{padding:7px 9px;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;font-family:inherit;width:100%}
+.doc-f textarea{min-height:62px;resize:vertical;line-height:1.5}
+.doc-f .rq{color:#b45309}
+.doc-check{list-style:none;margin:0;padding:0}
+.doc-check li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f1f5f9}
+.doc-check li:last-child{border-bottom:0}
+.doc-check input[type=checkbox]{margin-top:2px;width:15px;height:15px;flex:0 0 auto;accent-color:#2563eb;cursor:pointer}
+.doc-check b{display:block;font-size:11.5px;font-weight:800;cursor:pointer}
+.doc-check small{display:block;font-size:10.5px;color:#64748b;line-height:1.5;margin-top:2px;max-width:68ch}
+.doc-sheet table{width:100%;border-collapse:collapse;margin:9px 0;font-size:11px}
+.doc-sheet th,.doc-sheet td{text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+.doc-sheet th{background:#0f172a;color:#fff;font-weight:700;font-size:10px}
+.doc-sheet tbody tr:nth-child(even){background:#f8fafc}
+.doc-sheet td.n{text-align:right;white-space:nowrap;color:#94a3b8}
+.doc-blank{color:#cbd5e1}
+.doc-clause{font-size:11.5px;line-height:1.6;margin-bottom:11px}
+.doc-clause b.no{color:#2563eb;margin-right:7px;font-weight:800}
+.doc-fill{display:inline-block;min-width:120px;border-bottom:1px solid #2563eb}
+.doc-sigs{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:20px}
+.doc-sig{border-top:1px solid #0f172a;padding-top:6px;font-size:10px;color:#64748b;font-weight:600}
+.doc-sigline{height:46px}
+.doc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px;padding-top:15px;border-top:1px solid #e2e8f0}
+.doc-foot{margin-top:20px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:10px;color:#64748b;line-height:1.55;max-width:72ch}
+@media(max-width:700px){.doc-grid,.doc-sigs{grid-template-columns:1fr}.doc-sheet{padding:18px 16px 24px}}
+@media print{
+  body>header,body>.container{display:none !important}
+  .doc-overlay{position:static;display:none;background:#fff;padding:0;overflow:visible}
+  .doc-overlay.open{display:block}
+  .doc-sheet{max-width:none;box-shadow:none;border-radius:0;padding:0}
+  .doc-close,.doc-actions{display:none !important}
+  .doc-sheet section{page-break-inside:avoid}
+  .doc-sheet th{background:#222 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -235,10 +286,10 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <div class="card">
         <h2>📋 Deal Sourcing Starter Pack - Documents</h2>
         <div style="display:flex;flex-direction:column;gap:6px">
-          <a class="btn" href="Deal-Sourcing-Starter-Pack/Inverstor-Criteria-Form.html" target="_blank">📝 Investor Criteria Form</a>
-          <a class="btn" href="Deal-Sourcing-Starter-Pack/Compliance-Checklist.html" target="_blank">✅ Compliance Checklist (Article 4, HMO Licence, EPC, AML)</a>
-          <a class="btn" href="Deal-Sourcing-Starter-Pack/Fee-Agreement-Template.html" target="_blank">💷 Fee Agreement Template</a>
-          <a class="btn" href="Deal-Sourcing-Starter-Pack/Deal-Packaging-Template.html" target="_blank">📦 Deal Packaging Template (Full)</a>
+          <button class="btn" onclick="openDoc('investor')">📝 Investor Criteria Form</button>
+          <button class="btn" onclick="openDoc('compliance')">✅ Compliance Checklist (Article 4, HMO Licence, EPC, AML)</button>
+          <button class="btn" onclick="openDoc('fee')">💷 Fee Agreement Template</button>
+          <button class="btn" onclick="openDoc('pack')">📦 Deal Packaging Template (Full)</button>
         </div>
       </div>
     </div>
@@ -644,6 +695,295 @@ function generateDealPack(){
 renderRefurb();calcYield();calcBRRR();calcRent();renderInvestors();
 zones.forEach(z=>{L.polygon(z.coords,{color:'#64748b',fillColor:'#64748b',fillOpacity:0.06,weight:1,dashArray:'6,4'}).addTo(zoneLayer).bindPopup(z.name);});
 document.getElementById('fullAddress').addEventListener('keydown',e=>{if(e.key==='Enter') searchFullAddress();});
+/* ===== Deal Sourcing Starter Pack - document overlays ===== */
+function openDoc(id){
+  closeDoc();
+  var el=document.getElementById('doc-'+id);
+  if(!el){console.warn('Document not found: '+id);return;}
+  el.classList.add('open');
+  document.body.style.overflow='hidden';
+  el.scrollTop=0;
+}
+function closeDoc(){
+  var all=document.querySelectorAll('.doc-overlay.open');
+  for(var i=0;i<all.length;i++){all[i].classList.remove('open');}
+  document.body.style.overflow='';
+}
+function printDoc(){window.print();}
+function clearDoc(id){
+  var el=document.getElementById(id);
+  if(!el)return;
+  var fields=el.querySelectorAll('input,textarea');
+  for(var i=0;i<fields.length;i++){
+    if(fields[i].type==='checkbox'){fields[i].checked=false;}else{fields[i].value='';}
+  }
+  el.scrollTop=0;
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDoc();});
 </script>
+
+<div class="doc-overlay" id="doc-investor" onclick="if(event.target===this)closeDoc()">
+  <div class="doc-sheet">
+    <div class="doc-head">
+      <div><h3>📝 Investor criteria form</h3><p>Fill this in with a new investor before you send them anything. It defines their buying box, so every deal you pass on afterwards either matches or it doesn't.</p></div>
+      <button class="doc-close" onclick="closeDoc()" title="Close">&times;</button>
+    </div>
+    <div class="doc-meta"><span>Form 01 of 04</span><span>Completed by sourcer</span><span>Review every 6 months</span></div>
+    <section><h4>Investor details</h4><div class="doc-grid">
+<div class="doc-f"><label for="ic_n">Full name <span class="rq">*</span></label><input id="ic_n" type="text"></div><div class="doc-f"><label for="ic_co">Company / SPV</label><input id="ic_co" type="text"></div><div class="doc-f"><label for="ic_em">Email <span class="rq">*</span></label><input id="ic_em" type="email"></div><div class="doc-f"><label for="ic_ph">Phone <span class="rq">*</span></label><input id="ic_ph" type="tel"></div><div class="doc-f"><label for="ic_ad">Correspondence address</label><input id="ic_ad" type="text"></div><div class="doc-f"><label for="ic_src">How they found you</label><input id="ic_src" type="text" placeholder="Referral, social, event"></div></div></section>
+
+    <section><h4>Experience</h4>
+    <p class="doc-hint">This changes how much hand-holding a deal needs. A first-timer buying an auction refurb needs far more from you than a landlord on their ninth property.</p>
+    <div class="doc-grid"><div class="doc-f"><label for="ic_own">Properties owned</label><input id="ic_own" type="number"></div><div class="doc-f"><label for="ic_yrs">Years investing</label><input id="ic_yrs" type="number"></div><div class="doc-f"><label for="ic_done">Strategies done before</label><input id="ic_done" type="text" placeholder="BTL, BRRR, flip, HMO, none yet"></div><div class="doc-f"><label for="ic_hands">Hands-on or passive</label><input id="ic_hands" type="text" placeholder="Manages own refurbs / wants turnkey"></div></div></section>
+
+    <section><h4>Buying box</h4><div class="doc-grid"><div class="doc-f"><label for="ic_st">Strategy wanted <span class="rq">*</span></label><input id="ic_st" type="text" placeholder="BTL, BRRR, flip, HMO, R2SA"></div><div class="doc-f"><label for="ic_ar">Target areas</label><input id="ic_ar" type="text" placeholder="DN15 Town, DN16 Ashby, DN17 Gunness"></div><div class="doc-f"><label for="ic_bmin">Budget min £</label><input id="ic_bmin" type="number"></div><div class="doc-f"><label for="ic_bmax">Budget max £ <span class="rq">*</span></label><input id="ic_bmax" type="number"></div><div class="doc-f"><label for="ic_yld">Min gross yield %</label><input id="ic_yld" type="number"></div><div class="doc-f"><label for="ic_roi">Min cash-on-cash ROI %</label><input id="ic_roi" type="number"></div><div class="doc-f"><label for="ic_beds">Bedrooms wanted</label><input id="ic_beds" type="text" placeholder="2-4"></div><div class="doc-f"><label for="ic_ref">Refurb appetite</label><input id="ic_ref" type="text" placeholder="Turnkey / light cosmetic / full"></div></div>
+    <h5>Hard exclusions</h5><div class="doc-grid one"><div class="doc-f"><label for="ic_no">Anything they will not buy, whatever the numbers</label><textarea id="ic_no" placeholder="No flats, no ex-local authority, no short lease, no Article 4 zones, no structural work"></textarea></div></div></section>
+
+    <section><h4>Funding</h4>
+    <p class="doc-hint">Get this straight before you pass a deal. An investor who needs a mortgage cannot buy at a 28-day auction completion, and knowing that upfront saves you sourcing the wrong stock for them.</p>
+    <div class="doc-grid"><div class="doc-f"><label for="ic_fund">Funding method <span class="rq">*</span></label><input id="ic_fund" type="text" placeholder="Cash, BTL mortgage, bridging, JV"></div><div class="doc-f"><label for="ic_cash">Cash available now £</label><input id="ic_cash" type="number"></div><div class="doc-f"><label for="ic_brok">Broker name &amp; contact</label><input id="ic_brok" type="text"></div><div class="doc-f"><label for="ic_sol">Solicitor name &amp; contact</label><input id="ic_sol" type="text"></div><div class="doc-f"><label for="ic_aip">Agreement in principle</label><input id="ic_aip" type="text" placeholder="Yes / no / expires"></div><div class="doc-f"><label for="ic_spd">How fast they complete</label><input id="ic_spd" type="text" placeholder="28 days / 8 weeks / 12 weeks"></div></div></section>
+
+    <section><h4>Verification before you send any deal</h4>
+    <div class="alert alert-amber" style="margin-bottom:10px"><b>Do not skip this.</b> Sourcing to an unverified buyer is where sourcers lose money and pick up compliance problems. Proof of funds and ID on file before a deal leaves your hands.</div>
+    <ul class="doc-check"><li><input type="checkbox" id="ic_v1"><span><label for="ic_v1"><b>Proof of funds seen and dated</b></label><small>Bank statement, mortgage agreement in principle, or solicitor's confirmation. Dated within the last 30 days.</small></span></li><li><input type="checkbox" id="ic_v2"><span><label for="ic_v2"><b>Photo ID and proof of address collected</b></label><small>Passport or driving licence, plus a utility bill or bank statement under three months old. Required for your AML file.</small></span></li><li><input type="checkbox" id="ic_v3"><span><label for="ic_v3"><b>Fee agreement signed and returned</b></label><small>Signed before you disclose a specific address. See the Fee Agreement Template in this pack.</small></span></li><li><input type="checkbox" id="ic_v4"><span><label for="ic_v4"><b>Criteria confirmed back in writing</b></label><small>Email a summary of this form and get a reply agreeing it. Stops disputes about what they said they wanted.</small></span></li></ul></section>
+
+    <section><h4>Sourcer notes</h4><div class="doc-grid one"><div class="doc-f"><label for="ic_notes">Anything worth remembering about this investor</label><textarea id="ic_notes" placeholder="Decision speed, who else signs off, past deals shown and why they passed"></textarea></div></div>
+    <div class="doc-grid" style="margin-top:9px"><div class="doc-f"><label for="ic_dt">Date completed</label><input id="ic_dt" type="date"></div><div class="doc-f"><label for="ic_by">Completed by</label><input id="ic_by" type="text"></div></div></section>
+
+    <div class="doc-actions">
+      <button class="btn btn-blue" onclick="printDoc()">🖨️ Print / save as PDF</button>
+      <button class="btn" onclick="clearDoc('doc-investor')">Clear fields</button>
+      <button class="btn" onclick="closeDoc()">Close</button>
+    </div>
+    <div class="doc-foot">Nothing typed here is saved or sent anywhere — it stays in your browser until you print it or reload the page. Print to PDF and store the completed copy with that investor's file.</div>
+  </div>
+</div>
+<div class="doc-overlay" id="doc-compliance" onclick="if(event.target===this)closeDoc()">
+  <div class="doc-sheet">
+    <div class="doc-head">
+      <div><h3>✅ Compliance checklist</h3><p>Two jobs in one document: check the property is legally lettable, and check your own sourcing business is legally allowed to charge a fee for finding it.</p></div>
+      <button class="doc-close" onclick="closeDoc()" title="Close">&times;</button>
+    </div>
+    <div class="doc-meta"><span>Form 02 of 04</span><span>Per deal + annual review</span><span>England &amp; North Lincolnshire</span></div>
+    <div class="alert alert-red" style="margin-bottom:16px"><b>Start here if you are new to sourcing.</b> Section A is about your business, not the property. Taking a sourcing fee without redress scheme membership, ICO registration and AML supervision in place can mean a fine and an unenforceable fee agreement.</div>
+
+    <section><h4>A. Your sourcing business &mdash; before any fee</h4><ul class="doc-check"><li><input type="checkbox" id="cc_a1"><span><label for="cc_a1"><b>Property redress scheme membership</b></label><small>Property sourcing counts as estate agency work, so membership of a government-approved redress scheme is a legal requirement. Join the Property Redress Scheme or The Property Ombudsman.</small></span></li><li><input type="checkbox" id="cc_a2"><span><label for="cc_a2"><b>ICO data protection registration</b></label><small>You are holding investors' ID documents and financial information, so you must register with the Information Commissioner's Office and pay the annual fee.</small></span></li><li><input type="checkbox" id="cc_a3"><span><label for="cc_a3"><b>Anti-money-laundering supervision</b></label><small>Estate agency businesses must register for AML supervision with HMRC and carry out customer due diligence. Confirm current scope directly with HMRC.</small></span></li><li><input type="checkbox" id="cc_a4"><span><label for="cc_a4"><b>Client money protection, if you hold client money</b></label><small>If reservation fees pass through your account you need a CMP scheme. The cleanest route for a new sourcer is to never hold client money — funds go direct to the solicitor.</small></span></li><li><input type="checkbox" id="cc_a5"><span><label for="cc_a5"><b>Professional indemnity insurance in force</b></label><small>Covers you if an investor claims your figures caused them a loss. Check the policy names property sourcing as a covered activity.</small></span></li><li><input type="checkbox" id="cc_a6"><span><label for="cc_a6"><b>Written fee agreement issued and signed</b></label><small>Signed before you disclose the property address. Use the Fee Agreement Template in this pack and have a solicitor review it.</small></span></li><li><input type="checkbox" id="cc_a7"><span><label for="cc_a7"><b>Business structure and tax registration sorted</b></label><small>Sole trader or limited company, registered with HMRC, separate business bank account. Sourcing fees are trading income, not capital gains.</small></span></li></ul></section>
+
+    <section><h4>B. Article 4 direction</h4>
+    <p class="doc-hint">An Article 4 direction removes permitted development rights, so a change from family home to small shared house needs full planning permission rather than happening automatically. This kills HMO conversion deals if you miss it.</p>
+    <ul class="doc-check"><li><input type="checkbox" id="cc_b1"><span><label for="cc_b1"><b>Article 4 status checked for this exact address</b></label><small>Check with North Lincolnshire Council directly rather than relying on a map layer or a previous deal in the same street — boundaries can run mid-road.</small></span></li><li><input type="checkbox" id="cc_b2"><span><label for="cc_b2"><b>Confirmed in writing, with date and source</b></label><small>Save the council response or planning portal page as a PDF for the deal file. A screenshot with no date is worthless in a dispute.</small></span></li><li><input type="checkbox" id="cc_b3"><span><label for="cc_b3"><b>If inside Article 4 — planning route priced and timed</b></label><small>Application cost, decision timescale, and a realistic view on approval odds. If the deal only works as an HMO and planning is uncertain, say so plainly in the deal pack.</small></span></li><li><input type="checkbox" id="cc_b4"><span><label for="cc_b4"><b>Existing lawful use established</b></label><small>If the property is already a lawful HMO, get evidence. A Certificate of Lawfulness is the strongest proof.</small></span></li></ul></section>
+
+    <section><h4>C. HMO licensing</h4><ul class="doc-check"><li><input type="checkbox" id="cc_c1"><span><label for="cc_c1"><b>Mandatory licensing threshold assessed</b></label><small>Mandatory HMO licensing applies across England to properties occupied by five or more people forming two or more households sharing facilities. Confirm the current test before relying on it.</small></span></li><li><input type="checkbox" id="cc_c2"><span><label for="cc_c2"><b>Additional or selective licensing checked locally</b></label><small>Councils can extend licensing to smaller HMOs or all rented property in designated areas. Ask North Lincolnshire Council whether any designation covers this address.</small></span></li><li><input type="checkbox" id="cc_c3"><span><label for="cc_c3"><b>Room sizes and amenity standards measured</b></label><small>Licensed HMOs have minimum sleeping room sizes and required facility ratios. Measure rather than estimate — a room that fails takes a bedroom out of your rent model.</small></span></li><li><input type="checkbox" id="cc_c4"><span><label for="cc_c4"><b>Licence cost and duration in the numbers</b></label><small>Application fee, renewal period, and any works the council requires as a licence condition.</small></span></li><li><input type="checkbox" id="cc_c5"><span><label for="cc_c5"><b>Fire safety requirements scoped</b></label><small>Interlinked alarms, fire doors, emergency lighting, escape routes. On a full HMO conversion this is a material cost, not a rounding error.</small></span></li><li><input type="checkbox" id="cc_c6"><span><label for="cc_c6"><b>Planning use class confirmed alongside the licence</b></label><small>A licence is not planning permission. Both are needed, and one being in place says nothing about the other.</small></span></li></ul></section>
+
+    <section><h4>D. EPC and property condition</h4><ul class="doc-check"><li><input type="checkbox" id="cc_d1"><span><label for="cc_d1"><b>Current EPC obtained and rating recorded</b></label><small>Look it up on the national EPC register. Note the expiry date as well as the band.</small></span></li><li><input type="checkbox" id="cc_d2"><span><label for="cc_d2"><b>Minimum energy efficiency standard met</b></label><small>Rented domestic property in England and Wales currently needs at least band E to be let, subject to exemptions. Tightening has been consulted on, so check the current and announced future requirement before modelling a long hold.</small></span></li><li><input type="checkbox" id="cc_d3"><span><label for="cc_d3"><b>Cost of reaching target band in refurb budget</b></label><small>Read the EPC's own recommendations. Insulation, heating and glazing upgrades on older terraced stock run to thousands and are often missing from a first-pass refurb figure.</small></span></li><li><input type="checkbox" id="cc_d4"><span><label for="cc_d4"><b>Gas and electrical safety position understood</b></label><small>Annual gas safety check, and an electrical installation condition report at least every five years. Budget a rewire if the consumer unit and wiring look original.</small></span></li><li><input type="checkbox" id="cc_d5"><span><label for="cc_d5"><b>Survey commissioned where risk justifies it</b></label><small>On auction stock or anything with visible movement, damp or roof problems, a survey costs far less than the structural work it finds.</small></span></li></ul></section>
+
+    <section><h4>E. Anti-money-laundering file</h4>
+    <p class="doc-hint">Keep these for every investor you transact with, in a form you could hand to a supervisor without reconstructing anything.</p>
+    <ul class="doc-check"><li><input type="checkbox" id="cc_e1"><span><label for="cc_e1"><b>Identity verified from original documents</b></label><small>Photo ID plus proof of address. Record what you saw, when, and how you verified it.</small></span></li><li><input type="checkbox" id="cc_e2"><span><label for="cc_e2"><b>Company ownership traced where an SPV buys</b></label><small>Identify the beneficial owners behind the company, not just the named director on the Companies House record.</small></span></li><li><input type="checkbox" id="cc_e3"><span><label for="cc_e3"><b>Source of funds established and documented</b></label><small>Where the money actually came from — not just that it exists. Savings, refinance, sale proceeds, inheritance, third-party investment.</small></span></li><li><input type="checkbox" id="cc_e4"><span><label for="cc_e4"><b>Sanctions and PEP screening carried out</b></label><small>Screen against the UK sanctions list and check for politically exposed person status.</small></span></li><li><input type="checkbox" id="cc_e5"><span><label for="cc_e5"><b>Risk assessment recorded for this client</b></label><small>A short written rationale for low, medium or high risk, and what extra checks a higher rating triggered.</small></span></li><li><input type="checkbox" id="cc_e6"><span><label for="cc_e6"><b>Records retained for the required period</b></label><small>Kept securely, consistent with what you told the investor in your privacy notice.</small></span></li></ul></section>
+
+    <section><h4>F. Sign-off</h4>
+    <table><thead><tr><th>Section</th><th>Status</th><th>Checked by</th><th>Date</th></tr></thead><tbody>
+      <tr><td>A &mdash; Sourcing business</td><td class="doc-blank">pass / fail</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td></tr>
+      <tr><td>B &mdash; Article 4</td><td class="doc-blank">pass / fail / n&#47;a</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td></tr>
+      <tr><td>C &mdash; HMO licensing</td><td class="doc-blank">pass / fail / n&#47;a</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td></tr>
+      <tr><td>D &mdash; EPC and condition</td><td class="doc-blank">pass / fail</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td></tr>
+      <tr><td>E &mdash; AML file</td><td class="doc-blank">pass / fail</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td></tr>
+    </tbody></table>
+    <div class="doc-grid"><div class="doc-f"><label for="cc_prop">Property address</label><input id="cc_prop" type="text"></div><div class="doc-f"><label for="cc_sg">Overall decision</label><input id="cc_sg" type="text" placeholder="Proceed / hold / pass"></div></div></section>
+
+    <div class="doc-actions">
+      <button class="btn btn-blue" onclick="printDoc()">🖨️ Print / save as PDF</button>
+      <button class="btn" onclick="clearDoc('doc-compliance')">Clear fields</button>
+      <button class="btn" onclick="closeDoc()">Close</button>
+    </div>
+    <div class="doc-foot">A working prompt list, not legal advice, and rules in all five sections change. Verify every requirement against the current position with North Lincolnshire Council, HMRC, the ICO and your redress scheme, and take advice from a solicitor before relying on it for a transaction.</div>
+  </div>
+</div>
+<div class="doc-overlay" id="doc-fee" onclick="if(event.target===this)closeDoc()">
+  <div class="doc-sheet">
+    <div class="doc-head">
+      <div><h3>💷 Sourcing fee agreement</h3><p>A starting structure for the agreement between you and an investor: what you're being paid for, when the fee becomes due, and what happens if the deal falls through.</p></div>
+      <button class="doc-close" onclick="closeDoc()" title="Close">&times;</button>
+    </div>
+    <div class="doc-meta"><span>Form 03 of 04</span><span>Signed before address disclosure</span><span>Draft — solicitor review needed</span></div>
+    <div class="alert alert-red" style="margin-bottom:16px"><b>This is a template, not a contract to use as-is.</b> It is not legal advice and has not been drafted for your circumstances. Have a solicitor review and adapt it before you issue it. An agreement that gets the fee trigger or cancellation terms wrong is the single most expensive mistake a new sourcer can make.</div>
+
+    <section><h4>Parties</h4><div class="doc-grid"><div class="doc-f"><label for="fa_s1">Sourcer name / trading name</label><input id="fa_s1" type="text"></div><div class="doc-f"><label for="fa_s2">Sourcer company number</label><input id="fa_s2" type="text"></div><div class="doc-f"><label for="fa_s3">Sourcer registered address</label><input id="fa_s3" type="text"></div><div class="doc-f"><label for="fa_s4">Redress scheme &amp; membership no.</label><input id="fa_s4" type="text"></div><div class="doc-f"><label for="fa_i1">Investor name</label><input id="fa_i1" type="text"></div><div class="doc-f"><label for="fa_i2">Investor company / SPV</label><input id="fa_i2" type="text"></div><div class="doc-f"><label for="fa_i3">Investor address</label><input id="fa_i3" type="text"></div><div class="doc-f"><label for="fa_dt">Agreement date</label><input id="fa_dt" type="date"></div></div></section>
+
+    <section><h4>Commercial terms</h4><div class="doc-grid"><div class="doc-f"><label for="fa_fee">Sourcing fee £</label><input id="fa_fee" type="number"></div><div class="doc-f"><label for="fa_vat">VAT position</label><input id="fa_vat" type="text" placeholder="Plus VAT / not applicable"></div><div class="doc-f"><label for="fa_res">Reservation fee £</label><input id="fa_res" type="number"></div><div class="doc-f"><label for="fa_term">Agreement term</label><input id="fa_term" type="text" placeholder="12 months from the date above"></div></div></section>
+
+    <section><h4>Clauses</h4>
+
+    <h5>1. What the sourcer is providing</h5>
+    <p class="doc-clause"><b class="no">1.1</b> The Sourcer will identify and introduce property investment opportunities to the Investor that reasonably match the criteria the Investor has confirmed in writing.</p>
+    <p class="doc-clause"><b class="no">1.2</b> The Sourcer will provide, for each opportunity introduced, the information set out in the deal pack: property details, the financial appraisal and its assumptions, comparable evidence relied on, and known compliance considerations.</p>
+    <p class="doc-clause"><b class="no">1.3</b> The Sourcer acts as an introducer. The Sourcer does not act as the Investor's agent in negotiating or completing the purchase, and does not handle the Investor's purchase funds.</p>
+
+    <h5>2. What the sourcer is not providing</h5>
+    <p class="doc-clause"><b class="no">2.1</b> The Sourcer is not providing financial advice, investment advice, tax advice, legal advice, or a valuation or survey of any property.</p>
+    <p class="doc-clause"><b class="no">2.2</b> Figures in any appraisal are estimates based on assumptions stated at the time. Rental values, resale values, refurbishment costs, interest rates and tax treatment can all change, and actual returns may differ materially from any projection.</p>
+    <p class="doc-clause"><b class="no">2.3</b> The Investor is responsible for their own due diligence, including survey, legal title review, and verification of all figures, before committing to any purchase.</p>
+
+    <h5>3. When the fee becomes payable</h5>
+    <div class="alert alert-amber" style="margin-bottom:11px"><b>Decide this deliberately.</b> Fee on exchange is the more defensible position, because the Investor is legally committed at that point. Fee on offer-accepted is more likely to be disputed if the deal later collapses. Pick one and delete the other.</div>
+    <p class="doc-clause"><b class="no">3.1</b> The sourcing fee of <span class="doc-fill">&nbsp;</span> becomes payable on exchange of contracts on a property introduced by the Sourcer, and is due within <span class="doc-fill">&nbsp;</span> days of exchange.</p>
+    <p class="doc-clause"><b class="no">3.2</b> Any reservation fee paid at the point of reserving a deal is <span class="doc-fill">&nbsp;</span> (refundable / non-refundable / deducted from the sourcing fee on completion). The circumstances in which it is returned are set out at clause 5.</p>
+    <p class="doc-clause"><b class="no">3.3</b> Only one sourcing fee is payable per property, regardless of how many parties connected to the Investor complete the purchase.</p>
+
+    <h5>4. Introduction and non-circumvention</h5>
+    <p class="doc-clause"><b class="no">4.1</b> A property is treated as introduced when the Sourcer first discloses its address to the Investor in writing, unless the Investor can show they were already actively pursuing that specific property and evidences this within <span class="doc-fill">&nbsp;</span> working days of disclosure.</p>
+    <p class="doc-clause"><b class="no">4.2</b> The Investor will not, for <span class="doc-fill">&nbsp;</span> months from the date of introduction, acquire an introduced property through another party in order to avoid the fee. This includes acquisition by a company, family member, or associate of the Investor.</p>
+    <p class="doc-clause"><b class="no">4.3</b> The Investor will keep details of introduced properties confidential and will not pass them to third parties without the Sourcer's written consent.</p>
+
+    <h5>5. Cancellation and refunds</h5>
+    <p class="doc-clause"><b class="no">5.1</b> If the seller withdraws, or the purchase cannot proceed for reasons outside the Investor's control, any reservation fee held is returned within <span class="doc-fill">&nbsp;</span> days and no sourcing fee is payable.</p>
+    <p class="doc-clause"><b class="no">5.2</b> If the Investor withdraws after reserving a deal, the reservation fee is treated as set out at clause 3.2.</p>
+    <p class="doc-clause"><b class="no">5.3</b> Where the Investor is an individual entering this agreement outside their business, statutory cancellation rights may apply to contracts agreed away from the Sourcer's premises. Take advice on whether this applies to your arrangement.</p>
+
+    <h5>6. Liability</h5>
+    <p class="doc-clause"><b class="no">6.1</b> The Sourcer's total liability under this agreement is limited to the sourcing fee actually paid in respect of the property in question.</p>
+    <p class="doc-clause"><b class="no">6.2</b> Nothing in this agreement limits liability for death or personal injury caused by negligence, for fraud or fraudulent misrepresentation, or for anything else that cannot lawfully be limited.</p>
+
+    <h5>7. Complaints and redress</h5>
+    <p class="doc-clause"><b class="no">7.1</b> Complaints should be made in writing to the Sourcer, who will acknowledge within <span class="doc-fill">&nbsp;</span> working days and respond in full within <span class="doc-fill">&nbsp;</span> working days.</p>
+    <p class="doc-clause"><b class="no">7.2</b> If the complaint is not resolved, the Investor may refer it to the Sourcer's redress scheme, named above.</p>
+
+    <h5>8. Data protection</h5>
+    <p class="doc-clause"><b class="no">8.1</b> The Sourcer processes the Investor's personal data, including identity and financial information, to provide these services and meet anti-money-laundering obligations. Handling and retention are set out in the Sourcer's privacy notice.</p>
+
+    <h5>9. General</h5>
+    <p class="doc-clause"><b class="no">9.1</b> This agreement is governed by the law of England and Wales and those courts have exclusive jurisdiction.</p>
+    <p class="doc-clause"><b class="no">9.2</b> This agreement is the entire agreement between the parties in respect of its subject matter and replaces any earlier discussion or representation.</p>
+    <p class="doc-clause"><b class="no">9.3</b> Any variation must be agreed in writing and signed by both parties.</p>
+    </section>
+
+    <section><h4>Signatures</h4><div class="doc-sigs">
+      <div><div class="doc-sigline"></div><div class="doc-sig">Sourcer &mdash; signature, name, date</div></div>
+      <div><div class="doc-sigline"></div><div class="doc-sig">Investor &mdash; signature, name, date</div></div>
+    </div></section>
+
+    <div class="doc-actions">
+      <button class="btn btn-blue" onclick="printDoc()">🖨️ Print / save as PDF</button>
+      <button class="btn" onclick="clearDoc('doc-fee')">Clear fields</button>
+      <button class="btn" onclick="closeDoc()">Close</button>
+    </div>
+    <div class="doc-foot">Template wording only, provided as a drafting starting point. It is not legal advice and creates no solicitor-client relationship. Have a qualified solicitor review and adapt the whole document, particularly the fee trigger, non-circumvention period and cancellation terms, before issuing it to an investor.</div>
+  </div>
+</div>
+<div class="doc-overlay" id="doc-pack" onclick="if(event.target===this)closeDoc()">
+  <div class="doc-sheet">
+    <div class="doc-head">
+      <div><h3>📦 Deal packaging template</h3><p>The full manual version of the deal pack. Use this when building a pack by hand, or to check the auto-generated one hasn't left a gap.</p></div>
+      <button class="doc-close" onclick="closeDoc()" title="Close">&times;</button>
+    </div>
+    <div class="doc-meta"><span>Form 04 of 04</span><span>One per property</span><span>Issue after fee agreement signed</span></div>
+    <section><h4>1. Headline</h4>
+    <p class="doc-hint">The first page an investor sees. If these six numbers don't hold up, nothing after them matters.</p>
+    <div class="doc-grid"><div class="doc-f"><label for="dp_h1">Property address</label><input id="dp_h1" type="text"></div><div class="doc-f"><label for="dp_h2">Postcode &amp; zone</label><input id="dp_h2" type="text" placeholder="DN16 - Ashby"></div><div class="doc-f"><label for="dp_h3">Strategy</label><input id="dp_h3" type="text" placeholder="BTL / BRRR / flip / HMO"></div><div class="doc-f"><label for="dp_h4">Purchase price £</label><input id="dp_h4" type="number"></div><div class="doc-f"><label for="dp_h5">Total cash required £</label><input id="dp_h5" type="number"></div><div class="doc-f"><label for="dp_h6">Projected return</label><input id="dp_h6" type="text" placeholder="Yield % / ROI % / profit £"></div></div></section>
+
+    <section><h4>2. The property</h4><div class="doc-grid"><div class="doc-f"><label for="dp_p1">Type</label><input id="dp_p1" type="text" placeholder="3-bed mid-terrace"></div><div class="doc-f"><label for="dp_p2">Tenure</label><input id="dp_p2" type="text" placeholder="Freehold / leasehold - years left"></div><div class="doc-f"><label for="dp_p3">Approximate build era</label><input id="dp_p3" type="text"></div><div class="doc-f"><label for="dp_p4">Current condition</label><input id="dp_p4" type="text" placeholder="Tenanted / vacant / uninhabitable"></div><div class="doc-f"><label for="dp_p5">EPC band &amp; expiry</label><input id="dp_p5" type="text"></div><div class="doc-f"><label for="dp_p6">Council tax band</label><input id="dp_p6" type="text"></div></div>
+    <div class="doc-grid one" style="margin-top:9px"><div class="doc-f"><label for="dp_p7">Why this property, in plain terms</label><textarea id="dp_p7" placeholder="Below-market price, motivated seller, strong rental road, uplift potential"></textarea></div></div></section>
+
+    <section><h4>3. Purchase costs</h4>
+    <table><thead><tr><th>Item</th><th>Basis</th><th>Amount</th></tr></thead><tbody>
+      <tr><td>Purchase price</td><td>Agreed / guide</td><td class="n">£</td></tr>
+      <tr><td>Deposit</td><td>% LTV</td><td class="n">£</td></tr>
+      <tr><td>Stamp duty</td><td>Banded, additional property rates</td><td class="n">£</td></tr>
+      <tr><td>Legal fees</td><td>Quote or estimate</td><td class="n">£</td></tr>
+      <tr><td>Survey</td><td>Level and provider</td><td class="n">£</td></tr>
+      <tr><td>Broker / lender fees</td><td>Arrangement + valuation</td><td class="n">£</td></tr>
+      <tr><td>Auction fees</td><td>If applicable</td><td class="n">£</td></tr>
+      <tr><td>Sourcing fee</td><td>Per fee agreement</td><td class="n">£</td></tr>
+      <tr><td><b>Total acquisition cost</b></td><td></td><td class="n">£</td></tr>
+    </tbody></table>
+    <div class="alert alert-amber">Calculate stamp duty through the bands rather than applying one flat rate to the whole price, and state the basis you used. Getting this wrong understates the investor's cash requirement and is the error most likely to be caught.</div>
+    </section>
+
+    <section><h4>4. Refurbishment</h4>
+    <table><thead><tr><th>Work</th><th>Scope note</th><th>Cost</th></tr></thead><tbody>
+      <tr><td>Structural / roof</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Damp and timber</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Rewire</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Plumbing and heating</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Kitchen</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Bathroom</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Windows and doors</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Insulation / EPC works</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Plastering and decoration</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Flooring</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Garden and externals</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td>Contingency</td><td>10-15% on refurb subtotal</td><td class="n">£</td></tr>
+      <tr><td><b>Total refurb</b></td><td></td><td class="n">£</td></tr>
+    </tbody></table>
+    <div class="doc-grid"><div class="doc-f"><label for="dp_r1">Quote source</label><input id="dp_r1" type="text" placeholder="Builder quote / estimate / £ per sq ft"></div><div class="doc-f"><label for="dp_r2">Estimated duration</label><input id="dp_r2" type="text" placeholder="8-10 weeks"></div></div></section>
+
+    <section><h4>5. Income and return</h4>
+    <table><thead><tr><th>Line</th><th>Monthly</th><th>Annual</th></tr></thead><tbody>
+      <tr><td>Rent</td><td class="n">£</td><td class="n">£</td></tr>
+      <tr><td>Mortgage interest</td><td class="n">£</td><td class="n">£</td></tr>
+      <tr><td>Letting and management</td><td class="n">£</td><td class="n">£</td></tr>
+      <tr><td>Insurance</td><td class="n">£</td><td class="n">£</td></tr>
+      <tr><td>Void allowance</td><td class="n">£</td><td class="n">£</td></tr>
+      <tr><td>Maintenance allowance</td><td class="n">£</td><td class="n">£</td></tr>
+      <tr><td>Licensing / compliance</td><td class="n">£</td><td class="n">£</td></tr>
+      <tr><td><b>Net cashflow</b></td><td class="n">£</td><td class="n">£</td></tr>
+    </tbody></table>
+    <div class="doc-grid"><div class="doc-f"><label for="dp_y1">Gross yield %</label><input id="dp_y1" type="number"></div><div class="doc-f"><label for="dp_y2">Net yield %</label><input id="dp_y2" type="number"></div><div class="doc-f"><label for="dp_y3">Cash-on-cash ROI %</label><input id="dp_y3" type="number"></div><div class="doc-f"><label for="dp_y4">Post-refurb valuation £</label><input id="dp_y4" type="number"></div></div>
+    <p class="doc-hint" style="margin-top:9px">Say explicitly which return basis you're quoting. Cash-on-cash ROI excludes capital growth and mortgage capital repayment, and an investor comparing it against a total-return figure elsewhere will think your deal is worse than it is.</p>
+    </section>
+
+    <section><h4>6. BRRR refinance, if applicable</h4>
+    <table><thead><tr><th>Stage</th><th>Detail</th><th>Amount</th></tr></thead><tbody>
+      <tr><td>Post-refurb value</td><td>Comparable evidence</td><td class="n">£</td></tr>
+      <tr><td>Refinance LTV</td><td>%</td><td class="n">£</td></tr>
+      <tr><td>New mortgage</td><td>Rate and product</td><td class="n">£</td></tr>
+      <tr><td>Bridging redeemed</td><td></td><td class="n">£</td></tr>
+      <tr><td>Refinance costs</td><td>Arrangement, valuation, legal</td><td class="n">£</td></tr>
+      <tr><td>Cash released</td><td></td><td class="n">£</td></tr>
+      <tr><td><b>Cash left in deal</b></td><td></td><td class="n">£</td></tr>
+    </tbody></table>
+    <p class="doc-hint">State the lender seasoning assumption you've used. Most mainstream lenders want six months' ownership before lending against an uplifted value, which sets the earliest realistic refinance date.</p>
+    </section>
+
+    <section><h4>7. Comparable evidence</h4>
+    <h5>Rental comparables</h5>
+    <table><thead><tr><th>Address</th><th>Beds / type</th><th>Condition</th><th>Rent pcm</th></tr></thead><tbody>
+      <tr><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+    </tbody></table>
+    <h5>Sold comparables for the valuation</h5>
+    <table><thead><tr><th>Address</th><th>Sold date</th><th>Condition</th><th>Price</th></tr></thead><tbody>
+      <tr><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+      <tr><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td><td class="n">£</td></tr>
+    </tbody></table>
+    <p class="doc-hint">Use sold prices rather than asking prices, from the same road or an equivalent one, and match the condition to your projected finish. A comparable in better condition than your post-refurb spec inflates the valuation and undermines the whole pack.</p>
+    </section>
+
+    <section><h4>8. Compliance summary</h4>
+    <table><thead><tr><th>Item</th><th>Position</th><th>Evidence held</th></tr></thead><tbody>
+      <tr><td>Article 4 direction</td><td class="doc-blank">In / out / n&#47;a</td><td class="doc-blank">&mdash;</td></tr>
+      <tr><td>HMO licensing</td><td class="doc-blank">Required / not required</td><td class="doc-blank">&mdash;</td></tr>
+      <tr><td>Planning use class</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td></tr>
+      <tr><td>EPC and minimum standard</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td></tr>
+      <tr><td>Known title issues</td><td class="doc-blank">&mdash;</td><td class="doc-blank">&mdash;</td></tr>
+    </tbody></table>
+    <p class="doc-hint">Cross-reference the completed compliance checklist and attach it. An investor's solicitor will find anything you've glossed over, and later is worse than now.</p>
+    </section>
+
+    <section><h4>9. Risks</h4><div class="doc-grid one"><div class="doc-f"><label for="dp_rk">What could go wrong, and what it would cost</label><textarea id="dp_rk" placeholder="Name the real ones: refurb overrun, void risk, valuation under, rate movement, licensing conditions. A pack with no risks section reads as a sales sheet, not an appraisal."></textarea></div></div></section>
+
+    <section><h4>10. Next steps and attachments</h4><ul class="doc-check"><li><input type="checkbox" id="dp_n1"><span><label for="dp_n1"><b>Photographs, internal and external</b></label><small>Including the problems, not only the good rooms.</small></span></li><li><input type="checkbox" id="dp_n2"><span><label for="dp_n2"><b>Floorplan and measurements</b></label><small>Essential where room sizes affect licensing or rent.</small></span></li><li><input type="checkbox" id="dp_n3"><span><label for="dp_n3"><b>EPC certificate</b></label><small>The full certificate, including its recommendations page.</small></span></li><li><input type="checkbox" id="dp_n4"><span><label for="dp_n4"><b>Comparable evidence exports</b></label><small>Source and date visible on each one.</small></span></li><li><input type="checkbox" id="dp_n5"><span><label for="dp_n5"><b>Completed compliance checklist</b></label><small>Signed and dated.</small></span></li><li><input type="checkbox" id="dp_n6"><span><label for="dp_n6"><b>Refurb quote or costed schedule</b></label><small>A builder quote carries far more weight than an estimate.</small></span></li><li><input type="checkbox" id="dp_n7"><span><label for="dp_n7"><b>Auction legal pack, if applicable</b></label><small>Flag anything in it that changes the numbers.</small></span></li></ul>
+    <div class="doc-grid" style="margin-top:9px"><div class="doc-f"><label for="dp_x1">Prepared by</label><input id="dp_x1" type="text"></div><div class="doc-f"><label for="dp_x2">Date prepared</label><input id="dp_x2" type="date"></div><div class="doc-f"><label for="dp_x3">Figures valid until</label><input id="dp_x3" type="date"></div><div class="doc-f"><label for="dp_x4">Contact for questions</label><input id="dp_x4" type="text"></div></div></section>
+
+    <div class="doc-actions">
+      <button class="btn btn-blue" onclick="printDoc()">🖨️ Print / save as PDF</button>
+      <button class="btn" onclick="clearDoc('doc-pack')">Clear fields</button>
+      <button class="btn" onclick="closeDoc()">Close</button>
+    </div>
+    <div class="doc-foot">Every figure in a completed pack is an estimate based on stated assumptions, and should be presented that way. Make clear that the investor must carry out their own due diligence, survey and legal review, and that projected returns are not guaranteed.</div>
+  </div>
+</div>
 </body>
 </html>
