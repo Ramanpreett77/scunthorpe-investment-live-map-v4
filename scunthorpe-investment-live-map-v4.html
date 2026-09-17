@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scunthorpe V4 - Article 4 Checker + HMO Density + Yield/BRRR Calculators + Deal Pack</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,Segoe UI,Roboto,sans-serif;background:#0f172a;color:#e2e8f0}
+header{position:sticky;top:0;z-index:2000;background:#0f172a;border-bottom:1px solid #334155}
+.top-bar{display:flex;gap:10px;padding:10px 14px;align-items:center;flex-wrap:wrap;background:linear-gradient(90deg,#1e293b,#0f172a)}
+.top-bar h1{font-size:13px;white-space:nowrap} .top-bar h1 span{color:#38bdf8}
+.addr-box{flex:1;display:flex;gap:8px;min-width:300px}
+.addr-box input{flex:1;padding:11px 14px;border-radius:10px;border:1px solid #334155;background:#020617;color:#fff;font-size:13px}
+.addr-box button{padding:11px 16px;border-radius:10px;border:none;background:#38bdf8;color:#000;font-weight:800;cursor:pointer}
+.chip{padding:5px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid #334155;background:#1e293b;color:#cbd5e1;cursor:pointer}
+.chip:hover{background:#334155}
+.container{display:flex;height:calc(100vh - 58px)}
+.left{width:380px;background:#fff;color:#0f172a;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+.center{flex:1;position:relative}
+#map{width:100%;height:100%}
+.right{width:420px;background:#f8fafc;color:#0f172a;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;border-left:1px solid #e2e8f0}
+h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;margin-bottom:4px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px}
+.card-dark{background:#0f172a;color:#fff;border:1px solid #334155;border-radius:12px;padding:12px}
+.badge{padding:2px 7px;border-radius:12px;font-size:10px;font-weight:800;display:inline-block}
+.badge-red{background:#dc2626;color:#fff}.badge-amber{background:#f59e0b;color:#000}.badge-green{background:#16a34a;color:#fff}.badge-blue{background:#2563eb;color:#fff}.badge-dark{background:#0f172a;color:#fff}
+.tag{display:inline-block;padding:2px 6px;border-radius:10px;font-size:10px;border:1px solid #e2e8f0;margin:2px;background:#fff}
+.tag-road{background:#0f172a;color:#fff}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.kpi div{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px;text-align:center}
+.kpi b{display:block;font-size:14px}
+.kpi span{font-size:10px;color:#64748b}
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.input-group{display:flex;flex-direction:column;gap:3px}
+.input-group label{font-size:10px;color:#475569;font-weight:600}
+.input-group input,.input-group select{padding:7px 9px;border:1px solid #cbd5e1;border-radius:8px;font-size:12px}
+.output{background:#f1f5f9;border:1px dashed #cbd5e1;border-radius:8px;padding:8px;font-size:12px;margin-top:6px}
+.output b{color:#0f172a}
+.tabs{display:flex;gap:5px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;flex-wrap:wrap}
+.tab{padding:6px 10px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid #e2e8f0;background:#fff}
+.tab.active{background:#0f172a;color:#fff}
+.result-item{padding:7px 9px;background:#f8fafc;border-radius:8px;margin-bottom:5px;font-size:11px;cursor:pointer;border:1px solid transparent}
+.result-item:hover{background:#eef2ff;border-color:#c7d2fe}
+.demand-bar{height:6px;background:#e2e8f0;border-radius:10px;overflow:hidden;margin:4px 0}
+.demand-fill{height:100%;border-radius:10px}
+.btn{padding:7px 12px;border-radius:20px;border:1px solid #cbd5e1;background:#fff;font-size:11px;cursor:pointer;font-weight:700}
+.btn-primary{background:#0f172a;color:#fff;border-color:#0f172a}
+.btn-blue{background:#2563eb;color:#fff;border-color:#2563eb}
+.btn-red{background:#dc2626;color:#fff;border-color:#dc2626}
+.legend{background:#fff;padding:8px 10px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:10px;color:#0f172a}
+.legend i{width:10px;height:10px;display:inline-block;margin-right:5px;border-radius:2px}
+.alert{padding:8px 10px;border-radius:8px;font-size:11px;border:1px solid}
+.alert-red{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.alert-amber{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.alert-green{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+@media(max-width:1200px){.container{flex-direction:column;height:auto}.left,.right{width:100%}.center{height:60vh}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top-bar">
+    <h1>V4 🏠 Scunthorpe <span>Article 4 + HMO Density + Yield/BRRR + Deal Pack</span></h1>
+    <div class="addr-box">
+      <input id="fullAddress" placeholder="Full address + postcode e.g. 66 Digby Street DN15 7LU or DN15 6DB" />
+      <button onclick="searchFullAddress()">🔍 Find Property & Analyse</button>
+    </div>
+    <div style="display:flex;gap:6px">
+      <span class="chip" onclick="quickSearch('Digby Road DN15 6DB')">Digby Rd</span>
+      <span class="chip" onclick="quickSearch('Frodingham Road DN15 7SE')">Frodingham</span>
+      <span class="chip" onclick="quickSearch('Ashby High Street DN16 2JR')">Ashby</span>
+      <span class="chip" onclick="quickSearch('Bottesford Road DN16 3DA')">Bottesford</span>
+      <span class="chip" onclick="quickSearch('Gunness DN17 3DW')">Gunness</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="left">
+    <div id="propertyHero" class="card-dark" style="display:none">Search an address to start</div>
+
+    <div id="article4Card" class="card" style="display:none"></div>
+    <div id="hmoDensityCard" class="card" style="display:none"></div>
+
+    <div class="card">
+      <h2>📍 500m Surrounding Analysis</h2>
+      <div id="surroundingAnalysis" style="font-size:11px;color:#475569">Search an address to see surrounding HMO density, nearby deals, lots.</div>
+      <div class="kpi" style="margin-top:8px" id="surroundingKPI"></div>
+    </div>
+
+    <div class="card">
+      <h2>🏠 Nearby Existing HMOs / BRRR / BTL (500m)</h2>
+      <div id="nearbyExisting" style="max-height:180px;overflow:auto"></div>
+    </div>
+
+    <div class="card">
+      <h2>🏗️ Nearby Lots / Refurb (500m)</h2>
+      <div id="nearbyLots" style="max-height:120px;overflow:auto"></div>
+    </div>
+  </div>
+
+  <div class="center">
+    <div id="map"></div>
+  </div>
+
+  <div class="right">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('calc')" id="tab-calc">Yield / BRRR / Refurb</div>
+      <div class="tab" onclick="switchTab('comps')" id="tab-comps">Rent & GDV Comps</div>
+      <div class="tab" onclick="switchTab('live')" id="tab-live">Live View</div>
+      <div class="tab" onclick="switchTab('investor')" id="tab-investor">Investor Match</div>
+      <div class="tab" onclick="switchTab('dealpack')" id="tab-dealpack">Deal Pack</div>
+    </div>
+
+    <!-- CALCULATORS TAB -->
+    <div id="panel-calc">
+      <div class="card">
+        <h2>💰 Accurate Yield Calculator (Single Let / HMO)</h2>
+        <div class="input-grid">
+          <div class="input-group"><label>Purchase Price £</label><input id="yc_purchase" type="number" value="85000" oninput="calcYield()"></div>
+          <div class="input-group"><label>Refurb Cost £ (from refurb calc)</label><input id="yc_refurb" type="number" value="15000" oninput="calcYield()"></div>
+          <div class="input-group"><label>SDLT £</label><input id="yc_sdlt" type="number" value="0" oninput="calcYield()"></div>
+          <div class="input-group"><label>Legal + Sourcing £</label><input id="yc_fees" type="number" value="3500" oninput="calcYield()"></div>
+          <div class="input-group"><label>Monthly Rent £</label><input id="yc_rent" type="number" value="750" oninput="calcYield()"></div>
+          <div class="input-group"><label>Management %</label><input id="yc_mgmt" type="number" value="10" oninput="calcYield()"></div>
+          <div class="input-group"><label>Void %</label><input id="yc_void" type="number" value="8" oninput="calcYield()"></div>
+          <div class="input-group"><label>Maintenance %</label><input id="yc_maint" type="number" value="5" oninput="calcYield()"></div>
+          <div class="input-group"><label>Insurance Annual £</label><input id="yc_ins" type="number" value="300" oninput="calcYield()"></div>
+          <div class="input-group"><label>Mortgage Interest Annual % (0 if cash)</label><input id="yc_mortRate" type="number" value="0" oninput="calcYield()"></div>
+          <div class="input-group"><label>Mortgage Amount £</label><input id="yc_mortAmt" type="number" value="0" oninput="calcYield()"></div>
+        </div>
+        <div id="yc_output" class="output"></div>
+      </div>
+
+      <div class="card">
+        <h2>🔨 Refurb Calculator (Itemised)</h2>
+        <div id="refurbList" style="font-size:11px"></div>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <input id="refurbCustomName" placeholder="Custom item" style="flex:1;padding:6px;border:1px solid #cbd5e1;border-radius:6px;font-size:11px">
+          <input id="refurbCustomCost" type="number" placeholder="£" style="width:80px;padding:6px;border:1px solid #cbd5e1;border-radius:6px;font-size:11px">
+          <button class="btn" onclick="addRefurbCustom()">+ Add</button>
+        </div>
+        <div id="refurbTotal" class="output"></div>
+      </div>
+
+      <div class="card">
+        <h2>♻️ BRRR Calculator - Buy Refurb Refinance Rent</h2>
+        <div class="input-grid">
+          <div class="input-group"><label>Purchase £</label><input id="br_purchase" type="number" value="85000" oninput="calcBRRR()"></div>
+          <div class="input-group"><label>Refurb £</label><input id="br_refurb" type="number" value="15000" oninput="calcBRRR()"></div>
+          <div class="input-group"><label>Other Costs £ (SDLT+fees)</label><input id="br_other" type="number" value="3500" oninput="calcBRRR()"></div>
+          <div class="input-group"><label>Post Refurb GDV £ (from comps)</label><input id="br_gdv" type="number" value="125000" oninput="calcBRRR()"></div>
+          <div class="input-group"><label>Refinance LTV %</label><input id="br_ltv" type="number" value="75" oninput="calcBRRR()"></div>
+          <div class="input-group"><label>New Mortgage Rate %</label><input id="br_rate" type="number" value="5.5" oninput="calcBRRR()"></div>
+          <div class="input-group"><label>Monthly Rent Post Refurb £</label><input id="br_rent" type="number" value="850" oninput="calcBRRR()"></div>
+        </div>
+        <div id="br_output" class="output"></div>
+      </div>
+
+      <div class="card">
+        <h2>🏠 Rent Calculator - Estimate</h2>
+        <div class="input-grid">
+          <div class="input-group"><label>Bedrooms</label><select id="rent_beds" onchange="calcRent()"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></div>
+          <div class="input-group"><label>Strategy</label><select id="rent_strat" onchange="calcRent()"><option>Single Let</option><option selected>HMO Room</option><option>HMO Whole</option><option>SA / R2SA</option></select></div>
+          <div class="input-group"><label>Area</label><select id="rent_area" onchange="calcRent()"><option>Town / Crosby (DN15)</option><option>Frodingham (DN15)</option><option>Ashby / Bottesford (DN16)</option><option>Gunness / Burringham (DN17)</option></select></div>
+        </div>
+        <div id="rent_output" class="output"></div>
+      </div>
+    </div>
+
+    <!-- COMPS TAB -->
+    <div id="panel-comps" style="display:none">
+      <div class="card">
+        <h2>💷 Rent Comps (for this zone)</h2>
+        <div id="rentComps" style="font-size:11px"></div>
+      </div>
+      <div class="card">
+        <h2>🏡 Post Refurb GDV Comps - Sold Prices (for this zone)</h2>
+        <div id="gdvComps" style="font-size:11px"></div>
+      </div>
+    </div>
+
+    <!-- LIVE VIEW TAB -->
+    <div id="panel-live" style="display:none">
+      <div class="card">
+        <h2>🔗 Live Property View Links</h2>
+        <div id="liveViewPanel" style="font-size:11px">Search address to generate links</div>
+      </div>
+      <div class="card">
+        <h2>🗺️ Ward / DN / Zone</h2>
+        <div id="zoneInfo" style="font-size:11px">No property selected</div>
+      </div>
+      <div class="card">
+        <h2>📊 Demand Scores</h2>
+        <div id="demandScores" style="font-size:11px"></div>
+      </div>
+      <div class="card">
+        <h2>🖼️ Area Pics for This Road</h2>
+        <div id="areaPics" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
+      </div>
+    </div>
+
+    <!-- INVESTOR MATCH TAB -->
+    <div id="panel-investor" style="display:none">
+      <div class="card">
+        <h2>🎯 Investor Matching Engine</h2>
+        <div style="font-size:11px;color:#475569;margin-bottom:6px">Based on your searched property zone, strategy, price, yield - shows which investors in your list match.</div>
+        <div id="investorList"></div>
+      </div>
+      <div class="card">
+        <h2>➕ Add Investor Criteria (for matching)</h2>
+        <div class="input-grid">
+          <div class="input-group"><label>Investor Name</label><input id="inv_name" value="Investor A"></div>
+          <div class="input-group"><label>Strategy</label><select id="inv_strat"><option>HMO Small</option><option>BRRR</option><option>Buy to Rent</option><option>Flip</option><option>R2SA</option></select></div>
+          <div class="input-group"><label>Budget Min £</label><input id="inv_min" type="number" value="60000"></div>
+          <div class="input-group"><label>Budget Max £</label><input id="inv_max" type="number" value="90000"></div>
+          <div class="input-group"><label>Min Yield %</label><input id="inv_yield" type="number" value="9"></div>
+          <div class="input-group"><label>Preferred Areas (comma)</label><input id="inv_areas" value="Town, Crosby & Park, Frodingham"></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="addInvestor()">+ Add Investor</button>
+      </div>
+    </div>
+
+    <!-- DEAL PACK TAB -->
+    <div id="panel-dealpack" style="display:none">
+      <div class="card">
+        <h2>📦 Deal Packaging Template - Auto Generated</h2>
+        <div style="font-size:11px;color:#475569;margin-bottom:8px">Generates professional deal pack from current property + calculators + comps + pics. Print to PDF.</div>
+        <button class="btn btn-blue" onclick="generateDealPack()">📄 Generate Deal Pack (Preview)</button>
+        <button class="btn" onclick="window.print()">🖨️ Print to PDF</button>
+        <div id="dealPackPreview" style="margin-top:10px;border:1px solid #e2e8f0;border-radius:8px;padding:10px;background:#fff;max-height:400px;overflow:auto;font-size:11px"></div>
+      </div>
+      <div class="card">
+        <h2>📋 Deal Sourcing Starter Pack - Documents</h2>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a class="btn" href="Deal-Sourcing-Starter-Pack/Inverstor-Criteria-Form.html" target="_blank">📝 Investor Criteria Form</a>
+          <a class="btn" href="Deal-Sourcing-Starter-Pack/Compliance-Checklist.html" target="_blank">✅ Compliance Checklist (Article 4, HMO Licence, EPC, AML)</a>
+          <a class="btn" href="Deal-Sourcing-Starter-Pack/Fee-Agreement-Template.html" target="_blank">💷 Fee Agreement Template</a>
+          <a class="btn" href="Deal-Sourcing-Starter-Pack/Deal-Packaging-Template.html" target="_blank">📦 Deal Packaging Template (Full)</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const map=L.map('map').setView([53.585,-0.654],14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM | Article 4: North Lincs Council',maxZoom:19}).addTo(map);
+const zoneLayer=L.layerGroup().addTo(map);
+const existingLayer=L.layerGroup().addTo(map);
+const lotsLayer=L.layerGroup().addTo(map);
+let propertyMarker=null, radiusCircle=null;
+let lastLat=null, lastLon=null, lastPostcode='', lastZone=null, lastAddress='';
+let selectedStrategies=[];
+
+const zones=[
+  {id:'town-hmo',name:'Town Centre - HMO Core',ward:'Town',dn:'DN15',article4:true,strategies:['HMO Small','BRRR','R2SA'],houseTypes:['Terraced','Flat'],demand:{'HMO Small':10,'BRRR':9,'R2SA':8,'Buy to Rent':6,'Flip':5},avgPrice:78000,yield:10.5,coords:[[53.583,-0.665],[53.583,-0.640],[53.592,-0.640],[53.592,-0.665]],roads:['Digby Road','Oswald Road','Cottage Beck Road'],desc:'Highest HMO concentration, Town ward #1 for HMO pressure, lowest median price, high private renting. Article 4 applies.',rentComps:[{addr:'Digby St 4 bed HMO',beds:4,type:'HMO room',rent:450,total:1800},{addr:'Oswald Rd 5 bed HMO',beds:5,type:'HMO room',rent:380,total:1900},{addr:'Mary St 3 bed single let',beds:3,type:'Single',rent:650,total:650}],gdvComps:[{addr:'66 Digby St DN15 7LU',price:117000,date:'May 2024',type:'Mid terrace 45m2'},{addr:'Dale St DN15 7LR',price:70000,date:'Dec 2024',type:'2 bed terrace, 2 flats'},{addr:'Kensington Rd DN15 8BQ',price:45000,date:'2024',type:'2 bed end terrace'}]},
+  {id:'crosby-hmo',name:'Crosby & Park - Digby Road Cluster',ward:'Crosby & Park',dn:'DN15',article4:true,strategies:['HMO Small','BRRR','Buy to Rent'],houseTypes:['Terraced','Semi'],demand:{'HMO Small':9,'BRRR':8,'R2SA':6,'Buy to Rent':7,'Flip':5},avgPrice:85000,yield:10.1,coords:[[53.591,-0.682],[53.591,-0.652],[53.603,-0.652],[53.603,-0.682]],roads:['Digby Road','Digby Street','Crosby Road'],desc:'Second highest HMO density, Digby Road flagged for HMO activity. 1900-1929 terraced Band A.',rentComps:[{addr:'Digby Rd 3 bed HMO',beds:3,type:'HMO room',rent:425,total:1275},{addr:'Crosby Rd 3 bed single',beds:3,type:'Single',rent:675,total:675}],gdvComps:[{addr:'Digby St DN15 6DB',price:85000,date:'2024',type:'3 bed end terrace, tenant £750pcm'},{addr:'Digby St £110k',price:110000,date:'2024',type:'3 bed end terrace, parking potential'}]},
+  {id:'frodingham-corridor',name:'Frodingham - BRRR Corridor',ward:'Frodingham',dn:'DN15',article4:true,strategies:['HMO Small','BRRR','Buy to Rent'],houseTypes:['Terraced'],demand:{'HMO Small':8,'BRRR':9,'R2SA':5,'Buy to Rent':7,'Flip':6},avgPrice:72000,yield:9.8,coords:[[53.580,-0.645],[53.580,-0.610],[53.595,-0.610],[53.595,-0.645]],roads:['Frodingham Road','Rowland Road','Kensington Road'],desc:'Lowest entry £45k-£70k, BRRR to 2 self-contained flats.',rentComps:[{addr:'Kensington Rd 2 bed',beds:2,type:'Single',rent:550,total:550},{addr:'Rowland Rd 3 bed HMO',beds:4,type:'HMO room',rent:400,total:1600}],gdvComps:[{addr:'Kensington Rd DN15 8BQ',price:45000,date:'2024',type:'2 bed end terrace, 19% ROI'},{addr:'Dale St DN15 7LR',price:70000,date:'2024',type:'2 bed, 2 flats'}]},
+  {id:'brumby',name:'Brumby - Value BRRR',ward:'Brumby',dn:'DN15',article4:true,strategies:['BRRR','Buy to Rent','HMO Small'],houseTypes:['Terraced','Semi'],demand:{'HMO Small':7,'BRRR':8,'R2SA':4,'Buy to Rent':7,'Flip':6},avgPrice:82000,yield:9.2,coords:[[53.570,-0.645],[53.570,-0.615],[53.585,-0.615],[53.585,-0.645]],roads:['Brumby Wood Lane','Burringham Road'],desc:'4th ranked for HMO pressure, affordable BRRR.',rentComps:[{addr:'Brumby Wood Lane 3 bed',beds:3,type:'Single',rent:625,total:625}],gdvComps:[{addr:'Abercorn St DN16 1LD',price:89950,date:'2024',type:'3 bed terrace, 9% ROI'}]},
+  {id:'ashby-central',name:'Ashby Central',ward:'Ashby Central',dn:'DN16',article4:true,strategies:['HMO Small','Buy to Rent','BRRR'],houseTypes:['Terraced','Semi'],demand:{'HMO Small':6,'BRRR':6,'R2SA':5,'Buy to Rent':8,'Flip':6},avgPrice:110000,yield:7.8,coords:[[53.560,-0.702],[53.560,-0.680],[53.577,-0.680],[53.577,-0.702]],roads:['Ashby High Street','Grange Lane South'],desc:'Edge Article 4, professional small HMO if parking OK, strong BTL.',rentComps:[{addr:'Ashby High St 3 bed semi',beds:3,type:'Single',rent:725,total:725}],gdvComps:[{addr:'Southfield Rd DN16 3BT',price:135000,date:'2024',type:'3 bed, full refurb, sold £85k 2023'}]},
+  {id:'ashby-lakeside',name:'Ashby Lakeside - BTL & Flip',ward:'Ashby Lakeside',dn:'DN16',article4:true,strategies:['Buy to Rent','Flip','BRRR'],houseTypes:['Semi','Detached'],demand:{'HMO Small':3,'BRRR':6,'R2SA':4,'Buy to Rent':9,'Flip':9},avgPrice:135000,yield:6.2,coords:[[53.540,-0.712],[53.540,-0.670],[53.560,-0.670],[53.560,-0.712]],roads:['Burringham Road','Holme Hall Ave'],desc:'Family BTL, flip hotspot, low crime.',rentComps:[{addr:'Rivelin Cres 3 bed end terrace',beds:3,type:'Single',rent:750,total:750},{addr:'Holme Hall Ave 3 bed semi',beds:3,type:'Single',rent:775,total:775}],gdvComps:[{addr:'Rivelin Cres DN16 2AL',price:169950,date:'2024',type:'3 bed end terrace'},{addr:'Valley View Dr',price:125000,date:'2024',type:'2 bed end terrace'}]},
+  {id:'bottesford',name:'Bottesford - Growth',ward:'Bottesford',dn:'DN16',article4:true,strategies:['Buy to Rent','Flip','BRRR'],houseTypes:['Semi','Detached'],demand:{'HMO Small':2,'BRRR':7,'R2SA':4,'Buy to Rent':9,'Flip':8},avgPrice:145000,yield:6.0,coords:[[53.545,-0.745],[53.545,-0.710],[53.575,-0.710],[53.575,-0.745]],roads:['Bottesford Road','Moorwell Road'],desc:'Affluent village feel, capital growth.',rentComps:[{addr:'Bottesford Rd 3 bed semi',beds:3,type:'Single',rent:800,total:800}],gdvComps:[{addr:'Bottesford 3 bed semi',price:145000,date:'2024',type:'3 bed semi'}]},
+  {id:'burringham-gunness',name:'Burringham & Gunness',ward:'Burringham & Gunness',dn:'DN17',article4:true,strategies:['BRRR','Buy to Rent','Flip'],houseTypes:['Terraced','Semi'],demand:{'HMO Small':4,'BRRR':8,'R2SA':6,'Buy to Rent':6,'Flip':7},avgPrice:105000,yield:7.0,coords:[[53.603,-0.730],[53.603,-0.610],[53.635,-0.610],[53.635,-0.730]],roads:['Gunness Wharf','Burringham Road'],desc:'North bank Trent, contractor SA demand, lower competition.',rentComps:[{addr:'Gunness Wharf 2 bed SA',beds:2,type:'SA',rent:900,total:900}],gdvComps:[{addr:'Station Rd Gunness',price:105000,date:'2024',type:'Town house'}]},
+];
+
+const existingProps=[
+  {lat:53.5959,lon:-0.6576,addr:'66 Digby Street DN15 7LU',type:'HMO',strategy:'HMO Small',road:'Digby Road',price:107000,yield:10.5},
+  {lat:53.5945,lon:-0.6580,addr:'Digby Street DN15 6DB £85k',type:'BTL',strategy:'Buy to Rent',road:'Digby Road',price:85000,yield:10.5},
+  {lat:53.5965,lon:-0.6570,addr:'Digby Street £110k',type:'BRRR',strategy:'BRRR',road:'Digby Road',price:110000,yield:8},
+  {lat:53.5880,lon:-0.6480,addr:'Dale Street DN15 7LR £70k',type:'BRRR',strategy:'BRRR',road:'Frodingham',price:70000,yield:9},
+  {lat:53.5820,lon:-0.6380,addr:'Kensington Road DN15 8BQ £45k',type:'BTL',strategy:'Buy to Rent',road:'Frodingham',price:45000,yield:19},
+  {lat:53.5780,lon:-0.6450,addr:'Abercorn Street DN16 1LD £89,950',type:'BTL',strategy:'Buy to Rent',road:'Brumby',price:89950,yield:9},
+  {lat:53.5650,lon:-0.6650,addr:'Southfield Road DN16 3BT £135k',type:'BRRR',strategy:'BRRR',road:'Ashby',price:135000,yield:6},
+  {lat:53.5550,lon:-0.6750,addr:'Rivelin Crescent DN16 2AL £169k',type:'Flip',strategy:'Flip',road:'Ashby Lakeside',price:169950,yield:6.2},
+  {lat:53.6150,lon:-0.6800,addr:'Gunness Wharf SA',type:'R2SA',strategy:'R2SA',road:'Gunness',price:105000,yield:7},
+];
+
+const lots=[
+  {lat:53.5930,lon:-0.6600,addr:'Plot rear Digby Road garage',type:'Lot',strategy:'BRRR',road:'Digby Road',price:15000},
+  {lat:53.5840,lon:-0.6420,addr:'Frodingham Road vacant shop',type:'Lot',strategy:'BRRR',road:'Frodingham',price:65000},
+];
+
+let investors=[
+  {name:'Investor A - HMO Pro',strategy:'HMO Small',min:60000,max:90000,minYield:9,areas:['Town','Crosby & Park','Frodingham'],houseTypes:['Terraced']},
+  {name:'Investor B - BRRR Cash',strategy:'BRRR',min:40000,max:80000,minYield:7,areas:['Frodingham','Town','Brumby'],houseTypes:['Terraced']},
+  {name:'Investor C - Family BTL',strategy:'Buy to Rent',min:110000,max:170000,minYield:6,areas:['Ashby Lakeside','Bottesford','Ashby Central'],houseTypes:['Semi','Detached']},
+  {name:'Investor D - Flip',strategy:'Flip',min:100000,max:160000,minYield:5,areas:['Bottesford','Ashby Lakeside','Burton upon Stather & Winterton'],houseTypes:['Semi']},
+  {name:'Investor E - R2SA Contractor',strategy:'R2SA',min:90000,max:120000,minYield:6,areas:['Burringham & Gunness','Town'],houseTypes:['Terraced','Semi']},
+];
+
+let refurbItems=[
+  {name:'Full rewire',cost:2500,checked:true},
+  {name:'New boiler + heating',cost:2500,checked:true},
+  {name:'Kitchen',cost:3500,checked:true},
+  {name:'Bathroom',cost:2200,checked:true},
+  {name:'Plastering',cost:1500,checked:false},
+  {name:'Flooring + carpets',cost:1200,checked:true},
+  {name:'Windows (uPVC)',cost:2000,checked:false},
+  {name:'Roof repairs',cost:1500,checked:false},
+  {name:'External + garden',cost:800,checked:false},
+  {name:'Fire safety (HMO)',cost:1800,checked:false},
+];
+
+function haversine(lat1,lon1,lat2,lon2){const R=6371000;const dLat=(lat2-lat1)*Math.PI/180;const dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+function getZoneForPoint(lat,lon){for(const z of zones){const lats=z.coords.map(c=>c[0]),lons=z.coords.map(c=>c[1]);if(lat>=Math.min(...lats)&&lat<=Math.max(...lats)&&lon>=Math.min(...lons)&&lon<=Math.max(...lons)) return z;}return null;}
+function getDemandScore(zone){if(selectedStrategies.length===0) return Math.max(...Object.values(zone.demand));let max=0;selectedStrategies.forEach(s=>{if(zone.demand[s]) max=Math.max(max,zone.demand[s]);});return max;}
+
+function quickSearch(q){document.getElementById('fullAddress').value=q;searchFullAddress();}
+
+async function searchFullAddress(){
+  const q=document.getElementById('fullAddress').value.trim();if(!q) return;
+  document.getElementById('propertyHero').style.display='block';
+  document.getElementById('propertyHero').innerHTML='Searching actual property...';
+  try{
+    const url=`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}&addressdetails=1`;
+    const res=await fetch(url);const data=await res.json();
+    if(!data.length){document.getElementById('propertyHero').innerHTML=`<b>❌ No match for "${q}"</b><br>Try postcode DN15 6DB`;return;}
+    const item=data[0];const lat=parseFloat(item.lat),lon=parseFloat(item.lon);
+    lastLat=lat;lastLon=lon;lastPostcode=item.address?.postcode||q.match(/DN\d+\s*\w+/i)?.[0]||'';lastAddress=item.display_name;
+    const zone=getZoneForPoint(lat,lon);lastZone=zone;
+    const ward=zone?zone.ward:item.address?.suburb||'Scunthorpe';const dn=zone?zone.dn:(lastPostcode.split(' ')[0]||'DN');
+
+    if(propertyMarker) map.removeLayer(propertyMarker);
+    if(radiusCircle) map.removeLayer(radiusCircle);
+    propertyMarker=L.marker([lat,lon],{icon:L.divIcon({className:'',html:`<div style="background:#38bdf8;color:#000;padding:6px 10px;border-radius:20px;font-weight:800;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.3)">📍 ${lastPostcode||'Property'}</div>`,iconSize:[140,32]})}).addTo(map);
+    radiusCircle=L.circle([lat,lon],{radius:500,color:'#38bdf8',fillColor:'#38bdf8',fillOpacity:0.08,weight:2,dashArray:'6,6'}).addTo(map);
+    map.setView([lat,lon],16);
+    zoneLayer.clearLayers();
+    zones.forEach(z=>{const score=getDemandScore(z);const color=score>=8?'#dc2626':score>=6?'#f59e0b':'#64748b';L.polygon(z.coords,{color:color,fillColor:color,fillOpacity:0.08,weight:1}).addTo(zoneLayer);});
+    if(zone) L.polygon(zone.coords,{color:'#38bdf8',fillColor:'#38bdf8',fillOpacity:0.22,weight:3}).addTo(zoneLayer);
+
+    // Hero
+    document.getElementById('propertyHero').innerHTML=`
+      <h3>📍 ${item.display_name.split(',').slice(0,3).join(',')}</h3>
+      <div style="font-size:11px;color:#94a3b8;margin-top:6px">
+        <b>Full:</b> ${item.display_name}<br>
+        <b>Postcode:</b> ${lastPostcode} • <b>DN:</b> ${dn} • <b>Ward:</b> ${ward}<br>
+        <b>Lat/Lon:</b> ${lat.toFixed(5)}, ${lon.toFixed(5)} • <b>Zone:</b> ${zone?zone.name:'Outside core'}<br>
+        ${zone?`<b>Best for:</b> ${zone.strategies.join(', ')} • £${zone.avgPrice.toLocaleString()} avg • ${zone.yield}% yield`:''}
+      </div>
+    `;
+
+    // Article 4 checker
+    const article4Div=document.getElementById('article4Card');
+    article4Div.style.display='block';
+    const inArticle4=zone?zone.article4: (lat>=53.52&&lat<=53.67&&lon>=-0.75&&lon<=-0.48);
+    article4Div.innerHTML=inArticle4?`
+      <div class="alert alert-red"><b>🚨 ARTICLE 4 CHECKER: APPLIES</b><br>
+      This property is in <b>${ward} ward</b> - Article 4 Direction applies from <b>26 Nov 2026</b>.<br>
+      <b>Small HMO (3-6 beds) C3→C4 needs FULL PLANNING PERMISSION.</b> No permitted development.<br>
+      Large HMO 7+ already needs planning. Check North Lincs Council plan. Source: North Lincs Council Article 4.</div>
+    `:`
+      <div class="alert alert-green"><b>✅ ARTICLE 4: Does NOT Apply</b><br>Outside Scunthorpe Article 4 area - PD rights may still apply, but check council.</div>
+    `;
+
+    // HMO Density
+    const nearby=existingProps.map(p=>({...p,dist:haversine(lat,lon,p.lat,p.lon)})).filter(p=>p.dist<=500);
+    const nearby100=nearby.filter(p=>p.dist<=100).length;
+    const nearby200=nearby.filter(p=>p.dist<=200).length;
+    const nearby500=nearby.length;
+    const hmoCount=nearby.filter(p=>p.strategy==='HMO Small').length;
+    let risk='Low',color='green',msg='';
+    if(hmoCount>=4||nearby500>=5){risk='HIGH';color='red';msg='High HMO concentration - planning risk HIGH, cumulative impact likely to be cited for refusal. Need strong case (parking, amenity, high spec). But proven rental demand.';}
+    else if(hmoCount>=2||nearby500>=3){risk='MEDIUM';color='amber';msg='Moderate HMO presence - balanced. Planning possible with good design, parking, management plan.';}
+    else {risk='LOW';color='green';msg='Low HMO density - less competition, better planning case for new HMO, or good for single-let / flip.';}
+    const hmoDiv=document.getElementById('hmoDensityCard');
+    hmoDiv.style.display='block';
+    hmoDiv.innerHTML=`
+      <div class="alert alert-${color}"><b>🏘️ HMO DENSITY WARNING: ${risk} RISK</b><br>
+      Within 500m: <b>${nearby500} existing HMOs/BRRR</b> (${hmoCount} small HMOs) • Within 200m: ${nearby200} • Within 100m: ${nearby100}<br>
+      ${msg}<br>
+      <small>Evidence: Town, Crosby & Park, Frodingham highest HMO density per council. Digby Road flagged for HMO activity.</small></div>
+    `;
+
+    analyzeSurrounding(lat,lon);
+    updateLiveView(lat,lon,lastPostcode,item.display_name,ward,dn,zone);
+    updateComps(zone);
+    calcYield();calcBRRR();calcRent();
+    matchInvestors();
+    showAreaPics(zone,q);
+
+  }catch(e){document.getElementById('propertyHero').innerHTML=`Error: ${e.message}`;}
+}
+
+function analyzeSurrounding(lat,lon){
+  const nearby=existingProps.map(p=>({...p,dist:haversine(lat,lon,p.lat,p.lon)})).filter(p=>p.dist<=500).sort((a,b)=>a.dist-b.dist);
+  const nearbyLotsList=lots.map(p=>({...p,dist:haversine(lat,lon,p.lat,p.lon)})).filter(p=>p.dist<=500).sort((a,b)=>a.dist-b.dist);
+  document.getElementById('surroundingAnalysis').innerHTML=`Found <b>${nearby.length}</b> existing deals within 500m, <b>${nearbyLotsList.length}</b> lots. Nearest: ${nearby[0]?nearby[0].addr+' ('+nearby[0].dist.toFixed(0)+'m)':'none'}`;
+  document.getElementById('surroundingKPI').innerHTML=`
+    <div><b>${nearby.length}</b><span>Deals 500m</span></div>
+    <div><b>${nearbyLotsList.length}</b><span>Lots 500m</span></div>
+    <div><b>${nearby.filter(p=>p.strategy==='HMO Small').length}</b><span>Small HMOs</span></div>
+    <div><b>${nearby[0]?nearby[0].dist.toFixed(0)+'m':'—'}</b><span>Nearest</span></div>
+  `;
+  const exDiv=document.getElementById('nearbyExisting');exDiv.innerHTML='';
+  if(nearby.length===0) exDiv.innerHTML='<div style="font-size:11px;color:#64748b">No mapped deals within 500m - low competition.</div>';
+  else nearby.forEach(p=>{
+    const div=document.createElement('div');div.className='result-item';
+    div.innerHTML=`<b>${p.addr}</b> <span class="badge badge-dark">${p.dist.toFixed(0)}m</span><br><small>${p.strategy} • £${p.price} • ${p.yield}%</small>`;
+    div.onclick=()=>map.setView([p.lat,p.lon],17);
+    exDiv.appendChild(div);
+  });
+  const lotDiv=document.getElementById('nearbyLots');lotDiv.innerHTML='';
+  if(nearbyLotsList.length===0) lotDiv.innerHTML='<div style="font-size:11px;color:#64748b">No lots within 500m.</div>';
+  else nearbyLotsList.forEach(p=>{
+    const div=document.createElement('div');div.className='result-item';
+    div.innerHTML=`<b>${p.addr}</b> ${p.dist.toFixed(0)}m • £${p.price}`;
+    lotDiv.appendChild(div);
+  });
+  existingLayer.clearLayers();lotsLayer.clearLayers();
+  nearby.forEach(p=>{
+    const color=p.strategy==='HMO Small'?'#dc2626':p.strategy==='BRRR'?'#ea580c':'#2563eb';
+    L.circleMarker([p.lat,p.lon],{radius:6,color:'#fff',fillColor:color,fillOpacity:0.9,weight:2}).addTo(existingLayer).bindPopup(`${p.addr}<br>${p.dist.toFixed(0)}m`);
+  });
+  nearbyLotsList.forEach(p=>{L.marker([p.lat,p.lon],{icon:L.divIcon({className:'',html:`<div style="background:#f59e0b;color:#000;padding:2px 6px;border-radius:10px;font-size:9px;font-weight:800">LOT ${p.dist.toFixed(0)}m</div>`})}).addTo(lotsLayer);});
+}
+
+function updateLiveView(lat,lon,postcode,displayName,ward,dn,zone){
+  const encPostcode=encodeURIComponent(postcode);
+  const gsv=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`;
+  const gmaps=`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+  const osm=`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`;
+  const rm=`https://www.rightmove.co.uk/property-for-sale/find.html?searchLocation=${encPostcode}`;
+  const zoo=`https://www.zoopla.co.uk/for-sale/houses/${encPostcode?encPostcode.toLowerCase().replace(/\s+/g,'-'):''}/`;
+  const otm=`https://www.onthemarket.com/for-sale/property/${encPostcode?encPostcode.toLowerCase().replace(/\s+/g,'-'):''}/`;
+  const epc=`https://find-energy-certificate.service.gov.uk/find-a-certificate/search-by-postcode?postcode=${encPostcode}`;
+  const hmoReg=`https://www.northlincs.gov.uk/council-tax-benefits-and-housing/public-register/`;
+  document.getElementById('liveViewPanel').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <a href="${gsv}" target="_blank" style="display:block;padding:8px;background:#0f172a;color:#fff;border-radius:8px;text-align:center;text-decoration:none;font-size:11px">👁️ Street View<br><small>Actual facade</small></a>
+      <a href="${gmaps}" target="_blank" style="display:block;padding:8px;background:#1e293b;color:#fff;border-radius:8px;text-align:center;text-decoration:none;font-size:11px">🗺️ Google Maps</a>
+      <a href="${rm}" target="_blank" style="display:block;padding:8px;background:#2563eb;color:#fff;border-radius:8px;text-align:center;text-decoration:none;font-size:11px">🏠 Rightmove</a>
+      <a href="${zoo}" target="_blank" style="display:block;padding:8px;background:#7c3aed;color:#fff;border-radius:8px;text-align:center;text-decoration:none;font-size:11px">🏘️ Zoopla</a>
+      <a href="${otm}" target="_blank" style="display:block;padding:8px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;text-align:center;text-decoration:none;font-size:11px;color:#0f172a">📍 OnTheMarket</a>
+      <a href="${osm}" target="_blank" style="display:block;padding:8px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;text-align:center;text-decoration:none;font-size:11px;color:#0f172a">🧭 OSM</a>
+      <a href="${epc}" target="_blank" style="display:block;padding:8px;background:#f1f5f9;border-radius:8px;text-align:center;text-decoration:none;font-size:11px;color:#0f172a">⚡ EPC</a>
+      <a href="${hmoReg}" target="_blank" style="display:block;padding:8px;background:#fef2f2;border-radius:8px;text-align:center;text-decoration:none;font-size:11px;color:#991b1b">📋 HMO Register</a>
+    </div>
+    <div style="margin-top:8px;font-size:10px;color:#64748b">Postcode: ${postcode} • Ward: ${ward} • ${displayName}</div>
+  `;
+  document.getElementById('zoneInfo').innerHTML=zone?`<b>${zone.name}</b><br><span class="badge badge-blue">${zone.ward}</span> <span class="badge badge-dark">${zone.dn}</span><br><small>${zone.desc}</small><br><br><b>Roads:</b> ${zone.roads.join(', ')}`:`Outside core zones - Ward: ${ward}, DN: ${dn}`;
+  let demandHtml='';if(zone){Object.entries(zone.demand).forEach(([s,sc])=>{const col=sc>=8?'#dc2626':sc>=6?'#f59e0b':'#64748b';demandHtml+=`<div style="margin-bottom:4px"><div style="display:flex;justify-content:space-between;font-size:11px"><b>${s}</b><span class="badge" style="background:${col}">${sc}/10</span></div><div class="demand-bar"><div class="demand-fill" style="width:${sc*10}%;background:${col}"></div></div></div>`;});} document.getElementById('demandScores').innerHTML=demandHtml||'No zone';
+}
+
+function updateComps(zone){
+  const rentDiv=document.getElementById('rentComps');const gdvDiv=document.getElementById('gdvComps');
+  if(!zone){rentDiv.innerHTML='Search property to see rent comps';gdvDiv.innerHTML='Search property to see GDV comps';return;}
+  rentDiv.innerHTML=zone.rentComps.map(r=>`<div class="result-item"><b>${r.addr}</b> - ${r.beds} bed ${r.type}<br>Rent: <b>£${r.rent}${r.type.includes('room')?'/room':'/mo'}</b> ${r.total?'Total £'+r.total+'/mo':''}</div>`).join('');
+  gdvDiv.innerHTML=zone.gdvComps.map(g=>`<div class="result-item"><b>${g.addr}</b><br>£${g.price.toLocaleString()} • ${g.date} • ${g.type}</div>`).join('');
+}
+
+function showAreaPics(zone,q){
+  const div=document.getElementById('areaPics');div.innerHTML='';
+  let pics=[];
+  const ql=q.toLowerCase();
+  if(ql.includes('digby')) pics=['image-search/digby-road-scunthorpe-terraced-houses-1.jpg','image-search/digby-road-scunthorpe-terraced-houses-2.jpg'];
+  else if(ql.includes('frodingham')) pics=['image-search/frodingham-road-scunthorpe-street-view-1.jpg','image-search/scunthorpe-town-centre-property-1.jpg'];
+  else if(ql.includes('ashby')) pics=['image-search/ashby-high-street-scunthorpe-1.jpg','image-search/ashby-high-street-scunthorpe-2.jpg'];
+  else if(ql.includes('bottesford')) pics=['image-search/bottesford-scunthorpe-houses-semi-detach-1.jpg'];
+  else if(ql.includes('gunness')) pics=['image-search/gunness-scunthorpe-houses-1.jpg','image-search/gunness-scunthorpe-houses-2.jpg'];
+  else if(zone&&zone.id.includes('town')) pics=['image-search/digby-road-scunthorpe-terraced-houses-1.jpg','image-search/scunthorpe-town-centre-property-2.jpg'];
+  else pics=['image-search/digby-road-scunthorpe-terraced-houses-1.jpg','image-search/bottesford-scunthorpe-houses-semi-detach-1.jpg'];
+  pics.slice(0,4).forEach(src=>{const d=document.createElement('div');d.innerHTML=`<img src="${src}" style="width:100%;height:80px;object-fit:cover;border-radius:6px"><div style="font-size:9px">${src.split('/').pop()}</div>`;div.appendChild(d);});
+}
+
+// Calculators
+function calcYield(){
+  const purchase=parseFloat(document.getElementById('yc_purchase').value)||0;
+  const refurb=parseFloat(document.getElementById('yc_refurb').value)||0;
+  const sdlt=parseFloat(document.getElementById('yc_sdlt').value)||0;
+  const fees=parseFloat(document.getElementById('yc_fees').value)||0;
+  const rent=parseFloat(document.getElementById('yc_rent').value)||0;
+  const mgmt=parseFloat(document.getElementById('yc_mgmt').value)||0;
+  const voidP=parseFloat(document.getElementById('yc_void').value)||0;
+  const maint=parseFloat(document.getElementById('yc_maint').value)||0;
+  const ins=parseFloat(document.getElementById('yc_ins').value)||0;
+  const mortRate=parseFloat(document.getElementById('yc_mortRate').value)||0;
+  const mortAmt=parseFloat(document.getElementById('yc_mortAmt').value)||0;
+  const totalInvest=purchase+refurb+sdlt+fees;
+  const grossAnnual=rent*12;
+  const grossYield=totalInvest>0?(grossAnnual/totalInvest*100):0;
+  const grossYieldOnPurchase=purchase>0?(grossAnnual/purchase*100):0;
+  const mgmtCost=grossAnnual*mgmt/100;
+  const voidCost=grossAnnual*voidP/100;
+  const maintCost=grossAnnual*maint/100;
+  const mortCost=mortAmt*mortRate/100;
+  const netAnnual=grossAnnual - mgmtCost - voidCost - maintCost - ins - mortCost;
+  const netYield=totalInvest>0?(netAnnual/totalInvest*100):0;
+  const monthlyCash=netAnnual/12;
+  document.getElementById('yc_output').innerHTML=`
+    <b>Total Cash Invested:</b> £${totalInvest.toLocaleString()}<br>
+    <b>Gross Annual Rent:</b> £${grossAnnual.toLocaleString()}<br>
+    <b>Gross Yield on Total:</b> ${grossYield.toFixed(2)}% • <b>on Purchase:</b> ${grossYieldOnPurchase.toFixed(2)}%<br>
+    <b>Costs:</b> Mgmt £${mgmtCost.toFixed(0)} + Void £${voidCost.toFixed(0)} + Maint £${maintCost.toFixed(0)} + Ins £${ins} + Mortgage Int £${mortCost.toFixed(0)} = £${(mgmtCost+voidCost+maintCost+ins+mortCost).toFixed(0)}<br>
+    <b>Net Annual:</b> £${netAnnual.toFixed(0)} • <b>Net Yield:</b> ${netYield.toFixed(2)}%<br>
+    <b>Monthly Cashflow:</b> £${monthlyCash.toFixed(0)}
+  `;
+}
+function renderRefurb(){
+  const div=document.getElementById('refurbList');div.innerHTML='';
+  refurbItems.forEach((item,i)=>{
+    const row=document.createElement('div');row.style.display='flex';row.style.justifyContent='space-between';row.style.alignItems='center';row.style.padding='4px 0';row.style.borderBottom='1px solid #f1f5f9';
+    row.innerHTML=`<label style="display:flex;gap:6px;align-items:center;font-size:11px"><input type="checkbox" ${item.checked?'checked':''} onchange="toggleRefurb(${i},this.checked)"> ${item.name}</label><span style="display:flex;gap:6px;align-items:center"><input type="number" value="${item.cost}" style="width:80px;padding:4px;border:1px solid #cbd5e1;border-radius:6px;font-size:11px" oninput="updateRefurbCost(${i},this.value)"> <button onclick="removeRefurb(${i})" style="border:none;background:#fef2f2;color:#dc2626;padding:2px 6px;border-radius:10px;cursor:pointer">x</button></span>`;
+    div.appendChild(row);
+  });
+  const total=refurbItems.filter(it=>it.checked).reduce((s,it)=>s+it.cost,0);
+  document.getElementById('refurbTotal').innerHTML=`<b>Total Refurb (checked):</b> £${total.toLocaleString()} <button class="btn" style="margin-left:8px" onclick="applyRefurbToCalcs()">Apply to Yield/BRRR</button>`;
+  document.getElementById('yc_refurb').value=total;
+  document.getElementById('br_refurb').value=total;
+}
+function toggleRefurb(i,checked){refurbItems[i].checked=checked;renderRefurb();calcYield();calcBRRR();}
+function updateRefurbCost(i,val){refurbItems[i].cost=parseFloat(val)||0;renderRefurb();calcYield();calcBRRR();}
+function removeRefurb(i){refurbItems.splice(i,1);renderRefurb();calcYield();calcBRRR();}
+function addRefurbCustom(){const name=document.getElementById('refurbCustomName').value||'Custom';const cost=parseFloat(document.getElementById('refurbCustomCost').value)||0;refurbItems.push({name,cost,checked:true});document.getElementById('refurbCustomName').value='';document.getElementById('refurbCustomCost').value='';renderRefurb();calcYield();calcBRRR();}
+function applyRefurbToCalcs(){calcYield();calcBRRR();}
+function calcBRRR(){
+  const purchase=parseFloat(document.getElementById('br_purchase').value)||0;
+  const refurb=parseFloat(document.getElementById('br_refurb').value)||0;
+  const other=parseFloat(document.getElementById('br_other').value)||0;
+  const gdv=parseFloat(document.getElementById('br_gdv').value)||0;
+  const ltv=parseFloat(document.getElementById('br_ltv').value)||0;
+  const rate=parseFloat(document.getElementById('br_rate').value)||0;
+  const rent=parseFloat(document.getElementById('br_rent').value)||0;
+  const totalInitial=purchase+refurb+other;
+  const newMortgage=gdv*ltv/100;
+  const moneyLeft=totalInitial - newMortgage;
+  const moneyOut= moneyLeft<0 ? -moneyLeft : 0;
+  const equity=gdv - newMortgage;
+  const monthlyMort=newMortgage*rate/100/12;
+  const monthlyCash=rent - monthlyMort - (rent*0.18); // approx 18% costs
+  const annualCash=monthlyCash*12;
+  const roi= moneyLeft>0 ? (annualCash/moneyLeft*100) : 999;
+  document.getElementById('br_output').innerHTML=`
+    <b>Total Initial Invest:</b> £${totalInitial.toLocaleString()} (Purchase £${purchase.toLocaleString()} + Refurb £${refurb.toLocaleString()} + Other £${other.toLocaleString()})<br>
+    <b>Post Refurb GDV:</b> £${gdv.toLocaleString()}<br>
+    <b>New Mortgage (${ltv}% LTV):</b> £${newMortgage.toLocaleString()}<br>
+    <b>Money Left In:</b> £${moneyLeft.toLocaleString()} ${moneyLeft<=0?'<span class="badge badge-green">£'+moneyOut.toLocaleString()+' OUT - Infinite ROI</span>':'<span class="badge badge-amber">Money left in deal</span>'}<br>
+    <b>Equity Left:</b> £${equity.toLocaleString()}<br>
+    <b>Monthly Mortgage (interest):</b> £${monthlyMort.toFixed(0)} at ${rate}%<br>
+    <b>Monthly Rent:</b> £${rent} • <b>Monthly Cashflow after mortgage & 18% costs:</b> £${monthlyCash.toFixed(0)}<br>
+    <b>Annual Cashflow:</b> £${annualCash.toFixed(0)} • <b>ROI on money left:</b> ${roi>=999?'Infinite (money out)':roi.toFixed(1)+'%'}
+  `;
+}
+function calcRent(){
+  const beds=parseInt(document.getElementById('rent_beds').value);
+  const strat=document.getElementById('rent_strat').value;
+  const area=document.getElementById('rent_area').value;
+  let base=0;
+  if(area.includes('Town / Crosby')) base=strat==='Single Let'?650:strat==='HMO Room'?425:strat==='HMO Whole'?1600:900;
+  else if(area.includes('Frodingham')) base=strat==='Single Let'?550:strat==='HMO Room'?400:strat==='HMO Whole'?1400:800;
+  else if(area.includes('Ashby')) base=strat==='Single Let'?725:strat==='HMO Room'?450:strat==='HMO Whole'?1700:850;
+  else if(area.includes('Gunness')) base=strat==='Single Let'?600:strat==='HMO Room'?400:strat==='HMO Whole'?1500:900;
+  // adjust by beds
+  let total=base;
+  if(strat==='HMO Room') total=base*beds;
+  else if(strat==='Single Let'||strat==='SA / R2SA') total=base + (beds-3)*75;
+  else if(strat==='HMO Whole') total=base + (beds-4)*150;
+  document.getElementById('rent_output').innerHTML=`<b>Estimated ${strat} Rent for ${beds} bed in ${area}:</b> £${total.toFixed(0)}/mo ${strat==='HMO Room'?'(£'+base+'/room)':''}<br><small>Based on rent comps: Digby Rd 4 bed £1800, Crosby 3 bed £675, Ashby 3 bed semi £725-£800, Gunness SA £900. Adjust for condition, parking, en-suite.</small>`;
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.getElementById('panel-calc').style.display=t==='calc'?'block':'none';
+  document.getElementById('panel-comps').style.display=t==='comps'?'block':'none';
+  document.getElementById('panel-live').style.display=t==='live'?'block':'none';
+  document.getElementById('panel-investor').style.display=t==='investor'?'block':'none';
+  document.getElementById('panel-dealpack').style.display=t==='dealpack'?'block':'none';
+}
+
+// Investor matching
+function renderInvestors(){
+  const div=document.getElementById('investorList');div.innerHTML='';
+  investors.forEach((inv,i)=>{
+    const d=document.createElement('div');d.className='card';d.style.marginBottom='6px';
+    d.innerHTML=`<b>${inv.name}</b> <span class="badge badge-blue">${inv.strategy}</span><br><small>Budget £${inv.min.toLocaleString()}-£${inv.max.toLocaleString()} • Min Yield ${inv.minYield}% • Areas: ${inv.areas.join(', ')} • Types: ${inv.houseTypes.join(', ')}</small><br><button class="btn" style="margin-top:4px" onclick="removeInvestor(${i})">Remove</button>`;
+    div.appendChild(d);
+  });
+}
+function addInvestor(){
+  const name=document.getElementById('inv_name').value||'Investor';
+  const strat=document.getElementById('inv_strat').value;
+  const min=parseFloat(document.getElementById('inv_min').value)||0;
+  const max=parseFloat(document.getElementById('inv_max').value)||0;
+  const minYield=parseFloat(document.getElementById('inv_yield').value)||0;
+  const areas=document.getElementById('inv_areas').value.split(',').map(s=>s.trim()).filter(s=>s);
+  investors.push({name,strategy:strat,min,max,minYield,areas,houseTypes:['Terraced','Semi']});
+  renderInvestors();matchInvestors();
+}
+function removeInvestor(i){investors.splice(i,1);renderInvestors();matchInvestors();}
+function matchInvestors(){
+  if(!lastZone) return;
+  const div=document.getElementById('investorList');
+  // re-render with match status
+  div.innerHTML='';
+  const purchase=parseFloat(document.getElementById('yc_purchase').value)||lastZone.avgPrice;
+  const yieldVal=lastZone.yield;
+  investors.forEach((inv,i)=>{
+    const strategyMatch=inv.strategy===lastZone.strategies[0]||lastZone.strategies.includes(inv.strategy);
+    const budgetMatch=purchase>=inv.min&&purchase<=inv.max;
+    const areaMatch=inv.areas.some(a=>lastZone.ward.toLowerCase().includes(a.toLowerCase())||lastZone.name.toLowerCase().includes(a.toLowerCase())||a.toLowerCase().includes(lastZone.ward.toLowerCase()));
+    const yieldMatch=yieldVal>=inv.minYield;
+    const score=(strategyMatch?1:0)+(budgetMatch?1:0)+(areaMatch?1:0)+(yieldMatch?1:0);
+    const match=score>=3;
+    const d=document.createElement('div');d.className='card';d.style.borderColor=match?'#16a34a':'#e2e8f0';d.style.background=match?'#f0fdf4':'#fff';
+    d.innerHTML=`<div style="display:flex;justify-content:space-between"><b>${inv.name}</b><span class="badge ${match?'badge-green':'badge-amber'}">${match?'MATCH '+score+'/4':'No Match '+score+'/4'}</span></div>
+      <small>${inv.strategy} • £${inv.min.toLocaleString()}-£${inv.max.toLocaleString()} • Min ${inv.minYield}% • ${inv.areas.join(', ')}</small><br>
+      <small style="color:${strategyMatch?'#16a34a':'#dc2626'}">Strategy ${strategyMatch?'✓':'✗'}</small> <small style="color:${budgetMatch?'#16a34a':'#dc2626'}">Budget ${budgetMatch?'✓':'✗'}</small> <small style="color:${areaMatch?'#16a34a':'#dc2626'}">Area ${areaMatch?'✓':'✗'}</small> <small style="color:${yieldMatch?'#16a34a':'#dc2626'}">Yield ${yieldMatch?'✓':'✗'}</small>
+    `;
+    div.appendChild(d);
+  });
+}
+
+function generateDealPack(){
+  if(!lastLat){alert('Search a property first');return;}
+  const purchase=document.getElementById('yc_purchase').value;
+  const refurb=document.getElementById('yc_refurb').value;
+  const rent=document.getElementById('yc_rent').value;
+  const gdv=document.getElementById('br_gdv').value;
+  const zone=lastZone;
+  const html=`
+    <h2 style="color:#0f172a">Scunthorpe Deal Pack - ${lastAddress}</h2>
+    <p><b>Address:</b> ${lastAddress}<br><b>Postcode:</b> ${lastPostcode} • <b>Ward:</b> ${zone?zone.ward:'-'} • <b>DN:</b> ${zone?zone.dn:'-'} • <b>Lat/Lon:</b> ${lastLat.toFixed(5)}, ${lastLon.toFixed(5)}</p>
+    <p><b>Article 4:</b> ${zone&&zone.article4?'APPLIES - Planning required for small HMO from 26 Nov 2026':'Does not apply'} • <b>HMO Density:</b> See map - ${existingProps.filter(p=>haversine(lastLat,lastLon,p.lat,p.lon)<=500).length} deals within 500m</p>
+    <h3>Investment Summary</h3>
+    <p>Purchase £${purchase} + Refurb £${refurb} = Total £${(parseFloat(purchase)+parseFloat(refurb)).toLocaleString()} • GDV £${gdv} • Rent £${rent}/mo • Zone Avg Yield ${zone?zone.yield+'%':''} • Best for ${zone?zone.strategies.join(', '):''}</p>
+    <h3>Calculators</h3>
+    <div>${document.getElementById('yc_output').innerHTML}</div>
+    <div>${document.getElementById('br_output').innerHTML}</div>
+    <h3>Rent Comps</h3><div>${document.getElementById('rentComps').innerHTML}</div>
+    <h3>GDV Comps</h3><div>${document.getElementById('gdvComps').innerHTML}</div>
+    <h3>Live Links</h3><p>Rightmove, Zoopla, Street View, EPC, HMO Register - see Live View tab</p>
+    <p style="font-size:10px;color:#64748b">Generated by Scunthorpe V4 Live Map - For professional investors only - Not financial advice - Do own due diligence, check planning, HMO licence, EPC.</p>
+  `;
+  document.getElementById('dealPackPreview').innerHTML=html;
+  const w=window.open('','_blank');w.document.write('<html><head><title>Deal Pack - '+lastAddress+'</title><style>body{font-family:Arial;padding:20px} h2{color:#0f172a} .result-item{border:1px solid #e2e8f0;padding:6px;margin:4px 0;border-radius:6px}</style></head><body>'+html+'<script>window.print()</script></body></html>');w.document.close();
+}
+
+// Init
+renderRefurb();calcYield();calcBRRR();calcRent();renderInvestors();
+zones.forEach(z=>{L.polygon(z.coords,{color:'#64748b',fillColor:'#64748b',fillOpacity:0.06,weight:1,dashArray:'6,4'}).addTo(zoneLayer).bindPopup(z.name);});
+document.getElementById('fullAddress').addEventListener('keydown',e=>{if(e.key==='Enter') searchFullAddress();});
+</script>
+</body>
+</html>
