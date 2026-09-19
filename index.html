@@ -13,6 +13,8 @@ header{position:sticky;top:0;z-index:2000;background:#0f172a;border-bottom:1px s
 .top-bar{display:flex;gap:10px;padding:10px 14px;align-items:center;flex-wrap:wrap;background:linear-gradient(90deg,#1e293b,#0f172a)}
 .top-bar h1{font-size:13px;white-space:nowrap} .top-bar h1 span{color:#38bdf8}
 .addr-box{flex:1;display:flex;gap:8px;min-width:300px}
+@media(max-width:640px){.top-bar h1{white-space:normal}.addr-box{min-width:0;width:100%;flex-wrap:wrap}.addr-box input{min-width:0}.top-bar>div[style*="display:flex"]{flex-wrap:wrap;max-width:100%}html,body{overflow-x:hidden}}
+
 .addr-box input{flex:1;padding:11px 14px;border-radius:10px;border:1px solid #334155;background:#020617;color:#fff;font-size:13px}
 .addr-box button{padding:11px 16px;border-radius:10px;border:none;background:#38bdf8;color:#000;font-weight:800;cursor:pointer}
 .chip{padding:5px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid #334155;background:#1e293b;color:#cbd5e1;cursor:pointer}
@@ -313,7 +315,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <div class="card">
         <h2>📋 Deal Sourcing Starter Pack - Documents</h2>
         <div style="display:flex;flex-direction:column;gap:6px">
-          <a class="btn" href="Deal-Sourcing-Starter-Pack/Inverstor-Criteria-Form.html" target="_blank">📝 Investor Criteria Form</a>
+          <a class="btn" href="Deal-Sourcing-Starter-Pack/Investor-Criteria-Form.html" target="_blank">📝 Investor Criteria Form</a>
           <a class="btn" href="Deal-Sourcing-Starter-Pack/Compliance-Checklist.html" target="_blank">✅ Compliance Checklist (Article 4, HMO Licence, EPC, AML)</a>
           <a class="btn" href="Deal-Sourcing-Starter-Pack/Fee-Agreement-Template.html" target="_blank">💷 Fee Agreement Template</a>
           <a class="btn" href="Deal-Sourcing-Starter-Pack/Deal-Packaging-Template.html" target="_blank">📦 Deal Packaging Template (Full)</a>
@@ -619,7 +621,7 @@ function showAreaPics(zone,q){
   else if(ql.includes('gunness')) pics=['image-search/gunness-scunthorpe-houses-1.jpg','image-search/gunness-scunthorpe-houses-2.jpg'];
   else if(zone&&zone.id.includes('town')) pics=['image-search/digby-road-scunthorpe-terraced-houses-1.jpg','image-search/scunthorpe-town-centre-property-2.jpg'];
   else pics=['image-search/digby-road-scunthorpe-terraced-houses-1.jpg','image-search/bottesford-scunthorpe-houses-semi-detach-1.jpg'];
-  pics.slice(0,4).forEach(src=>{const d=document.createElement('div');d.innerHTML=`<img src="${src}" onerror="this.parentElement.style.display='none'" style="width:100%;height:80px;object-fit:cover;border-radius:6px"><div style="font-size:9px">${src.split('/').pop()}</div>`;div.appendChild(d);});
+  pics.slice(0,4).forEach(src=>{const d=document.createElement('div');d.innerHTML=`<img src="${src}" onerror="this.outerHTML='<div style=&quot;height:80px;border-radius:6px;background:#f1f5f9;border:1px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:10px;color:#64748b;text-align:center;padding:4px&quot;>📷 Photo coming soon</div>'" style="width:100%;height:80px;object-fit:cover;border-radius:6px"><div style="font-size:9px">${src.split('/').pop()}</div>`;div.appendChild(d);});
 }
 
 // Calculators
@@ -811,7 +813,7 @@ async function fetchHPI(){
     if(!it)throw new Error('no data');
     const [y,m]=String(it.refMonth).split('-');
     const monthName=new Date(y,m-1,1).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
-    const row=(label,price,chg)=>'<div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:2px 0"><span>'+label+'</span><span><b>£'+Number(price||0).toLocaleString()+'</b> <span style="color:'+(chg>=0?'#16a34a':'#dc2626')+'">'+(chg!=null?(chg>=0?'+':'')+chg+'%':'')+'</span></span></div>';
+    const row=(label,price,chg)=>'<div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:2px 0"><span>'+label+'</span><span><b>'+(price!=null&&price!==''?'£'+Number(price).toLocaleString():'n/a')+'</b> <span style="color:'+(chg>=0?'#16a34a':'#dc2626')+'">'+(chg!=null?(chg>=0?'+':'')+chg+'%':'')+'</span></span></div>';
     div.innerHTML=
      row('All property types',it.averagePrice,it.percentageAnnualChange)+
      row('Terraced',it.averagePriceTerraced,it.percentageAnnualChangeTerraced)+
@@ -975,6 +977,5 @@ renderDeals();drawDealPins();updateRegCount();
 document.getElementById('footerCompliance').innerHTML=complianceFooterHTML();
 if(window.addEventListener)window.addEventListener('hashchange',checkHash);
 checkHash();
-</script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3d977fffa0794fc',t:'MTc4OTgzMDExOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</script></body>
 </html>
