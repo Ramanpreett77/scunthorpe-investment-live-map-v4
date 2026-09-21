@@ -1,0 +1,48 @@
+name: Refresh auction stock (daily)
+
+# Scrapes Pugh + Savills Scunthorpe/DN lots and commits data/auction-stock.json.
+# Works on private repos too (free plan: 2,000 Actions minutes/month; this uses ~1-2/day).
+# Set a repository VARIABLE named SCRAPER_CONTACT (your email) under
+# Settings -> Secrets and variables -> Actions -> Variables.
+# If a source errors or is blocked, the job commits the (stale-kept) data and then
+# FAILS, so GitHub emails you instead of staying silently green.
+
+on:
+  schedule:
+    - cron: "30 6 * * *" # 06:30 UTC daily
+  workflow_dispatch: {} # manual "Run workflow" button
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auction-stock
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Run scraper
+        id: scrape
+        continue-on-error: true
+        env:
+          SCRAPER_CONTACT: ${{ vars.SCRAPER_CONTACT }}
+        run: python scripts/scrape_auctions.py
+      - name: Commit fresh stock
+        run: |
+          git config user.name "auction-stock-bot"
+          git config user.email "auction-stock-bot@users.noreply.github.com"
+          git add data/auction-stock.json
+          git diff --cached --quiet && echo "No changes" || (git commit -m "🤖 Auction stock refresh" && git push)
+      - name: Fail loudly if a source broke
+        if: steps.scrape.outcome == 'failure'
+        run: |
+          echo "::error::A source errored or was blocked - check the scraper log"
+          exit 1
