@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scunthorpe V4 - Article 4 Checker + HMO Density + Yield/BRRR Calculators + Deal Pack</title>
+<title>Scunthorpe V5 - Article 4 Checker + HMO Density + Yield/BRRR + Deal Pack + Legal Pack Finder</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -77,12 +77,30 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
 .compliance{margin-top:10px;padding:8px;background:#0f172a;color:#cbd5e1;border-radius:8px;font-size:9px;line-height:1.5}
 .reg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .reg-note{display:none;background:#ecfdf5;border:1px solid #16a34a;color:#065f46;border-radius:8px;padding:6px 8px;font-size:11px;margin-bottom:8px}
+/* V5 legal pack finder */
+.legal-btn{display:block;padding:9px 10px;border-radius:8px;text-align:left;text-decoration:none;font-size:11px;font-weight:700;margin-bottom:6px;border:1px solid #e2e8f0;background:#fff;color:#0f172a;line-height:1.4}
+.legal-btn small{display:block;font-weight:400;color:#64748b;font-size:10px}
+.legal-btn:hover{border-color:#38bdf8;box-shadow:0 2px 8px rgba(56,189,248,.25)}
+.legal-btn-dark{background:#0f172a;color:#fff;border-color:#0f172a}
+.legal-btn-dark small{color:#94a3b8}
+.legal-btn-blue{background:#2563eb;color:#fff;border-color:#2563eb}
+.legal-btn-blue small{color:#dbeafe}
+.legal-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+@media(max-width:480px){.legal-grid{grid-template-columns:1fr}}
+.lp-check{display:flex;gap:8px;align-items:flex-start;padding:6px 8px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:5px;font-size:11px;background:#fff}
+.lp-check input{margin-top:2px}
+.lp-bar{height:8px;background:#e2e8f0;border-radius:10px;overflow:hidden;margin:6px 0}
+.lp-fill{height:100%;background:#16a34a;border-radius:10px;transition:width .3s}
+.lp-flag{padding:6px 8px;border-radius:8px;font-size:11px;margin-bottom:5px;border:1px solid}
+.lp-flag-red{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+.lp-flag-amber{background:#fffbeb;border-color:#fde68a;color:#92400e}
+.lp-flag-green{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
 </style>
 </head>
 <body>
 <header>
   <div class="top-bar">
-    <h1>V4 🏠 Scunthorpe <span>Article 4 + HMO Density + Yield/BRRR + Deal Pack</span></h1>
+    <h1>V5 🏠 Scunthorpe <span>Article 4 + HMO Density + Yield/BRRR + Deal Pack + Legal Pack</span></h1>
     <div class="addr-box">
       <input id="fullAddress" placeholder="Full address + postcode e.g. 66 Digby Street DN15 7LU or DN15 6DB" />
       <button onclick="searchFullAddress()">🔍 Find Property & Analyse</button>
@@ -95,7 +113,8 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <span class="chip" onclick="quickSearch('Gunness, Scunthorpe DN17 3DW')">Gunness</span>
       <span class="chip" style="background:#0ea5e9;color:#000;border-color:#0ea5e9;font-weight:800" onclick="openDealsPanel()">🔥 LIVE DEALS</span>
       <span class="chip" style="background:#7c3aed;color:#fff;border-color:#7c3aed" onclick="toggleHeatmap()" id="heatChip" title="Recolour zones by estimated gross yield">🌡️ Yield heat</span>
-      <span class="chip" style="background:#16a34a;color:#fff;border-color:#16a34a" title="Live data: UK HPI + Land Registry + postcodes.io — Sep 2026">v4.3</span>
+      <span class="chip" style="background:#f59e0b;color:#000;border-color:#f59e0b;font-weight:800" onclick="switchTab('legalpack');document.getElementById('panel-legalpack').scrollIntoView({behavior:'smooth'})" title="Get title, EPC, planning, flood + auction legal pack links for the searched address">📜 Legal Pack</span>
+      <span class="chip" style="background:#16a34a;color:#fff;border-color:#16a34a" title="Live data: UK HPI + Land Registry + postcodes.io — Sep 2026">v5.2 🤖</span>
     </div>
   </div>
 </header>
@@ -106,6 +125,12 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
 
     <div id="article4Card" class="card" style="display:none"></div>
     <div id="hmoDensityCard" class="card" style="display:none"></div>
+
+    <div class="card" id="legalPackMiniCard">
+      <h2>📜 Legal Pack for Searched Address</h2>
+      <div id="legalPackMini" style="font-size:11px;color:#475569">Search any address above, then get its title, EPC, planning, flood + auction legal-pack links in one click.</div>
+      <button class="btn btn-primary" style="margin-top:8px;width:100%" onclick="switchTab('legalpack')">📜 Get Legal Pack →</button>
+    </div>
 
     <div class="card">
       <h2>📍 500m Surrounding Analysis</h2>
@@ -132,6 +157,36 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
         <div style="display:flex;gap:6px">
           <button class="icon-btn" id="dealsBack" style="display:none" onclick="backToDeals()">← Back to deals</button>
           <button class="icon-btn" onclick="closeDealsPanel()">✕ Map</button>
+        </div>
+      </div>
+      <div class="card" id="auctionStockCard" style="border:2px solid #0ea5e9;margin-bottom:10px">
+        <h2>🔨 Live Auction Stock — Scunthorpe (DN15 / DN16 / DN17)</h2>
+        <div id="feedStatus" style="font-size:11px;color:#475569;margin-bottom:8px"></div>
+        <div style="font-size:11px;font-weight:800;margin:6px 0 4px">🔍 Available now — Scunthorpe stock per auctioneer (one click each)</div>
+        <div class="legal-grid">
+          <a class="legal-btn" href="https://www.google.com/search?q=site%3Asdlpropertyauctions.co.uk+Scunthorpe" target="_blank" rel="noopener">SDL Property Auctions<small>site search × Scunthorpe — lots + legal packs</small></a>
+          <a class="legal-btn" href="https://www.google.com/search?q=%28site%3Abondwolfe.com+OR+site%3Abondwolfeauctions.com%29+Scunthorpe" target="_blank" rel="noopener">Bond Wolfe<small>site search × Scunthorpe</small></a>
+          <a class="legal-btn" href="https://www.google.com/search?q=site%3Aauctions.savills.co.uk+Scunthorpe" target="_blank" rel="noopener">Savills Auctions<small>site search × Scunthorpe</small></a>
+          <a class="legal-btn" href="https://www.google.com/search?q=site%3Acliveemson.co.uk+Scunthorpe" target="_blank" rel="noopener">Clive Emson<small>site search × Scunthorpe</small></a>
+          <a class="legal-btn" href="https://www.google.com/search?q=%28site%3Apugh-auctions.co.uk+OR+site%3Apugh-auctions.com%29+Scunthorpe" target="_blank" rel="noopener">Pugh Auctions<small>site search × Scunthorpe</small></a>
+          <a class="legal-btn" href="https://www.google.com/search?q=site%3Aauctionhouse.co.uk+Scunthorpe" target="_blank" rel="noopener">Auction House<small>site search × Scunthorpe</small></a>
+          <a class="legal-btn" href="https://www.google.com/search?q=site%3Aiamsold.co.uk+Scunthorpe" target="_blank" rel="noopener">iamSold (online)<small>site search × Scunthorpe</small></a>
+          <a class="legal-btn" href="https://www.google.com/search?q=site%3Amchughandco.com+Scunthorpe" target="_blank" rel="noopener">McHugh &amp; Co (local)<small>site search × Scunthorpe</small></a>
+        </div>
+        <div style="font-size:11px;font-weight:800;margin:8px 0 4px">📖 Browse all lots (then filter by area on their site)</div>
+        <div class="legal-grid">
+          <a class="legal-btn legal-btn-dark" href="https://www.eigpropertyauctions.co.uk/search" target="_blank" rel="noopener">EIG — search ALL UK auctions<small>The industry database: type “Scunthorpe” on their search page</small></a>
+          <a class="legal-btn" href="https://www.bondwolfe.com/auctions/properties/" target="_blank" rel="noopener">Bond Wolfe — all lots<small>Filter by region on their site</small></a>
+          <a class="legal-btn" href="https://www.cliveemson.co.uk/properties/" target="_blank" rel="noopener">Clive Emson — all lots<small>Filter by region on their site</small></a>
+          <a class="legal-btn" href="https://www.rightmove.co.uk/property-for-sale/find.html?searchLocation=Scunthorpe&amp;auction=true" target="_blank" rel="noopener">Rightmove — Scunthorpe + auction<small>Auction filter applied (if supported)</small></a>
+          <a class="legal-btn" href="https://www.auctionhouse.co.uk/" target="_blank" rel="noopener">Auction House — browse<small>Find your local branch lots</small></a>
+          <a class="legal-btn" href="https://www.pugh-auctions.co.uk/" target="_blank" rel="noopener">Pugh — browse<small>Online + livestream lots</small></a>
+        </div>
+        <div style="font-size:11px;font-weight:800;margin:8px 0 4px">✅ Sold at auction (results)</div>
+        <div class="legal-grid">
+          <a class="legal-btn" href="https://www.eigpropertyauctions.co.uk/" target="_blank" rel="noopener">EIG auction results<small>Full sold prices need EIG subscription (~£50+/mo)</small></a>
+          <a class="legal-btn" href="https://www.google.com/search?q=%22sold+at+auction%22+Scunthorpe+DN15" target="_blank" rel="noopener">Google: sold at auction, Scunthorpe<small>Free — auctioneer “sold for £X” pages</small></a>
+          <a class="legal-btn legal-btn-blue" href="#" onclick="closeDealsPanel();switchTab('comps');return false">🏛️ Land Registry sold prices (free)<small>Already in your Comps tab — search any address ↓</small></a>
         </div>
       </div>
       <div id="dealsList" class="deal-grid"></div>
@@ -165,6 +220,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <div class="tab" onclick="switchTab('live')" id="tab-live">Live View</div>
       <div class="tab" onclick="switchTab('investor')" id="tab-investor">Investor Match</div>
       <div class="tab" onclick="switchTab('dealpack')" id="tab-dealpack">Deal Pack</div>
+      <div class="tab" onclick="switchTab('legalpack')" id="tab-legalpack">📜 Legal Pack</div>
     </div>
 
     <!-- CALCULATORS TAB -->
@@ -323,6 +379,63 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       </div>
     </div>
 
+    <!-- LEGAL PACK TAB (V5) -->
+    <div id="panel-legalpack" style="display:none">
+      <div class="card" style="border-color:#f59e0b;border-width:2px">
+        <h2>📜 Legal Pack Finder — <span id="lpAddrLabel">Search an address first</span></h2>
+        <div id="lpContext" style="font-size:11px;color:#475569;margin-bottom:8px">Search any address in the top bar. This panel then builds one-click links to assemble its legal pack: title, EPC, planning, flood, HMO register + auction legal-pack search.</div>
+        <div class="legal-grid" id="lpLinks">
+          <div style="font-size:11px;color:#64748b;grid-column:1/-1">👆 Search an address to generate links…</div>
+        </div>
+        <div style="font-size:10px;color:#64748b;margin-top:8px">Why links, not direct download? HM Land Registry titles (£3–£7) and auction legal packs sit behind paid / login-walled portals — no public API can legally auto-download them. These deep-links take you to the exact search page with the address/postcode pre-filled, so the pack is 2–3 clicks away.</div>
+      </div>
+
+      <div class="card">
+        <h2>⚡ Instant EPC Lookup (free, live)</h2>
+        <div style="font-size:11px;color:#475569;margin-bottom:6px">Pulls the live EPC rating for the searched postcode from the open EPC API — no login needed.</div>
+        <button class="btn btn-blue" onclick="fetchEPC()">⚡ Fetch EPC for Searched Address</button>
+        <div id="epcOutput" style="margin-top:8px;font-size:11px"></div>
+      </div>
+
+      <div class="card">
+        <h2>✅ Legal Pack Checklist — saved per address</h2>
+        <div style="font-size:11px;color:#475569;margin-bottom:6px">Tick off documents as you collect them. Progress is saved on this device, separately for each address.</div>
+        <div class="lp-bar"><div class="lp-fill" id="lpProgressFill" style="width:0%"></div></div>
+        <div id="lpProgressLabel" style="font-size:11px;margin-bottom:8px">0 / 10 collected</div>
+        <div id="lpChecklist"></div>
+      </div>
+
+      <div class="card">
+        <h2>🔍 Auction Legal-Pack Search — one click per auctioneer</h2>
+        <div style="font-size:11px;color:#475569;margin-bottom:6px">If the property is (or was) at auction, its full legal pack is on the auctioneer's lot page. These buttons search each major auctioneer for the exact address:</div>
+        <div id="lpAuctionLinks" class="legal-grid"></div>
+      </div>
+
+      <div class="card">
+        <h2>🚩 Legal-Pack Risk Scanner — paste &amp; check</h2>
+        <div style="font-size:11px;color:#475569;margin-bottom:6px">Paste key text from a title register / auction legal pack (or special conditions) below. The scanner flags common investor red-flags instantly — in your browser, nothing is uploaded.</div>
+        <textarea id="lpPaste" rows="5" placeholder="Paste title register / legal pack text here… e.g. tenure, restrictions, covenants, flood, mining, lease term, ground rent…" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:8px;font-size:11px;font-family:inherit"></textarea>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="scanLegalPack()">🚩 Scan for Red Flags</button>
+          <button class="btn" onclick="document.getElementById('lpPaste').value='';document.getElementById('lpScanOut').innerHTML=''">Clear</button>
+        </div>
+        <div id="lpScanOut" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card">
+        <h2>📎 Attach Legal Pack to This Address</h2>
+        <div style="font-size:11px;color:#475569;margin-bottom:6px">Save the auctioneer's lot URL or your own notes against the searched address. Stored on this device — also included when you generate the Deal Pack.</div>
+        <div class="input-group"><label>Auction lot / legal-pack URL</label><input id="lp_url" placeholder="https://auctioneer.com/lot/…"></div>
+        <div class="input-group" style="margin-top:6px"><label>Notes (tenure, restrictions, solicitor comments…)</label><input id="lp_notes" placeholder="e.g. Freehold, no restrictions, solicitor approved 12/09"></div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-primary" onclick="saveLegalPack()">💾 Save Against Address</button>
+          <button class="btn" onclick="loadLegalPack(true)">↻ Reload</button>
+        </div>
+        <div id="lpSavedMsg" style="font-size:11px;margin-top:6px"></div>
+        <div id="lpSavedList" style="margin-top:6px;font-size:11px"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -340,6 +453,7 @@ let selectedStrategies=[];
 // ===== V4.1 CONFIG — EDIT THESE =====
 const COMPLIANCE={company:'YOUR COMPANY LTD',redress:'The Property Ombudsman (No. XXXXX)',aml:'HMRC AML supervised (No. XXXXX)',ico:'ICO No. ZXXXXXXX',dataAsOf:'Sep 2026'};
 const REG_ENDPOINT=''; // e.g. 'https://formspree.io/f/yourid' — leave '' to store registrations locally
+const SHEET_CSV_URL=''; // V5.1 LIVE STOCK: paste your published Google Sheet CSV URL here (see README) — deals panel then loads live lots. Leave '' for built-in stock.
 const STATUS={available:{label:'AVAILABLE',bg:'#16a34a',fg:'#fff'},reserved:{label:'RESERVED',bg:'#f59e0b',fg:'#000'},under_offer:{label:'UNDER OFFER',bg:'#2563eb',fg:'#fff'},sold:{label:'SOLD',bg:'#64748b',fg:'#fff'}};
 // ===== YOUR DEAL PIPELINE — EDIT: replace SAMPLE deals with your live stock =====
 const dealsData=[
@@ -349,6 +463,8 @@ const dealsData=[
  {slug:'gunness-r2sa',addr:'2-bed house, Gunness DN17',status:'available',sample:true,guide:88000,fee:4000,refurb:6000,rent:900,gdv:115000,beds:2,type:'Terraced',strategy:'R2SA',zone:'burringham-gunness',lat:53.6118,lon:-0.6762,blurb:'Contractor SA demand near the Trent crossings. Lower competition than the DN15 core.'},
  {slug:'digby-street-comp',addr:'37 Digby Street, Crosby DN15 6DB',status:'sold',sample:false,guide:68000,fee:0,refurb:25000,rent:695,gdv:105000,beds:3,type:'End-terrace (housing association void)',strategy:'BRRR',zone:'crosby-hmo',lat:53.5964,lon:-0.6538,blurb:'Auction comp: Savills Lot 322 (Dec 2025) - HA void, EPC C, gas capped, sold vacant. Street comps: £61k avg sold / £85k tenanted STC / £110k renovated.',note:'Reference comp — price pending HLR registration.'},
 ];
+const ORIGINAL_DEALS=dealsData.slice(); // V5.2 fallback stock
+const BUILTIN_REAL=dealsData.filter(d=>!d.sample); // kept alongside auto stock
 
 const zones=[
   {id:'town-hmo',name:'Town Centre - HMO Core',ward:'Town',dn:'DN15',article4:true,strategies:['HMO Small','BRRR','R2SA'],houseTypes:['Terraced','Flat'],demand:{'HMO Small':10,'BRRR':9,'R2SA':8,'Buy to Rent':6,'Flip':5},avgPrice:78000,yield:10.5,coords:[[53.583,-0.665],[53.583,-0.640],[53.592,-0.640],[53.592,-0.665]],roads:['Digby Road','Oswald Road','Cottage Beck Road'],desc:'Highest HMO concentration, Town ward #1 for HMO pressure, lowest median price, high private renting. Article 4 applies.',rentComps:[{addr:'Digby St 4 bed HMO',beds:4,type:'HMO room',rent:450,total:1800},{addr:'Oswald Rd 5 bed HMO',beds:5,type:'HMO room',rent:380,total:1900},{addr:'Mary St 3 bed single let',beds:3,type:'Single',rent:650,total:650}],gdvComps:[{addr:'66 Digby St DN15 7LU',price:117000,date:'May 2024',type:'Mid terrace 45m2'},{addr:'Dale St DN15 7LR',price:70000,date:'Dec 2024',type:'2 bed terrace, 2 flats'},{addr:'Kensington Rd DN15 8BQ',price:45000,date:'2024',type:'2 bed end terrace'}]},
@@ -492,6 +608,7 @@ async function searchFullAddress(){
 
     analyzeSurrounding(lat,lon);
     updateLiveView(lat,lon,lastPostcode,displayName,ward,dn,zone);
+    updateLegalPack(displayName,lastPostcode,lat,lon,ward,zone);
     updateComps(zone);
     calcYield();calcBRRR();calcRent();
     matchInvestors();
@@ -561,6 +678,171 @@ function updateLiveView(lat,lon,postcode,displayName,ward,dn,zone){
   `;
   document.getElementById('zoneInfo').innerHTML=zone?`<b>${zone.name}</b><br><span class="badge badge-blue">${zone.ward}</span> <span class="badge badge-dark">${zone.dn}</span><br><small>${zone.desc}</small><br><br><b>Roads:</b> ${zone.roads.join(', ')}`:`Outside core zones - Ward: ${ward}, DN: ${dn}`;
   let demandHtml='';if(zone){Object.entries(zone.demand).forEach(([s,sc])=>{const col=sc>=8?'#dc2626':sc>=6?'#f59e0b':'#64748b';demandHtml+=`<div style="margin-bottom:4px"><div style="display:flex;justify-content:space-between;font-size:11px"><b>${s}</b><span class="badge" style="background:${col}">${sc}/10</span></div><div class="demand-bar"><div class="demand-fill" style="width:${sc*10}%;background:${col}"></div></div></div>`;});} document.getElementById('demandScores').innerHTML=demandHtml||'No zone';
+}
+
+// ===== V5: LEGAL PACK FINDER — one-click legal pack assembly for any searched address =====
+const LP_ITEMS=[
+ 'Title Register (OC1) — HM Land Registry (£3)',
+ 'Title Plan — check boundaries & access',
+ 'EPC certificate — rating E+ required to let',
+ 'Planning history — North Lincs portal checked',
+ 'Flood risk check completed',
+ 'Lease reviewed (if leasehold) — term & ground rent',
+ 'Auction legal pack / special conditions (if auction)',
+ 'Article 4 + HMO licence position confirmed',
+ 'Gas safety / EICR certs (for let & refinance)',
+ 'Solicitor review confirmed'
+];
+function lpKey(){const a=(lastAddress||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,60);const p=(lastPostcode||'').replace(/\s+/g,'');return a+'|'+p;}
+function updateLegalPack(displayName,postcode,lat,lon,ward,zone){
+  const encAddr=encodeURIComponent(displayName);
+  const encPC=encodeURIComponent(postcode||'');
+  const pcNoSpace=(postcode||'').replace(/\s+/g,'');
+  const q='"'+displayName+' Scunthorpe"';
+  document.getElementById('lpAddrLabel').textContent=displayName||'—';
+  document.getElementById('lpContext').innerHTML='<b>'+displayName+'</b><br>Postcode: <b>'+(postcode||'—')+'</b> • Ward: '+(zone?zone.ward:(ward||'—'))+' • Lat/Lon: '+lat.toFixed(5)+', '+lon.toFixed(5)+(zone?'<br>Zone: '+zone.name+' • Best for: '+zone.strategies.join(', '):'');
+  const mini=document.getElementById('legalPackMini');
+  if(mini)mini.innerHTML='Ready for <b>'+displayName+'</b> ('+(postcode||'no postcode')+') — title, EPC, planning, flood + auction search links generated. <a href="#" onclick="switchTab(\'legalpack\');return false">Open →</a>';
+  const links=[
+    {t:'🏛️ HM Land Registry — Title Register (£3)',s:'Official title: tenure, owner, restrictions, lease. Search by address, pay £3, download PDF.',u:'https://www.gov.uk/search-property-information-land-registry',cls:'legal-btn-dark'},
+    {t:'⚡ EPC Register — free certificate',s:'Rating, expiry, floor area for '+(postcode||'this postcode')+'. Pre-filled postcode search.',u:'https://find-energy-certificate.service.gov.uk/find-a-certificate/search-by-postcode?postcode='+encPC,cls:''},
+    {t:'🏗️ North Lincs Planning Portal',s:'Planning history, Article 4, prior HMO refusals. Enter street name on the portal.',u:'https://planning.northlincs.gov.uk/',cls:''},
+    {t:'🌊 Flood Risk Check (gov.uk)',s:'Long-term flood risk for '+((postcode||'this postcode'))+'.',u:pcNoSpace?('https://check-long-term-flood-risk.service.gov.uk/search?postcode='+encodeURIComponent(pcNoSpace)):'https://check-long-term-flood-risk.service.gov.uk/',cls:''},
+    {t:'📋 North Lincs HMO Public Register',s:'Check licensed HMOs on this street — evidence for/against new HMO.',u:'https://www.northlincs.gov.uk/council-tax-benefits-and-housing/public-register/',cls:''},
+    {t:'⛏️ Coal / Mining Search',s:'Scunthorpe ironstone + coal legacy — Coal Authority viewer.',u:'https://mapapps2.bgs.ac.uk/coalauthority/home.html',cls:''},
+    {t:'🏠 Rightmove — listing & price history',s:'Current/for-sale history near '+(postcode||'address')+'.',u:'https://www.rightmove.co.uk/property-for-sale/find.html?searchLocation='+encPC,cls:''},
+    {t:'🔍 Google — "address + legal pack"',s:'Finds auction lot pages & legal packs mentioning this exact address.',u:'https://www.google.com/search?q='+encodeURIComponent(q+' legal pack auction'),cls:'legal-btn-blue'}
+  ];
+  document.getElementById('lpLinks').innerHTML=links.map(l=>'<a class="legal-btn '+l.cls+'" href="'+l.u+'" target="_blank" rel="noopener">'+l.t+'<small>'+l.s+'</small></a>').join('');
+  const auc=[
+    {t:'SDL Property Auctions',d:'sdlpropertyauctions.co.uk'},
+    {t:'Savills Auctions',d:'auctions.savills.co.uk'},
+    {t:'Bond Wolfe',d:'bondwolfe.com'},
+    {t:'Clive Emson',d:'cliveemson.co.uk'},
+    {t:'Pugh Auctions',d:'pugh-auctions.co.uk'},
+    {t:'McHugh & Co (local)',d:'mchughandco.com'}
+  ];
+  document.getElementById('lpAuctionLinks').innerHTML=auc.map(a=>'<a class="legal-btn" href="https://www.google.com/search?q='+encodeURIComponent('site:'+a.d+' '+displayName)+'" target="_blank" rel="noopener">🔨 '+a.t+'<small>site:'+a.d+' × "'+displayName+'"</small></a>').join('');
+  document.getElementById('epcOutput').innerHTML='';
+  renderLPChecklist();loadLegalPack(false);
+}
+function renderLPChecklist(){
+  const div=document.getElementById('lpChecklist');if(!div)return;
+  if(!lastAddress){div.innerHTML='<div style="font-size:11px;color:#64748b">Search an address to start its checklist.</div>';document.getElementById('lpProgressFill').style.width='0%';document.getElementById('lpProgressLabel').textContent='0 / '+LP_ITEMS.length+' collected';return;}
+  let state=[];try{state=JSON.parse(localStorage.getItem('lp_check_'+lpKey())||'[]');}catch(e){}
+  div.innerHTML=LP_ITEMS.map((item,i)=>'<label class="lp-check"><input type="checkbox" '+(state[i]?'checked':'')+' onchange="toggleLPItem('+i+',this.checked)"> <span>'+item+'</span></label>').join('');
+  updateLPProgress();
+}
+function toggleLPItem(i,v){let state=[];try{state=JSON.parse(localStorage.getItem('lp_check_'+lpKey())||'[]');}catch(e){}state[i]=v;try{localStorage.setItem('lp_check_'+lpKey(),JSON.stringify(state));}catch(e){}updateLPProgress();}
+function updateLPProgress(){let state=[];try{state=JSON.parse(localStorage.getItem('lp_check_'+lpKey())||'[]');}catch(e){}const n=state.filter(Boolean).length;const pct=Math.round(n/LP_ITEMS.length*100);document.getElementById('lpProgressFill').style.width=pct+'%';document.getElementById('lpProgressLabel').innerHTML='<b>'+n+' / '+LP_ITEMS.length+' collected</b> ('+pct+'%) — '+(lastAddress||'');}
+async function fetchEPC(){
+  const out=document.getElementById('epcOutput');
+  if(!lastPostcode){out.innerHTML='<span style="color:#dc2626">Search an address with a postcode first.</span>';return;}
+  let key='';try{key=localStorage.getItem('epc_api_key')||'';}catch(e){}
+  if(!key){
+    key=prompt('Optional: paste your FREE EPC API key for one-click lookup.\n\nGet one in ~2 mins: epc.opendatacommunities.org → sign up → API key (Basic auth token).\n\nPress Cancel to skip — the EPC register link will open instead.');
+    if(key&&key.trim()){try{localStorage.setItem('epc_api_key',key.trim());}catch(e){}key=key.trim();}
+    else{window.open('https://find-energy-certificate.service.gov.uk/find-a-certificate/search-by-postcode?postcode='+encodeURIComponent(lastPostcode),'_blank');out.innerHTML='Opened the EPC register for <b>'+lastPostcode+'</b> in a new tab. (Tip: save a free API key next time for in-app lookup.)';return;}
+  }
+  out.innerHTML='⏳ Querying live EPC data for '+lastPostcode+'…';
+  try{
+    const r=await fetch('https://epc.opendatacommunities.org/api/v1/domestic/search?size=50&postcode='+encodeURIComponent(lastPostcode.replace(/\s+/g,'')),{headers:{'Accept':'application/json','Authorization':'Basic '+key}});
+    if(r.status===401||r.status===403){try{localStorage.removeItem('epc_api_key');}catch(e){}out.innerHTML='<span style="color:#dc2626">API key rejected — it has been cleared. Try again with a fresh key, or use the direct EPC link above.</span>';return;}
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    const rows=(j&&j.rows)||[];
+    if(!rows.length){out.innerHTML='No EPCs found for <b>'+lastPostcode+'</b>. The property may be unrated (common for long-term voids / auction stock) — budget for a new EPC (~£60–£80).';return;}
+    const num=(lastAddress.match(/\d+/)||[])[0]||'';
+    rows.sort((a,b)=>{const sa=num&&String(a.address||'').includes(num)?0:1;const sb=num&&String(b.address||'').includes(num)?0:1;return sa-sb;});
+    out.innerHTML=rows.slice(0,8).map(e=>{
+      const col=e['current-energy-rating']==='A'||e['current-energy-rating']==='B'?'#16a34a':e['current-energy-rating']==='F'||e['current-energy-rating']==='G'?'#dc2626':'#f59e0b';
+      const match=num&&String(e.address||'').includes(num)?' <span class="badge badge-blue">likely match</span>':'';
+      return '<div class="result-item"><b>'+e.address+(e.postcode?', '+e.postcode:'')+'</b>'+match+'<br>Rating: <b style="color:'+col+'">'+e['current-energy-rating']+' ('+e['current-energy-efficiency']+')</b> • Potential: '+e['potential-energy-rating']+' • Floor: '+(e['total-floor-area']||'?')+'m² • Lodged: '+(e['lodgement-date']||'').slice(0,10)+' • <a href="https://find-energy-certificate.service.gov.uk/energy-certificate/'+e['lmk-key']+'" target="_blank">Certificate →</a></div>';
+    }).join('')+'<div style="font-size:9px;color:#64748b;margin-top:4px">Source: MHCLG open EPC data (live). Ratings F/G cannot be let without exemption — check MEES.</div>';
+  }catch(e){out.innerHTML='<span style="color:#dc2626">EPC lookup failed ('+e.message+').</span> <a href="https://find-energy-certificate.service.gov.uk/find-a-certificate/search-by-postcode?postcode='+encodeURIComponent(lastPostcode)+'" target="_blank">Open EPC register →</a>';}
+}
+function scanLegalPack(){
+  const txt=document.getElementById('lpPaste').value||'';
+  const out=document.getElementById('lpScanOut');
+  if(txt.trim().length<40){out.innerHTML='<div class="lp-flag lp-flag-amber">Paste at least a few sentences of title / legal-pack text to scan.</div>';return;}
+  const t=txt.toLowerCase();
+  const red=[],amber=[],green=[];
+  const has=(...ws)=>ws.some(w=>t.includes(w));
+  // Tenure
+  if(has('freehold'))green.push('<b>Tenure: Freehold</b> detected — simplest for HMO/BRRR.');
+  if(has('leasehold'))amber.push('<b>Leasehold</b> — check: years remaining, ground rent, subletting/HMO consent, service charge.');
+  if(has('commonhold'))amber.push('<b>Commonhold</b> — check community statement for letting restrictions.');
+  if(has('flying freehold')||has('flying-freehold'))red.push('<b>Flying freehold</b> — mortgageability issues; many lenders decline. Needs specialist advice.');
+  // Title
+  if(has('restrictive covenant')||has('covenant'))amber.push('<b>Covenants</b> mentioned — check for no-business / single-dwelling / no-subletting restrictions that could block HMO.');
+  if(has('right of way','easement','wayleave','right-of-way'))amber.push('<b>Rights of way / easements</b> — verify access routes and maintenance liability.');
+  if(has('chancel'))red.push('<b>Chancel repair liability</b> — get indemnity insurance (usually cheap) or confirm none.');
+  if(has('possessory title','qualified title'))red.push('<b>Not absolute title</b> (possessory/qualified) — higher risk, harder to mortgage/sell.');
+  if(has('unregistered'))amber.push('<b>Unregistered title</b> — first registration needed; allow extra time and checks.');
+  if(has('restriction','charging order','bankruptcy','notice on the register','unilateral notice'))amber.push('<b>Restriction/notice on register</b> — identify who benefits and get consent/removal terms before exchange.');
+  // Lease specifics
+  const yrs=txt.match(/(\d{2,3})\s*(years?|yrs?)\s*(remaining|left|unexpired|to run)/i);
+  if(yrs){const n=parseInt(yrs[1]);if(n<80)red.push('<b>Short lease: ~'+n+' yrs remaining</b> — below 80 yrs marriage value applies; extension expensive. Re-price or walk away.');else if(n<100)amber.push('<b>Lease ~'+n+' yrs</b> — mortgageable but extension cost will hit GDV; factor into offer.');else green.push('<b>Lease ~'+n+' yrs</b> — healthy length.');}
+  if(has('ground rent')){if(has('doubling','escalat','onerous','review'))red.push('<b>Onerous ground rent</b> (doubling/escalating) — major lender issue. Needs deed of variation.');else amber.push('<b>Ground rent</b> present — confirm amount, review terms, and service charge total.');}
+  if(has('service charge'))amber.push('<b>Service charge</b> — get last 3 yrs figures + planned major works (roof, cladding).');
+  // Physical / environmental
+  if(has('flood zone 3','flood zone-3'))red.push('<b>Flood Zone 3</b> — insurance + mortgage + planning implications. Check gov flood map.');
+  else if(has('flood zone 2','flood risk','flooding'))amber.push('<b>Flood risk</b> mentioned — verify zone, insurance quotes, and lender policy.');
+  if(has('subsidence','heave','landslip','underpinning'))red.push('<b>Subsidence/heave history</b> — needs structural report + insurance history; many lenders cautious.');
+  if(has('knotweed'))red.push('<b>Japanese knotweed</b> — needs treatment plan + guarantee; affects lending.');
+  if(has('mundic','concrete construction','non-standard construction','prefabricated','steel frame','timber frame'))amber.push('<b>Non-standard construction</b> flagged — confirm type; some lenders restrict.');
+  if(has('asbestos'))amber.push('<b>Asbestos</b> — survey + management/removal cost in refurb budget.');
+  if(has('contaminat','landfill','ironstone','coal mining','mining'))amber.push('<b>Land/mining legacy</b> — get mining + environmental searches (Scunthorpe ironstone area).');
+  // Planning / letting
+  if(has('article 4','article4'))amber.push('<b>Article 4</b> referenced — C3→C4 needs full planning in Scunthorpe wards. Price planning risk.');
+  if(has('listed building','conservation area','tpo ','tree preservation'))amber.push('<b>Heritage/tree constraint</b> — limits external/refurb works; check with council.');
+  if(has('no building regul','without planning','unauthorised','breach of planning','enforcement'))red.push('<b>Possible unauthorised works / enforcement</b> — get regularisation or indemnity; verify before exchange.');
+  if(has('hmo licence','hmo license','mandatory licensing','additional licensing'))amber.push('<b>HMO licensing</b> referenced — confirm licence requirement, standards, and fee with North Lincs.');
+  if(has('epc','energy performance')){if(has('rating f','rating g','rated f','rated g',' f rated',' g rated'))red.push('<b>EPC F/G</b> — cannot let under MEES without exemption; cost the upgrade to E+.');else green.push('<b>EPC</b> mentioned — confirm rating E+ and expiry before letting.');}
+  // Occupancy
+  if(has('tenant in situ','sitting tenant','regulated tenancy','protected tenancy'))red.push('<b>Occupied / sitting tenant</b> — vacant-possession value does not apply; check tenancy type and eviction route.');
+  if(has('short hold','assured shorthold','ast '))green.push('<b>AST tenancy</b> referenced — confirm rent, arrears, deposit protection, and notice position.');
+  // Auction specifics
+  if(has('unconditional','immediate exchange'))amber.push('<b>Auction: unconditional/immediate exchange</b> — funds + insurance must be ready on fall of hammer.');
+  if(has('28 days','completion within','28-day completion'))amber.push('<b>Auction completion deadline</b> (~28 days) — have solicitor + funds lined up pre-auction.');
+  if(has('addendum'))amber.push('<b>Addendum mentioned</b> — always re-check the addendum on auction day; terms can change.');
+  if(has('special conditions'))green.push('<b>Special conditions</b> present — your solicitor must review every clause before bidding.');
+  // Fire safety
+  if(has('cladding','ews1','fire safety','fire risk'))red.push('<b>Fire safety / cladding</b> — EWS1 / FRA required for lending; high remediation risk in flats.');
+  out.innerHTML='<div style="font-size:11px;margin-bottom:6px"><b>Scan result:</b> '+red.length+' red flag(s), '+amber.length+' amber, '+green.length+' info — from '+txt.trim().split(/\s+/).length+' words pasted.</div>'
+    +red.map(x=>'<div class="lp-flag lp-flag-red">🔴 '+x+'</div>').join('')
+    +amber.map(x=>'<div class="lp-flag lp-flag-amber">🟡 '+x+'</div>').join('')
+    +green.map(x=>'<div class="lp-flag lp-flag-green">🟢 '+x+'</div>').join('')
+    +(!red.length&&!amber.length?'<div class="lp-flag lp-flag-green">✅ No common red-flag keywords found — still get a solicitor review; this scan is a helper, not legal advice.</div>':'')
+    +'<div style="font-size:9px;color:#64748b;margin-top:4px">Keyword helper only — not legal advice. Always have a solicitor/conveyancer review the full pack before exchange or auction.</div>';
+}
+function saveLegalPack(){
+  if(!lastAddress){document.getElementById('lpSavedMsg').innerHTML='<span style="color:#dc2626">Search an address first.</span>';return;}
+  const rec={addr:lastAddress,pc:lastPostcode,url:document.getElementById('lp_url').value.trim(),notes:document.getElementById('lp_notes').value.trim(),at:new Date().toISOString()};
+  try{localStorage.setItem('lp_data_'+lpKey(),JSON.stringify(rec));}catch(e){}
+  document.getElementById('lpSavedMsg').innerHTML='<span style="color:#16a34a"><b>✅ Saved against '+lastAddress+'.</b></span>';
+  renderLPSavedList();
+}
+function loadLegalPack(notify){
+  if(!lastAddress){if(notify)document.getElementById('lpSavedMsg').textContent='Search an address first.';return;}
+  let rec=null;try{rec=JSON.parse(localStorage.getItem('lp_data_'+lpKey())||'null');}catch(e){}
+  if(rec){document.getElementById('lp_url').value=rec.url||'';document.getElementById('lp_notes').value=rec.notes||'';if(notify)document.getElementById('lpSavedMsg').innerHTML='<span style="color:#16a34a">Loaded saved pack for <b>'+rec.addr+'</b>.</span>';}
+  else{if(notify)document.getElementById('lpSavedMsg').textContent='No saved pack for this address yet.';}
+  renderLPSavedList();
+}
+function renderLPSavedList(){
+  const div=document.getElementById('lpSavedList');if(!div)return;
+  const items=[];
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('lp_data_')){try{items.push(JSON.parse(localStorage.getItem(k)));}catch(e){}}}}catch(e){}
+  if(!items.length){div.innerHTML='<div style="font-size:10px;color:#64748b">No saved legal packs yet on this device.</div>';return;}
+  div.innerHTML='<div style="font-size:10px;color:#64748b;margin-bottom:4px"><b>'+items.length+' saved pack(s)</b> on this device:</div>'+items.slice(0,10).map(r=>'<div class="result-item"><b>'+(r.addr||'?')+'</b> '+(r.pc||'')+'<br>'+(r.url?'<a href="'+r.url+'" target="_blank">🔗 Lot/pack link</a> ':'')+(r.notes?'<small>'+r.notes+'</small>':'')+'</div>').join('');
+}
+function legalPackDealPackHTML(){
+  let rec=null,checks=[];
+  try{rec=JSON.parse(localStorage.getItem('lp_data_'+lpKey())||'null');}catch(e){}
+  try{checks=JSON.parse(localStorage.getItem('lp_check_'+lpKey())||'[]');}catch(e){}
+  const n=checks.filter(Boolean).length;
+  return '<p><b>Checklist:</b> '+n+'/'+LP_ITEMS.length+' collected • '+(rec&&rec.url?'<a href="'+rec.url+'" target="_blank">Lot/pack link</a>':'No lot URL saved')+(rec&&rec.notes?'<br><b>Notes:</b> '+rec.notes:'')+'</p>';
 }
 
 function updateComps(zone){
@@ -721,12 +1003,13 @@ function calcRent(){
 
 function switchTab(t){
   document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
-  document.getElementById('tab-'+t).classList.add('active');
+  const tab=document.getElementById('tab-'+t);if(tab)tab.classList.add('active');
   document.getElementById('panel-calc').style.display=t==='calc'?'block':'none';
   document.getElementById('panel-comps').style.display=t==='comps'?'block':'none';
   document.getElementById('panel-live').style.display=t==='live'?'block':'none';
   document.getElementById('panel-investor').style.display=t==='investor'?'block':'none';
   document.getElementById('panel-dealpack').style.display=t==='dealpack'?'block':'none';
+  document.getElementById('panel-legalpack').style.display=t==='legalpack'?'block':'none';
 }
 
 // Investor matching
@@ -793,6 +1076,7 @@ function generateDealPack(){
     <h3>Live Sold Comps (HM Land Registry — retrieved at generation time)</h3><div>${document.getElementById('lrComps').innerHTML}</div>
     <h3>Market Stats (UK HPI — retrieved at generation time)</h3><div>${document.getElementById('hpiCard').innerHTML}</div>
     <h3>Live Links</h3><p>Rightmove, Zoopla, Street View, EPC, HMO Register - see Live View tab</p>
+    <h3>Legal Pack (V5)</h3>${legalPackDealPackHTML()}
     <p style="font-size:10px;color:#64748b">Generated by Scunthorpe V4 Live Map - For professional investors only - Not financial advice - Do own due diligence, check planning, HMO licence, EPC.</p>
     ${complianceFooterHTML()}
   `;
@@ -887,13 +1171,65 @@ function complianceFooterHTML(){const c=COMPLIANCE;const missing=!c.redress||c.r
 function renderDeals(){
   const div=document.getElementById('dealsList');
   div.innerHTML=dealsData.map(d=>{const st=STATUS[d.status]||STATUS.available;
-    return '<div class="deal-card" onclick="openDeal(\''+d.slug+'\')">'+(d.sample?'<span class="sample-chip">SAMPLE</span>':'')+
+    const guideTxt=d.guide?'£'+d.guide.toLocaleString():(d.price_label||'TBC');
+    const profitTxt=d.gdv?('£'+((d.gdv||0)-d.guide-(d.fee||0)-(d.refurb||0)).toLocaleString()):'TBC';
+    const yieldTxt=d.yieldPc?(d.yieldPc+'%'):'—';
+    return '<div class="deal-card" onclick="openDeal(\''+d.slug+'\')">'+(d.sample?'<span class="sample-chip">SAMPLE</span>':'')+(d.auto?'<span class="sample-chip" style="border-style:solid;border-color:#0ea5e9;color:#0284c7">🤖 '+(d.source||'AUTO').toUpperCase()+'</span>':'')+
     '<span class="status-badge" style="background:'+st.bg+';color:'+st.fg+'">'+st.label+'</span>'+
     '<div style="font-weight:800;font-size:12px;margin:6px 0 2px">'+d.addr+'</div>'+
-    '<div style="font-size:10px;color:#64748b">'+d.type+' · '+d.strategy+'</div>'+
-    '<div class="deal-kpis"><div><b>£'+d.guide.toLocaleString()+'</b><span>Guide</span></div><div><b>'+(d.yieldPc||'-')+'%</b><span>Est. yield</span></div><div><b>£'+((d.gdv||0)-d.guide-(d.fee||0)-(d.refurb||0)).toLocaleString()+'</b><span>Est. profit</span></div></div>'+
+    '<div style="font-size:10px;color:#64748b">'+(d.type?d.type+' · ':'')+d.strategy+'</div>'+
+    '<div class="deal-kpis"><div><b>'+guideTxt+'</b><span>'+(d.status==='sold'?'Sold for':'Guide')+'</span></div><div><b>'+yieldTxt+'</b><span>Est. yield</span></div><div><b>'+profitTxt+'</b><span>Est. profit</span></div></div>'+
     '<button class="icon-btn" style="background:#0ea5e9;width:100%" onclick="event.stopPropagation();openDeal(\''+d.slug+'\')">View deal →</button></div>';}).join('');
 }
+// V5.2: LIVE STOCK — priority: Google Sheet (manual) > auto-scraped JSON (daily) > built-in
+async function loadLiveDeals(){
+  if(!SHEET_CSV_URL){loadAutoStock();return;}
+  const st=document.getElementById('feedStatus');
+  if(st)st.innerHTML='⏳ Loading live stock from your sheet…';
+  try{
+    const r=await fetch(SHEET_CSV_URL,{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const rows=parseCSV(await r.text());
+    if(rows.length<2)throw new Error('sheet is empty');
+    const head=rows[0].map(h=>String(h||'').trim().toLowerCase());
+    const live=rows.slice(1).filter(c=>c.some(x=>String(x||'').trim()!=='')).map(c=>{
+      const g=n=>{const i=head.indexOf(n);return i>=0?String(c[i]||'').trim():'';};
+      const num=n=>{const v=parseFloat(g(n).replace(/[^0-9.\-]/g,''));return isNaN(v)?0:v;};
+      return {slug:g('slug')||('lot-'+Math.random().toString(36).slice(2,7)),addr:g('addr')||'Untitled lot',status:g('status')||'available',sample:false,guide:num('guide'),fee:num('fee'),refurb:num('refurb'),rent:num('rent'),gdv:num('gdv'),beds:num('beds'),type:g('type'),strategy:g('strategy')||'BRRR',zone:g('zone'),lat:parseFloat(g('lat'))||null,lon:parseFloat(g('lon'))||null,blurb:g('blurb'),note:g('note')};
+    }).filter(d=>d.addr!=='Untitled lot');
+    if(!live.length)throw new Error('no valid rows (needs an "addr" column)');
+    dealsData.length=0;live.forEach(d=>dealsData.push(d));
+    backToDeals();drawDealPins();
+    if(st)st.innerHTML='🟢 <b>LIVE stock from your sheet</b> — '+live.length+' lot(s), refreshed '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'. <a href="#" onclick="loadLiveDeals();return false">↻ Refresh</a>';
+  }catch(e){if(st)st.innerHTML='🟡 Sheet feed failed ('+e.message+') — showing built-in stock. <a href="#" onclick="loadLiveDeals();return false">↻ Retry</a>';}
+}
+// V5.2: AUTO STOCK — daily-scraped auction lots (data/auction-stock.json via GitHub Actions)
+async function loadAutoStock(){
+  const st=document.getElementById('feedStatus');
+  try{
+    const r=await fetch('data/auction-stock.json',{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    const lots=(j.lots||[]).map(normalizeAutoLot).filter(Boolean);
+    if(!lots.length)throw new Error('empty');
+    dealsData.length=0;lots.forEach(d=>dealsData.push(d));BUILTIN_REAL.forEach(d=>dealsData.push(d));
+    backToDeals();drawDealPins();
+    const s=j.sources||{};
+    const bits=Object.keys(s).map(k=>k.charAt(0).toUpperCase()+k.slice(1)+' '+(s[k].lots||0)).join(' · ');
+    const nA=lots.filter(d=>d.status==='available').length,nS=lots.filter(d=>d.status==='sold').length;
+    if(st)st.innerHTML='🤖 <b>Auto stock</b> — '+lots.length+' lots ('+nA+' available · '+nS+' sold) — '+bits+'. Updated '+(j.updated_uk||j.updated||'')+', refreshes daily ~07:30 UK. <a href="#" onclick="loadAutoStock();return false">↻ Refresh</a>';
+  }catch(e){
+    dealsData.length=0;ORIGINAL_DEALS.forEach(d=>dealsData.push(d));backToDeals();drawDealPins();
+    if(st)st.innerHTML='📦 Showing built-in stock ('+dealsData.length+' deals). Auto-scraper data not found yet — run the workflow once (Actions tab → Run workflow), or connect a Google Sheet (see README). <a href="#" onclick="loadAutoStock();return false">↻ Retry</a>';
+  }
+}
+function normalizeAutoLot(l){
+  if(!l||!l.addr)return null;
+  let zid=l.zone||'';
+  if(!zid&&l.lat!=null&&l.lon!=null){try{const z=getZoneForPoint(l.lat,l.lon);if(z)zid=z.id;}catch(e){}}
+  return {slug:String(l.slug||('auto-'+Math.random().toString(36).slice(2,7))),addr:l.addr,status:l.status||'available',sample:false,auto:true,guide:l.guide||0,price_label:l.price_label||'',fee:l.fee||0,refurb:l.refurb||0,rent:l.rent||0,gdv:l.gdv||0,beds:l.beds||0,type:l.type||'',strategy:l.strategy||'Auction',zone:zid,lat:l.lat,lon:l.lon,blurb:l.blurb||'',note:l.note||'',source:l.source||'Auto',source_url:l.source_url||'',auction_date:l.auction_date||'',image:l.image||''};
+}
+function parseCSV(t){const rows=[];let row=[],v='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){v+='"';i++;}else q=false;}else v+=c;}else{if(c==='"')q=true;else if(c===','){row.push(v);v='';}else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(v);v='';if(row.some(x=>x!==''))rows.push(row);row=[];}else v+=c;}}if(v!==''||row.length){row.push(v);rows.push(row);}return rows;}
 function openDealsPanel(){backToDeals();document.getElementById('panel-deals').style.display='block';}
 function closeDealsPanel(){document.getElementById('panel-deals').style.display='none';}
 function backToDeals(){document.getElementById('dealDetail').innerHTML='';document.getElementById('dealsBack').style.display='none';renderDeals();}
@@ -906,16 +1242,18 @@ function openDeal(slug){
   document.getElementById('dealsBack').style.display='inline-block';
   document.getElementById('dealDetail').innerHTML=
    '<div class="card"><span class="status-badge" style="background:'+st.bg+';color:'+st.fg+'">'+st.label+'</span> '+(d.sample?'<span class="sample-chip" style="position:static">SAMPLE — replace with your live deal</span>':'')+
-   '<h3 style="margin:8px 0 2px">'+d.addr+'</h3><div style="font-size:11px;color:#64748b">'+d.type+' · Strategy: '+d.strategy+(zone?' · Zone: '+zone.name:'')+'</div>'+
+   '<h3 style="margin:8px 0 2px">'+d.addr+'</h3><div style="font-size:11px;color:#64748b">'+(d.type?d.type+' · ':'')+'Strategy: '+d.strategy+(zone?' · Zone: '+zone.name:'')+'</div>'+
+   (d.image?'<img src="'+d.image+'" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:8px" onerror="this.style.display=\'none\'">':'')+
+   (d.auto?'<div style="font-size:11px;margin-top:6px">🤖 Auto-scraped from <b>'+(d.source||'auctioneer')+'</b>'+(d.auction_date?' · Auction: '+d.auction_date:'')+(d.source_url?' · <a href="'+d.source_url+'" target="_blank" rel="noopener">View original lot →</a>':'')+'</div>':'')+
    '<div class="deal-kpis">'+
-   '<div><b>£'+d.guide.toLocaleString()+'</b><span>Guide price</span></div>'+
+   '<div><b>'+(d.guide?'£'+d.guide.toLocaleString():(d.price_label||'TBC'))+'</b><span>'+(d.status==='sold'?'Sold for':'Guide price')+'</span></div>'+
    '<div><b>£'+(d.fee||0).toLocaleString()+'</b><span>Sourcing fee</span></div>'+
    '<div><b>£'+(d.refurb||0).toLocaleString()+'</b><span>Est. refurb</span></div>'+
    '<div><b>£'+allin.toLocaleString()+'</b><span>All-in</span></div>'+
    '<div><b>£'+(d.rent||0).toLocaleString()+'</b><span>Rent/mo</span></div>'+
    '<div><b>'+(gy?gy+'%':'-')+'</b><span>Gross yield (all-in)</span></div>'+
-   '<div><b>£'+(d.gdv||0).toLocaleString()+'</b><span>Est. GDV</span></div>'+
-   '<div><b>£'+((d.gdv||0)-allin).toLocaleString()+'</b><span>Est. gross profit</span></div></div>'+
+   '<div><b>'+(d.gdv?('£'+d.gdv.toLocaleString()):'TBC')+'</b><span>Est. GDV</span></div>'+
+   '<div><b>'+(d.gdv?('£'+((d.gdv||0)-allin).toLocaleString()):'TBC')+'</b><span>Est. gross profit</span></div></div>'+
    '<div style="font-size:11px;line-height:1.6">'+d.blurb+(d.note?'<br><i style="color:#b45309">⚠️ '+d.note+'</i>':'')+'</div>'+
    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">'+
    '<button class="icon-btn" style="background:#0ea5e9" onclick="reserveDeal(\''+d.slug+'\')">🤝 Reserve / Enquire</button>'+
@@ -962,6 +1300,7 @@ function registerInvestor(e){
   return false;
 }
 function drawDealPins(){
+  dealsLayer.clearLayers();
   dealsData.forEach(d=>{if(d.lat==null)return;const st=STATUS[d.status]||STATUS.available;
     const mk=L.marker([d.lat,d.lon],{icon:L.divIcon({className:'',html:'<div style="background:'+st.bg+';color:'+st.fg+';padding:3px 8px;border-radius:12px;font-size:9px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)">'+st.label+'</div>',iconSize:[92,22]})});
     mk.addTo(dealsLayer);mk.bindPopup(d.addr);if(mk.on)mk.on('click',()=>openDeal(d.slug));});
@@ -969,13 +1308,13 @@ function drawDealPins(){
 function checkHash(){const m=(location.hash||'').match(/deal=([\w-]+)/);if(m)openDeal(m[1]);}
 
 // Init
-renderRefurb();calcYield();calcBRRR();calcRent();calcSDLT();renderInvestors();
+renderRefurb();calcYield();calcBRRR();calcRent();calcSDLT();renderInvestors();renderLPChecklist();renderLPSavedList();
 zones.forEach(z=>{const poly=L.polygon(z.coords,{color:'#64748b',fillColor:'#64748b',fillOpacity:0.06,weight:1,dashArray:'6,4'}).addTo(zoneLayer).bindPopup(z.name);zonePolygons.push({z:z,poly:poly});});
 renderRentIntel();fetchHPI();
 document.getElementById('fullAddress').addEventListener('keydown',e=>{if(e.key==='Enter') searchFullAddress();});
-renderDeals();drawDealPins();updateRegCount();
+renderDeals();drawDealPins();updateRegCount();loadLiveDeals();
 document.getElementById('footerCompliance').innerHTML=complianceFooterHTML();
 if(window.addEventListener)window.addEventListener('hashchange',checkHash);
 checkHash();
-</script></body>
+</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3eb4498abb59564',t:'MTc5MDAxNjc1Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
