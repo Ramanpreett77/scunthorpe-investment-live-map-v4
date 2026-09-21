@@ -2,14 +2,20 @@
 <h1>📦 Deal Pack</h1><div class="sub">Fill in, then print to PDF. Tip: use the Generate Deal Pack button on the map to auto-fill from a searched property.</div>
 <h2>1. Property</h2><div class="row"><div><label>Address</label><input></div><div><label>Postcode</label><input></div></div>
 <div class="row"><div><label>Type / beds</label><input></div><div><label>Tenure</label><input></div></div>
-<div class="row"><div><label>Strategy</label><select><option>HMO</option><option>BRRR</option><option>Buy to Let</option><option>Flip</option><option>R2SA</option></select></div><div><label>Article 4 status</label><input></div></div>
-<h2>2. Numbers</h2><table><tr><th>Item</th><th>£</th></tr>
+<div class="row"><div><label>Strategy</label><select><option>HMO</option><option>BRRR</option><option>Buy to Let</option><option>Flip</option><option>R2SA — higher risk – illustrative figures</option><option>Joint venture — higher risk – illustrative figures</option></select></div><div><label>Article 4 status</label><input></div></div>
+<h2>2. Material Information</h2>
+<div class="row"><div><label>Tenure</label><input placeholder="unknown"></div><div><label>Council tax band</label><input placeholder="unknown"></div></div>
+<div class="row"><div><label>EPC</label><input placeholder="unknown"></div><div><label>Construction</label><input placeholder="unknown"></div></div>
+<div class="row"><div><label>Flood risk</label><input placeholder="unknown"></div><div><label>Utilities</label><input placeholder="unknown"></div></div>
+<label>Known issues</label><textarea placeholder="unknown"></textarea>
+<label>Sourcing fee: £[X]</label><input placeholder="amount or percentage and terms">
+<h2>3. Numbers</h2><table><tr><th>Item</th><th>£</th></tr>
 <tr><td>Purchase price</td><td><input type="number" id="a"></td></tr><tr><td>Refurb</td><td><input type="number" id="b"></td></tr>
 <tr><td>SDLT + legal + fees</td><td><input type="number" id="c"></td></tr><tr><td><b>Total cost</b></td><td><b id="tot">0</b></td></tr>
 <tr><td>Post-refurb value (GDV)</td><td><input type="number" id="d"></td></tr><tr><td>Monthly rent</td><td><input type="number" id="e"></td></tr>
 <tr><td><b>Gross yield on total cost</b></td><td><b id="y">–</b></td></tr></table>
-<h2>3. Evidence</h2><label>Sold comps (Land Registry)</label><textarea></textarea><label>Rent comps</label><textarea></textarea>
-<h2>4. Risks and next steps</h2><textarea></textarea>
-<h2>5. Sourcing fee</h2><input placeholder="£ / % and terms">
-<button class="btn" onclick="window.print()">🖨️ Print / Save as PDF</button><div class="note">Template for general guidance only — not legal or financial advice. Have a solicitor review before use, and confirm current requirements with the relevant authority.</div>
+<h2>4. Evidence</h2><label>Sold comps (Land Registry)</label><textarea></textarea><label>Rent comps</label><textarea></textarea>
+<h2>5. Risks and next steps</h2><textarea></textarea>
+<h2>6. Sourcing fee</h2><input placeholder="£ / % and terms">
+<button class="btn" onclick="window.print()">🖨️ Print / Save as PDF</button><div class="note">Sourcing information only. Figures are illustrative. Not financial or investment advice. Do your own due diligence. Have a solicitor review before use, and confirm current requirements with the relevant authority.</div>
 <script>const g=i=>parseFloat(document.getElementById(i).value)||0;function r(){const t=g('a')+g('b')+g('c');document.getElementById('tot').textContent='£'+t.toLocaleString();document.getElementById('y').textContent=t?(g('e')*12/t*100).toFixed(1)+'%':'–'}['a','b','c','d','e'].forEach(i=>document.getElementById(i).oninput=r);</script></body></html>
