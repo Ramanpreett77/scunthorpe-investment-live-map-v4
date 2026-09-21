@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scunthorpe V5 - Article 4 Checker + HMO Density + Yield/BRRR + Deal Pack + Legal Pack Finder</title>
+<title>Property sourcing, deal alerts and free tools</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="config.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Inter,Segoe UI,Roboto,sans-serif;background:#0f172a;color:#e2e8f0}
@@ -58,6 +59,19 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
 .alert-red{background:#fef2f2;color:#991b1b;border-color:#fecaca}
 .alert-amber{background:#fffbeb;color:#92400e;border-color:#fde68a}
 .alert-green{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.site-footer{background:#0f172a;color:#cbd5e1;padding:14px;font-size:11px;line-height:1.6}.site-footer a{color:#7dd3fc}
+.home-page{background:#f8fafc;color:#0f172a;padding:18px 14px 28px}.home-shell{max-width:1180px;margin:0 auto}.home-section{max-width:1180px;margin:14px auto 0;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px}.home-hero{background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;border:0;display:flex;gap:24px;align-items:center;justify-content:space-between}.home-hero-copy{max-width:700px}.home-eyebrow{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#7dd3fc;font-weight:800}.home-hero h1{font-size:clamp(26px,4vw,44px);line-height:1.08;margin:7px 0 10px}.home-hero p{font-size:15px;line-height:1.55;color:#dbeafe;max-width:670px}.home-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.home-button{display:inline-block;text-decoration:none;padding:11px 16px;border-radius:9px;border:1px solid #38bdf8;background:#38bdf8;color:#082f49;font-size:12px;font-weight:800;cursor:pointer}.home-button.secondary{background:transparent;color:#fff;border-color:#94a3b8}.home-section h2{font-size:18px;text-transform:none;letter-spacing:0;color:#0f172a;margin-bottom:7px}.home-section>p{font-size:12px;color:#475569;line-height:1.55}.home-step-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.home-step{border:1px solid #e2e8f0;border-radius:10px;padding:12px;background:#f8fafc}.home-step-number{display:inline-flex;width:26px;height:26px;align-items:center;justify-content:center;border-radius:50%;background:#0ea5e9;color:#082f49;font-weight:900;font-size:12px}.home-step h3{font-size:13px;margin:8px 0 4px}.home-step p{font-size:11px;line-height:1.45;color:#475569}.home-section-head{display:flex;gap:12px;justify-content:space-between;align-items:end;flex-wrap:wrap}.home-section-head p{max-width:760px}.home-deals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}.home-deal-card{border:1px solid #cbd5e1;border-radius:10px;padding:12px;background:#fff}.home-deal-card h3{font-size:13px;margin:6px 0 3px}.home-deal-card p{font-size:11px;color:#64748b;line-height:1.4}.home-deal-meta{display:flex;gap:5px;flex-wrap:wrap;font-size:10px;color:#475569}.home-deal-meta span{background:#f1f5f9;border-radius:10px;padding:3px 6px}.home-tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.home-tool{border:1px solid #e2e8f0;border-radius:10px;padding:12px;background:#f8fafc}.home-tool h3{font-size:13px;margin-bottom:5px}.home-tool p{font-size:11px;line-height:1.45;color:#475569}.home-info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:1180px;margin:14px auto 0}.home-info-grid .home-section{margin:0}.home-list{padding-left:18px;font-size:12px;color:#475569;line-height:1.7}.home-fee-list{display:grid;gap:7px;margin-top:12px}.home-fee-row{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;background:#f8fafc;border-radius:8px;font-size:12px}.home-fee-row span:last-child{text-align:right;color:#475569}.home-note{font-size:11px!important;color:#64748b!important;margin-top:10px}.home-faq details{border-top:1px solid #e2e8f0;padding:9px 0}.home-faq details:first-of-type{margin-top:8px}.home-faq summary{cursor:pointer;font-size:12px;font-weight:800}.home-faq details p{font-size:11px;color:#475569;line-height:1.5;padding-top:5px}.conditional-proof{display:none}.proof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}.proof-card{border:1px solid #e2e8f0;border-radius:9px;padding:10px;background:#f8fafc;font-size:11px;line-height:1.5}.proof-card strong{display:block;font-size:12px;margin-bottom:3px}
+@media(max-width:760px){.home-hero{display:block}.home-step-grid,.home-tools-grid,.home-info-grid{grid-template-columns:1fr 1fr}}@media(max-width:480px){.home-page{padding:10px 8px 20px}.home-section{padding:14px}.home-step-grid,.home-tools-grid,.home-info-grid{grid-template-columns:1fr}.home-fee-row{display:block}.home-fee-row span:last-child{text-align:left;display:block;margin-top:3px}}
+.share-view{max-width:760px;margin:0 auto}.share-view .share-hidden{background:#fffbeb;border:1px solid #f59e0b;color:#92400e;border-radius:8px;padding:10px;margin:8px 0}.share-view .share-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.compliance-banner{background:#fef3c7;color:#78350f;border-bottom:1px solid #f59e0b;padding:8px 14px;font-size:11px;font-weight:800;text-align:center;line-height:1.45}
+.honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+.risk-note{display:inline-block;background:#fee2e2;color:#991b1b;border:1px solid #fecaca;border-radius:10px;padding:2px 6px;font-size:9px;font-weight:800}
+.score-badge{display:inline-block;background:#0f172a;color:#fff;border-radius:12px;padding:3px 8px;font-size:9px;font-weight:800;margin:4px 0}
+.score-badge-good{background:#166534}.score-badge-mid{background:#b45309;color:#fff}.score-badge-low{background:#991b1b}.score-badge-insufficient{background:#64748b}
+.score-breakdown{border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;padding:8px;margin-top:8px;font-size:10px}.score-breakdown h4{font-size:12px;margin-bottom:6px}.score-row{padding:5px 0;border-top:1px solid #e2e8f0}.score-row:first-of-type{border-top:0}.score-row b{font-size:10px}.score-reason{color:#475569;line-height:1.45}
+.sensitivity-table{width:100%;border-collapse:collapse;font-size:10px}.sensitivity-table th,.sensitivity-table td{border:1px solid #cbd5e1;padding:5px;text-align:right}.sensitivity-table th:first-child,.sensitivity-table td:first-child{text-align:left}.sensitivity-table th{background:#f1f5f9;color:#475569}
+.material-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:480px){.material-grid{grid-template-columns:1fr}}
 @media(max-width:1200px){.container{flex-direction:column;height:auto}.left,.right{width:100%}.center{height:60vh}}
 /* V4.1 live deals */
 .panel-deals{position:absolute;inset:0;background:#f8fafc;color:#0f172a;overflow-y:auto;padding:12px;display:none;z-index:1200}
@@ -98,9 +112,10 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
 </style>
 </head>
 <body>
+<div class="compliance-banner">Sourcing information only. Figures are illustrative. Not financial or investment advice. Do your own due diligence.</div>
 <header>
   <div class="top-bar">
-    <h1>V5 🏠 Scunthorpe <span>Article 4 + HMO Density + Yield/BRRR + Deal Pack + Legal Pack</span></h1>
+    <h1>🏠 Property sourcing <span>Deals · alerts · free tools</span></h1>
     <div class="addr-box">
       <input id="fullAddress" placeholder="Full address + postcode e.g. 66 Digby Street DN15 7LU or DN15 6DB" />
       <button onclick="searchFullAddress()">🔍 Find Property & Analyse</button>
@@ -119,7 +134,51 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
   </div>
 </header>
 
-<div class="container">
+<main class="home-page" id="home">
+  <div class="home-shell">
+    <section class="home-section home-hero">
+      <div class="home-hero-copy">
+        <div class="home-eyebrow">Property sourcing information and free due-diligence tools</div>
+        <h1>Find, assess and review property opportunities.</h1>
+        <p>Use the free tools to explore locations, deal assumptions and due-diligence links. Browse the public deal view, or register for alerts when the alert service has been configured.</p>
+        <div class="home-actions">
+          <button class="home-button" onclick="openDealsAndAlerts()">Get deal alerts</button>
+          <button class="home-button secondary" onclick="scrollToToolsApp()">Use the free tools</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-section" id="deals">
+      <div class="home-section-head"><div><h2>Deals</h2><p>Browse the currently configured public opportunities. Availability, figures and source information must be checked before relying on them.</p></div><button class="home-button" onclick="openDealsPanel()">View all deals</button></div>
+      <div id="homeDealsGrid" class="home-deals-grid"><div class="home-deal-card"><p>Loading configured deals…</p></div></div>
+    </section>
+
+    <section class="home-section" id="tools">
+      <h2>Tools</h2>
+      <p>Free browser-based tools for location checks, illustrative calculations and initial legal-pack research.</p>
+      <div class="home-tools-grid">
+        <div class="home-tool"><h3>Location and planning context</h3><p>Explore the map, Article 4 context, HMO density and nearby mapped information.</p></div>
+        <div class="home-tool"><h3>Yield and refurb calculators</h3><p>Test illustrative yield, BRRR, SDLT, refurb and maximum-offer assumptions.</p></div>
+        <div class="home-tool"><h3>Legal-pack finder</h3><p>Open official title, EPC, planning, flood and auction research links for a searched address.</p></div>
+      </div>
+      <div class="home-actions"><button class="home-button" onclick="scrollToToolsApp()">Open free tools</button></div>
+    </section>
+
+    <section class="home-section" id="how-it-works">
+      <h2>How it works</h2>
+      <p>A simple information and review process. The figures and links on this site are not a substitute for independent professional advice.</p>
+      <div class="home-step-grid">
+        <div class="home-step"><span class="home-step-number">1</span><h3>Tell us what you are looking for</h3><p>Set your preferred strategy, budget and areas when you register for deal alerts.</p></div>
+        <div class="home-step"><span class="home-step-number">2</span><h3>Review the opportunity</h3><p>Use the deal view and the available assumptions, sources and notes to decide what needs checking.</p></div>
+        <div class="home-step"><span class="home-step-number">3</span><h3>Run your checks</h3><p>Use the free calculators and legal-pack links as an initial review aid.</p></div>
+        <div class="home-step"><span class="home-step-number">4</span><h3>Decide with independent advice</h3><p>Complete your own legal, tax, finance and property due diligence before proceeding.</p></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<div class="container" id="tools-app">
   <div class="left">
     <div id="propertyHero" class="card-dark" style="display:none">Search an address to start</div>
 
@@ -154,7 +213,8 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
     <div id="panel-deals" class="panel-deals">
       <div class="deal-head">
         <h3>🔥 Live Deals — DN15 / DN16 / DN17</h3>
-        <div style="display:flex;gap:6px">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <label style="font-size:10px;color:#475569">Sort <select id="dealSort" onchange="renderDeals()" style="padding:5px;border:1px solid #cbd5e1;border-radius:6px;font-size:10px"><option value="score">Deal score</option><option value="price">Lowest guide price</option><option value="status">Status</option></select></label>
           <button class="icon-btn" id="dealsBack" style="display:none" onclick="backToDeals()">← Back to deals</button>
           <button class="icon-btn" onclick="closeDealsPanel()">✕ Map</button>
         </div>
@@ -195,21 +255,21 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
         <h2>📬 Get deals before they hit the market</h2>
         <div id="regNote" class="reg-note"></div>
         <div class="reg-grid">
-          <div class="input-group"><label>Name *</label><input id="reg_name" placeholder="Your name"></div>
-          <div class="input-group"><label>Email *</label><input id="reg_email" type="email" placeholder="you@email.com"></div>
-          <div class="input-group"><label>Phone / WhatsApp</label><input id="reg_phone" placeholder="07..."></div>
+          <div class="input-group"><label>Name *</label><input id="reg_name" maxlength="100" autocomplete="name" placeholder="Your name" required></div>
+          <div class="input-group"><label>Email *</label><input id="reg_email" type="email" maxlength="254" autocomplete="email" placeholder="you@email.com" required></div>
+          <div class="input-group"><label>Phone / WhatsApp</label><input id="reg_phone" maxlength="40" autocomplete="tel" placeholder="07..."></div>
           <div class="input-group"><label>Strategy</label><select id="reg_strategy"><option>Any</option><option>HMO Small</option><option>BRRR</option><option>Buy to Rent</option><option>Flip</option><option>R2SA</option></select></div>
           <div class="input-group"><label>Budget min £</label><input id="reg_min" type="number" value="40000"></div>
           <div class="input-group"><label>Budget max £</label><input id="reg_max" type="number" value="150000"></div>
         </div>
-        <div class="input-group" style="margin-top:8px"><label>Areas of interest (comma separated)</label><input id="reg_areas" value="DN15, DN16, DN17"></div>
+        <div class="input-group" style="margin-top:8px"><label>Areas of interest (comma separated) *</label><input id="reg_areas" maxlength="200" value="DN15, DN16, DN17" required></div>
         <input type="hidden" id="regDeal" value="">
-        <label style="display:flex;gap:6px;align-items:flex-start;font-size:10px;margin-top:8px"><input id="reg_consent" type="checkbox" style="margin-top:2px"> <span>I agree to be contacted about off-market & auction deals and understand my data is handled under the privacy policy (GDPR). *</span></label>
-        <button class="icon-btn" style="background:#0ea5e9;margin-top:8px" onclick="registerInvestor(event)">🔔 Register for Deal Alerts</button>
+        <label style="display:flex;gap:6px;align-items:flex-start;font-size:10px;margin-top:8px"><input id="reg_consent" type="checkbox" style="margin-top:2px"> <span>I agree to be contacted about off-market and auction deals. Read the <a href="privacy-policy.html" target="_blank" rel="noopener">privacy policy</a>. *</span></label>
+        <label class="honeypot" aria-hidden="true">Leave this field empty<input id="website" name="website" tabindex="-1" autocomplete="off"></label>
+        <button class="icon-btn" style="background:#0ea5e9;margin-top:8px" onclick="registerForDealAlerts(event)">🔔 Register for Deal Alerts</button>
         <div id="regMsg" style="font-size:11px;margin-top:6px"></div>
         <div id="regCount" style="font-size:9px;color:#64748b;margin-top:2px"></div>
       </div>
-      <div id="footerCompliance"></div>
     </div>
   </div>
 
@@ -218,7 +278,6 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <div class="tab active" onclick="switchTab('calc')" id="tab-calc">Yield / BRRR / Refurb</div>
       <div class="tab" onclick="switchTab('comps')" id="tab-comps">Rent & GDV Comps</div>
       <div class="tab" onclick="switchTab('live')" id="tab-live">Live View</div>
-      <div class="tab" onclick="switchTab('investor')" id="tab-investor">Investor Match</div>
       <div class="tab" onclick="switchTab('dealpack')" id="tab-dealpack">Deal Pack</div>
       <div class="tab" onclick="switchTab('legalpack')" id="tab-legalpack">📜 Legal Pack</div>
     </div>
@@ -226,7 +285,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
     <!-- CALCULATORS TAB -->
     <div id="panel-calc">
       <div class="card">
-        <h2>💰 Accurate Yield Calculator (Single Let / HMO)</h2>
+        <h2>💰 Yield Calculator (illustrative) — Single Let / HMO</h2>
         <div class="input-grid">
           <div class="input-group"><label>Purchase Price £</label><input id="yc_purchase" type="number" value="85000" oninput="calcYield()"></div>
           <div class="input-group"><label>Refurb Cost £ (from refurb calc)</label><input id="yc_refurb" type="number" value="15000" oninput="calcYield()"></div>
@@ -292,6 +351,24 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
         </div>
         <div id="sdl_output" class="output"></div>
       </div>
+
+      <div class="card">
+        <h2>🎯 Max Offer Price Calculator</h2>
+        <div style="font-size:11px;color:#475569;margin-bottom:8px">Solves for the highest purchase price that meets the selected target. SDLT is recalculated at each trial price. Figures are illustrative.</div>
+        <div class="input-grid">
+          <div class="input-group"><label>GDV £</label><input id="mo_gdv" type="number" min="0" value="125000" oninput="calcMaxOffer()"></div>
+          <div class="input-group"><label>Refurb cost £</label><input id="mo_refurb" type="number" min="0" value="15000" oninput="calcMaxOffer()"></div>
+          <div class="input-group"><label>Other costs £ (excluding SDLT)</label><input id="mo_other" type="number" min="0" value="3500" oninput="calcMaxOffer()"></div>
+          <div class="input-group"><label>Strategy</label><select id="mo_strategy" onchange="updateMaxOfferFields()"><option value="btl">BTL — target gross yield</option><option value="brrr">BRRR — target money left in</option><option value="flip">Flip — target profit % of GDV</option></select></div>
+          <div class="input-group"><label id="mo_target_label">Target gross yield %</label><input id="mo_target" type="number" min="0" step="0.1" value="8" oninput="calcMaxOffer()"></div>
+          <div class="input-group" id="mo_rent_group"><label>Expected monthly rent £</label><input id="mo_rent" type="number" min="0" value="850" oninput="calcMaxOffer()"></div>
+          <div class="input-group" id="mo_ltv_group" style="display:none"><label>Refinance LTV %</label><input id="mo_ltv" type="number" min="0" max="100" value="75" oninput="calcMaxOffer()"></div>
+          <div class="input-group"><label>SDLT treatment</label><select id="mo_sdlt_type" onchange="calcMaxOffer()"><option value="add">Additional property (+5%)</option><option value="std">Standard (main home)</option><option value="ftb">First-time buyer</option></select></div>
+        </div>
+        <div id="mo_output" class="output"></div>
+        <div id="mo_sensitivity" style="margin-top:8px"></div>
+        <button class="btn btn-blue" onclick="useMaxOfferInDeal()">Use in deal</button>
+      </div>
     </div>
 
     <!-- COMPS TAB -->
@@ -338,32 +415,25 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       </div>
     </div>
 
-    <!-- INVESTOR MATCH TAB -->
-    <div id="panel-investor" style="display:none">
-      <div class="card">
-        <h2>🎯 Investor Matching Engine</h2>
-        <div style="font-size:11px;color:#475569;margin-bottom:6px">Based on your searched property zone, strategy, price, yield - shows which investors in your list match.</div>
-        <div id="investorList"></div>
-      </div>
-      <div class="card">
-        <h2>➕ Add Investor Criteria (for matching)</h2>
-        <div class="input-grid">
-          <div class="input-group"><label>Investor Name</label><input id="inv_name" value="Investor A"></div>
-          <div class="input-group"><label>Strategy</label><select id="inv_strat"><option>HMO Small</option><option>BRRR</option><option>Buy to Rent</option><option>Flip</option><option>R2SA</option></select></div>
-          <div class="input-group"><label>Budget Min £</label><input id="inv_min" type="number" value="60000"></div>
-          <div class="input-group"><label>Budget Max £</label><input id="inv_max" type="number" value="90000"></div>
-          <div class="input-group"><label>Min Yield %</label><input id="inv_yield" type="number" value="9"></div>
-          <div class="input-group"><label>Preferred Areas (comma)</label><input id="inv_areas" value="Town, Crosby & Park, Frodingham"></div>
-        </div>
-        <button class="btn btn-primary" style="margin-top:8px" onclick="addInvestor()">+ Add Investor</button>
-      </div>
-    </div>
-
     <!-- DEAL PACK TAB -->
     <div id="panel-dealpack" style="display:none">
       <div class="card">
         <h2>📦 Deal Packaging Template - Auto Generated</h2>
-        <div style="font-size:11px;color:#475569;margin-bottom:8px">Generates professional deal pack from current property + calculators + comps + pics. Print to PDF.</div>
+        <div style="font-size:11px;color:#475569;margin-bottom:8px">Generates a deal pack from the current property, calculators and available evidence. Print to PDF.</div>
+        <div class="alert alert-amber" style="margin-bottom:8px">Sourcing information only. Figures are illustrative. Not financial or investment advice. Do your own due diligence.</div>
+        <h3 style="font-size:12px;margin:8px 0 4px">Material Information</h3>
+        <div class="material-grid">
+          <div class="input-group"><label>Offer price £</label><input id="dp_offer_price" placeholder="from calculator"></div>
+          <div class="input-group"><label>Strategy</label><select id="dp_strategy"><option>HMO</option><option>BRRR</option><option>Buy to Rent</option><option>Flip</option><option>R2SA — higher risk – illustrative figures</option><option>Joint venture — higher risk – illustrative figures</option></select></div>
+          <div class="input-group"><label>Tenure</label><input id="dp_tenure" placeholder="unknown"></div>
+          <div class="input-group"><label>Council tax band</label><input id="dp_council_tax" placeholder="unknown"></div>
+          <div class="input-group"><label>EPC</label><input id="dp_epc" placeholder="unknown"></div>
+          <div class="input-group"><label>Construction</label><input id="dp_construction" placeholder="unknown"></div>
+          <div class="input-group"><label>Flood risk</label><input id="dp_flood_risk" placeholder="unknown"></div>
+          <div class="input-group"><label>Utilities</label><input id="dp_utilities" placeholder="unknown"></div>
+          <div class="input-group"><label>Known issues</label><input id="dp_known_issues" placeholder="unknown"></div>
+          <div class="input-group"><label>Sourcing fee (£)</label><input id="dp_sourcing_fee" placeholder="[X]"></div>
+        </div>
         <button class="btn btn-blue" onclick="generateDealPack()">📄 Generate Deal Pack (Preview)</button>
         <button class="btn" onclick="window.print()">🖨️ Print to PDF</button>
         <div id="dealPackPreview" style="margin-top:10px;border:1px solid #e2e8f0;border-radius:8px;padding:10px;background:#fff;max-height:400px;overflow:auto;font-size:11px"></div>
@@ -371,7 +441,6 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <div class="card">
         <h2>📋 Deal Sourcing Starter Pack - Documents</h2>
         <div style="display:flex;flex-direction:column;gap:6px">
-          <a class="btn" href="Investor-Criteria-Form.html" target="_blank">📝 Investor Criteria Form</a>
           <a class="btn" href="Compliance-Checklist.html" target="_blank">✅ Compliance Checklist (Article 4, HMO Licence, EPC, AML)</a>
           <a class="btn" href="Fee-Agreement-Template.html" target="_blank">💷 Fee Agreement Template</a>
           <a class="btn" href="Deal-Packaging-Template.html" target="_blank">📦 Deal Packaging Template (Full)</a>
@@ -396,9 +465,9 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       </div>
 
       <div class="card">
-        <h2>⚡ Instant EPC Lookup (free, live)</h2>
-        <div style="font-size:11px;color:#475569;margin-bottom:6px">Pulls the live EPC rating for the searched postcode from the open EPC API — no login needed.</div>
-        <button class="btn btn-blue" onclick="fetchEPC()">⚡ Fetch EPC for Searched Address</button>
+        <h2>⚡ EPC Register (official link)</h2>
+        <div style="font-size:11px;color:#475569;margin-bottom:6px">Open the official EPC register for the searched postcode. No API key is requested or stored by this site.</div>
+        <button class="btn btn-blue" onclick="fetchEPC()">⚡ Open EPC Register</button>
         <div id="epcOutput" style="margin-top:8px;font-size:11px"></div>
       </div>
 
@@ -443,8 +512,41 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
 
   </div>
 </div>
+<section class="home-info-grid" id="site-information">
+  <section class="home-section" id="fee-structure">
+    <h2 id="feeStructureTitle">Fee structure</h2>
+    <div id="feeStructureContent"><p>Fee information will be shown here once configured.</p></div>
+  </section>
+  <section class="home-section" id="about">
+    <h2>About</h2>
+    <p>This service is operated by a sole trader.</p>
+    <ul class="home-list" style="margin-top:8px">
+      <li><b>Name:</b> <span id="aboutName">[YOUR NAME]</span></li>
+      <li><b>Trading name:</b> <span id="aboutTradingName">[TRADING NAME]</span></li>
+      <li><b>Area covered:</b> <span id="aboutArea">[AREA COVERED]</span></li>
+      <li><b>Contact:</b> <a id="aboutEmail" href="/cdn-cgi/l/email-protection#84dfc1c9c5cdc8d9">[EMAIL]</a></li>
+    </ul>
+  </section>
+</section>
+<section class="home-section home-faq" id="faq">
+  <h2>FAQ</h2>
+  <details open><summary>What is this service?</summary><p>It provides property sourcing information, configurable deal alerts and browser-based tools for an initial review of property opportunities.</p></details>
+  <details><summary>Are the figures financial advice or guaranteed returns?</summary><p>No. Figures are illustrative assumptions only. They are not financial advice, a valuation, a guarantee or a promise of returns.</p></details>
+  <details><summary>How do I receive deal alerts?</summary><p>Use the alert form in the Deals area, complete the required fields and give consent. The alert endpoint must be configured before submissions can be received.</p></details>
+  <details><summary>What does the fee cover?</summary><p>See the Fee structure section above. It remains a placeholder until the site owner completes the fee settings in config.js.</p></details>
+  <details><summary>Do I still need to do my own checks?</summary><p>Yes. Review the legal pack, title, planning, condition, costs, tax and finance with appropriate independent professional advice before proceeding.</p></details>
+  <details><summary>How is my information handled?</summary><p>Read the <a href="privacy-policy.html">Privacy Policy</a> for alert submissions, optional analytics and browser storage information.</p></details>
+</section>
+<section class="home-section conditional-proof" id="track-record" aria-hidden="true">
+  <h2>Track record</h2><div id="trackRecordList" class="proof-grid"></div>
+</section>
+<section class="home-section conditional-proof" id="testimonials" aria-hidden="true">
+  <h2>Testimonials</h2><div id="testimonialsList" class="proof-grid"></div>
+</section>
 
-<script>
+<footer id="siteFooter" class="site-footer"></footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const map=L.map('map').setView([53.585,-0.654],14);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM | Article 4: North Lincs Council',maxZoom:19}).addTo(map);
 const zoneLayer=L.layerGroup().addTo(map);
@@ -454,11 +556,39 @@ const dealsLayer=L.layerGroup().addTo(map);
 let propertyMarker=null, radiusCircle=null;
 let lastLat=null, lastLon=null, lastPostcode='', lastZone=null, lastAddress='', lastGeoSource='';
 let selectedStrategies=[];
+let maxOfferResult=null;
 
-// ===== V4.1 CONFIG — EDIT THESE =====
-const COMPLIANCE={company:'YOUR COMPANY LTD',redress:'The Property Ombudsman (No. XXXXX)',aml:'HMRC AML supervised (No. XXXXX)',ico:'ICO No. ZXXXXXXX',dataAsOf:'Sep 2026'};
-const REG_ENDPOINT=''; // e.g. 'https://formspree.io/f/yourid' — leave '' to store registrations locally
-const SHEET_CSV_URL=''; // V5.1 LIVE STOCK: paste your published Google Sheet CSV URL here (see README) — deals panel then loads live lots. Leave '' for built-in stock.
+// ===== PUBLIC CONFIGURATION (no secrets, Sheet IDs or personal data) =====
+const SITE_CONFIG=window.SITE_CONFIG||{};
+const COMPLIANCE={tradingName:SITE_CONFIG.tradingName||'[TRADING NAME]',contactEmail:SITE_CONFIG.contactEmail||'[EMAIL]',yourName:SITE_CONFIG.yourName||'[YOUR NAME]',icoRegistration:SITE_CONFIG.icoRegistration||'',dataAsOf:SITE_CONFIG.dataAsOf||'Sep 2026'};
+const REG_ENDPOINT=SITE_CONFIG.alertEndpoint||'';
+const SHEET_CSV_URL=SITE_CONFIG.liveDealsCsvUrl||'';
+const DEAL_SCORE_WEIGHTS=Object.assign({discountToComps:25,grossYield:20,refurbRisk:15,demand:15,hmoDensityArticle4:15,dataConfidence:10},SITE_CONFIG.dealScoreWeights||{});
+function initAnalytics(){
+  const a=SITE_CONFIG.analytics||{};
+  if(!a.enabled||a.provider!=='plausible'||!a.scriptUrl||!a.domain)return;
+  window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)};
+  const script=document.createElement('script');script.defer=true;script.dataset.domain=a.domain;script.src=a.scriptUrl;document.head.appendChild(script);
+}
+function trackAnalytics(event,props){if(typeof window.plausible==='function')window.plausible(event,props?{props:props}:undefined);}
+function homeEscape(value){return String(value==null?'':value).replace(/[&<>'"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]});}
+function configuredText(value){var text=String(value==null?'':value).trim();return text&& !/^\[[^\]]+\]$/.test(text)?text:'';}
+function renderHomeConfiguration(){
+  var c=SITE_CONFIG||{},fees=c.feeStructure||{};
+  var feeTitle=String(fees.title||'Fee structure');document.getElementById('feeStructureTitle').textContent=feeTitle;
+  var feeHtml='';if(fees.intro)feeHtml+='<p>'+homeEscape(fees.intro)+'</p>';
+  var items=Array.isArray(fees.items)?fees.items:[];if(items.length){feeHtml+='<div class="home-fee-list">'+items.map(function(item){return '<div class="home-fee-row"><b>'+homeEscape(item&&item.label)+'</b><span>'+homeEscape(item&&item.value)+'</span></div>';}).join('')+'</div>';}
+  if(fees.note)feeHtml+='<p class="home-note">'+homeEscape(fees.note)+'</p>';if(!feeHtml)feeHtml='<p>Fee information will be shown here once configured.</p>';document.getElementById('feeStructureContent').innerHTML=feeHtml;
+  var name=c.yourName||'[YOUR NAME]',trading=c.tradingName||'[TRADING NAME]',area=c.areaCovered||'[AREA COVERED]',email=c.contactEmail||'[EMAIL]';
+  document.getElementById('aboutName').textContent=name;document.getElementById('aboutTradingName').textContent=trading;document.getElementById('aboutArea').textContent=area;var emailEl=document.getElementById('aboutEmail');emailEl.textContent=email;emailEl.href='mailto:'+email;
+  renderConfiguredProof('trackRecord','trackRecordList',c.trackRecord,'No track record entries have been configured.');renderConfiguredProof('testimonials','testimonialsList',c.testimonials,'No testimonials have been configured.');
+}
+function proofEntryIsReal(entry){if(typeof entry==='string')return !!configuredText(entry);if(!entry||typeof entry!=='object')return false;return ['title','label','text','detail','description','quote','author','name','role'].some(function(k){return !!configuredText(entry[k]);});}
+function proofEntryParts(entry,kind){if(typeof entry==='string')return {title:'',text:entry,meta:''};var title=entry.title||entry.label||'';var text=kind==='testimonials'?(entry.quote||entry.text||entry.detail||''):(entry.text||entry.detail||entry.description||'');var meta=kind==='testimonials'?(entry.author||entry.name||entry.role||''):(entry.date||entry.category||'');return {title:title,text:text,meta:meta};}
+function renderConfiguredProof(kind,listId,entries,emptyMessage){var section=document.getElementById(kind==='trackRecord'?'track-record':'testimonials'),list=document.getElementById(listId),valid=Array.isArray(entries)?entries.filter(proofEntryIsReal):[];if(!valid.length){section.style.display='none';section.setAttribute('aria-hidden','true');list.innerHTML='';return;}list.innerHTML=valid.map(function(entry){var p=proofEntryParts(entry,kind);return '<div class="proof-card">'+(p.title?'<strong>'+homeEscape(p.title)+'</strong>':'')+'<span>'+homeEscape(p.text)+'</span>'+(p.meta?'<br><small>'+homeEscape(p.meta)+'</small>':'')+'</div>';}).join('');section.style.display='block';section.setAttribute('aria-hidden','false');}
+function scrollToToolsApp(){document.getElementById('tools-app').scrollIntoView({behavior:'smooth',block:'start'});}
+function scrollToTools(){document.getElementById('tools').scrollIntoView({behavior:'smooth',block:'start'});}
+function openDealsAndAlerts(){openDealsPanel();setTimeout(function(){var box=document.getElementById('regBox');if(box)box.scrollIntoView({behavior:'smooth',block:'start'});},80);}
 const STATUS={available:{label:'AVAILABLE',bg:'#16a34a',fg:'#fff'},reserved:{label:'RESERVED',bg:'#f59e0b',fg:'#000'},under_offer:{label:'UNDER OFFER',bg:'#2563eb',fg:'#fff'},sold:{label:'SOLD',bg:'#64748b',fg:'#fff'}};
 // ===== YOUR DEAL PIPELINE — EDIT: replace SAMPLE deals with your live stock =====
 const dealsData=[
@@ -497,14 +627,6 @@ const existingProps=[
 const lots=[
   {lat:53.5930,lon:-0.6600,addr:'Plot rear Digby Road garage',type:'Lot',strategy:'BRRR',road:'Digby Road',price:15000},
   {lat:53.5840,lon:-0.6420,addr:'Frodingham Road vacant shop',type:'Lot',strategy:'BRRR',road:'Frodingham',price:65000},
-];
-
-let investors=[
-  {name:'Investor A - HMO Pro',strategy:'HMO Small',min:60000,max:90000,minYield:9,areas:['Town','Crosby & Park','Frodingham'],houseTypes:['Terraced']},
-  {name:'Investor B - BRRR Cash',strategy:'BRRR',min:40000,max:80000,minYield:7,areas:['Frodingham','Town','Brumby'],houseTypes:['Terraced']},
-  {name:'Investor C - Family BTL',strategy:'Buy to Rent',min:110000,max:170000,minYield:6,areas:['Ashby Lakeside','Bottesford','Ashby Central'],houseTypes:['Semi','Detached']},
-  {name:'Investor D - Flip',strategy:'Flip',min:100000,max:160000,minYield:5,areas:['Bottesford','Ashby Lakeside','Burton upon Stather & Winterton'],houseTypes:['Semi']},
-  {name:'Investor E - R2SA Contractor',strategy:'R2SA',min:90000,max:120000,minYield:6,areas:['Burringham & Gunness','Town'],houseTypes:['Terraced','Semi']},
 ];
 
 let refurbItems=[
@@ -616,7 +738,6 @@ async function searchFullAddress(){
     updateLegalPack(displayName,lastPostcode,lat,lon,ward,zone);
     updateComps(zone);
     calcYield();calcBRRR();calcRent();
-    matchInvestors();
     showAreaPics(zone,q);
     fetchSoldComps(lat,lon,lastPostcode);
     fetchHPI();renderRentIntel();
@@ -748,31 +869,12 @@ function renderLPChecklist(){
 }
 function toggleLPItem(i,v){let state=[];try{state=JSON.parse(localStorage.getItem('lp_check_'+lpKey())||'[]');}catch(e){}state[i]=v;try{localStorage.setItem('lp_check_'+lpKey(),JSON.stringify(state));}catch(e){}updateLPProgress();}
 function updateLPProgress(){let state=[];try{state=JSON.parse(localStorage.getItem('lp_check_'+lpKey())||'[]');}catch(e){}const n=state.filter(Boolean).length;const pct=Math.round(n/LP_ITEMS.length*100);document.getElementById('lpProgressFill').style.width=pct+'%';document.getElementById('lpProgressLabel').innerHTML='<b>'+n+' / '+LP_ITEMS.length+' collected</b> ('+pct+'%) — '+(lastAddress||'');}
-async function fetchEPC(){
+function fetchEPC(){
   const out=document.getElementById('epcOutput');
   if(!lastPostcode){out.innerHTML='<span style="color:#dc2626">Search an address with a postcode first.</span>';return;}
-  let key='';try{key=localStorage.getItem('epc_api_key')||'';}catch(e){}
-  if(!key){
-    key=prompt('Optional: paste your FREE EPC API key for one-click lookup.\n\nGet one in ~2 mins: epc.opendatacommunities.org → sign up → API key (Basic auth token).\n\nPress Cancel to skip — the EPC register link will open instead.');
-    if(key&&key.trim()){try{localStorage.setItem('epc_api_key',key.trim());}catch(e){}key=key.trim();}
-    else{window.open('https://find-energy-certificate.service.gov.uk/find-a-certificate/search-by-postcode?postcode='+encodeURIComponent(lastPostcode),'_blank');out.innerHTML='Opened the EPC register for <b>'+lastPostcode+'</b> in a new tab. (Tip: save a free API key next time for in-app lookup.)';return;}
-  }
-  out.innerHTML='⏳ Querying live EPC data for '+lastPostcode+'…';
-  try{
-    const r=await fetch('https://epc.opendatacommunities.org/api/v1/domestic/search?size=50&postcode='+encodeURIComponent(lastPostcode.replace(/\s+/g,'')),{headers:{'Accept':'application/json','Authorization':'Basic '+key}});
-    if(r.status===401||r.status===403){try{localStorage.removeItem('epc_api_key');}catch(e){}out.innerHTML='<span style="color:#dc2626">API key rejected — it has been cleared. Try again with a fresh key, or use the direct EPC link above.</span>';return;}
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const j=await r.json();
-    const rows=(j&&j.rows)||[];
-    if(!rows.length){out.innerHTML='No EPCs found for <b>'+lastPostcode+'</b>. The property may be unrated (common for long-term voids / auction stock) — budget for a new EPC (~£60–£80).';return;}
-    const num=(lastAddress.match(/\d+/)||[])[0]||'';
-    rows.sort((a,b)=>{const sa=num&&String(a.address||'').includes(num)?0:1;const sb=num&&String(b.address||'').includes(num)?0:1;return sa-sb;});
-    out.innerHTML=rows.slice(0,8).map(e=>{
-      const col=e['current-energy-rating']==='A'||e['current-energy-rating']==='B'?'#16a34a':e['current-energy-rating']==='F'||e['current-energy-rating']==='G'?'#dc2626':'#f59e0b';
-      const match=num&&String(e.address||'').includes(num)?' <span class="badge badge-blue">likely match</span>':'';
-      return '<div class="result-item"><b>'+e.address+(e.postcode?', '+e.postcode:'')+'</b>'+match+'<br>Rating: <b style="color:'+col+'">'+e['current-energy-rating']+' ('+e['current-energy-efficiency']+')</b> • Potential: '+e['potential-energy-rating']+' • Floor: '+(e['total-floor-area']||'?')+'m² • Lodged: '+(e['lodgement-date']||'').slice(0,10)+' • <a href="https://find-energy-certificate.service.gov.uk/energy-certificate/'+e['lmk-key']+'" target="_blank">Certificate →</a></div>';
-    }).join('')+'<div style="font-size:9px;color:#64748b;margin-top:4px">Source: MHCLG open EPC data (live). Ratings F/G cannot be let without exemption — check MEES.</div>';
-  }catch(e){out.innerHTML='<span style="color:#dc2626">EPC lookup failed ('+e.message+').</span> <a href="https://find-energy-certificate.service.gov.uk/find-a-certificate/search-by-postcode?postcode='+encodeURIComponent(lastPostcode)+'" target="_blank">Open EPC register →</a>';}
+  const url='https://find-energy-certificate.service.gov.uk/find-a-certificate/search-by-postcode?postcode='+encodeURIComponent(lastPostcode);
+  window.open(url,'_blank','noopener');
+  out.innerHTML='Opened the official EPC register for <b>'+lastPostcode+'</b> in a new tab.';
 }
 function scanLegalPack(){
   const txt=document.getElementById('lpPaste').value||'';
@@ -802,7 +904,7 @@ function scanLegalPack(){
   if(has('flood zone 3','flood zone-3'))red.push('<b>Flood Zone 3</b> — insurance + mortgage + planning implications. Check gov flood map.');
   else if(has('flood zone 2','flood risk','flooding'))amber.push('<b>Flood risk</b> mentioned — verify zone, insurance quotes, and lender policy.');
   if(has('subsidence','heave','landslip','underpinning'))red.push('<b>Subsidence/heave history</b> — needs structural report + insurance history; many lenders cautious.');
-  if(has('knotweed'))red.push('<b>Japanese knotweed</b> — needs treatment plan + guarantee; affects lending.');
+  if(has('knotweed'))red.push('<b>Japanese knotweed</b> — needs a treatment plan and lender-acceptable evidence; affects lending.');
   if(has('mundic','concrete construction','non-standard construction','prefabricated','steel frame','timber frame'))amber.push('<b>Non-standard construction</b> flagged — confirm type; some lenders restrict.');
   if(has('asbestos'))amber.push('<b>Asbestos</b> — survey + management/removal cost in refurb budget.');
   if(has('contaminat','landfill','ironstone','coal mining','mining'))amber.push('<b>Land/mining legacy</b> — get mining + environmental searches (Scunthorpe ironstone area).');
@@ -1020,67 +1122,32 @@ function switchTab(t){
   document.getElementById('panel-calc').style.display=t==='calc'?'block':'none';
   document.getElementById('panel-comps').style.display=t==='comps'?'block':'none';
   document.getElementById('panel-live').style.display=t==='live'?'block':'none';
-  document.getElementById('panel-investor').style.display=t==='investor'?'block':'none';
   document.getElementById('panel-dealpack').style.display=t==='dealpack'?'block':'none';
   document.getElementById('panel-legalpack').style.display=t==='legalpack'?'block':'none';
 }
 
-// Investor matching
-function renderInvestors(){
-  const div=document.getElementById('investorList');div.innerHTML='';
-  investors.forEach((inv,i)=>{
-    const d=document.createElement('div');d.className='card';d.style.marginBottom='6px';
-    d.innerHTML=`<b>${inv.name}</b> <span class="badge badge-blue">${inv.strategy}</span><br><small>Budget £${inv.min.toLocaleString()}-£${inv.max.toLocaleString()} • Min Yield ${inv.minYield}% • Areas: ${inv.areas.join(', ')} • Types: ${inv.houseTypes.join(', ')}</small><br><button class="btn" style="margin-top:4px" onclick="removeInvestor(${i})">Remove</button>`;
-    div.appendChild(d);
-  });
-}
-function addInvestor(){
-  const name=document.getElementById('inv_name').value||'Investor';
-  const strat=document.getElementById('inv_strat').value;
-  const min=parseFloat(document.getElementById('inv_min').value)||0;
-  const max=parseFloat(document.getElementById('inv_max').value)||0;
-  const minYield=parseFloat(document.getElementById('inv_yield').value)||0;
-  const areas=document.getElementById('inv_areas').value.split(',').map(s=>s.trim()).filter(s=>s);
-  investors.push({name,strategy:strat,min,max,minYield,areas,houseTypes:['Terraced','Semi']});
-  renderInvestors();matchInvestors();
-}
-function removeInvestor(i){investors.splice(i,1);renderInvestors();matchInvestors();}
-function matchInvestors(){
-  if(!lastZone) return;
-  const div=document.getElementById('investorList');
-  // re-render with match status
-  div.innerHTML='';
-  const purchase=parseFloat(document.getElementById('yc_purchase').value)||lastZone.avgPrice;
-  const yieldVal=lastZone.yield;
-  investors.forEach((inv,i)=>{
-    const strategyMatch=inv.strategy===lastZone.strategies[0]||lastZone.strategies.includes(inv.strategy);
-    const budgetMatch=purchase>=inv.min&&purchase<=inv.max;
-    const areaMatch=inv.areas.some(a=>lastZone.ward.toLowerCase().includes(a.toLowerCase())||lastZone.name.toLowerCase().includes(a.toLowerCase())||a.toLowerCase().includes(lastZone.ward.toLowerCase()));
-    const yieldMatch=yieldVal>=inv.minYield;
-    const score=(strategyMatch?1:0)+(budgetMatch?1:0)+(areaMatch?1:0)+(yieldMatch?1:0);
-    const match=score>=3;
-    const d=document.createElement('div');d.className='card';d.style.borderColor=match?'#16a34a':'#e2e8f0';d.style.background=match?'#f0fdf4':'#fff';
-    d.innerHTML=`<div style="display:flex;justify-content:space-between"><b>${inv.name}</b><span class="badge ${match?'badge-green':'badge-amber'}">${match?'MATCH '+score+'/4':'No Match '+score+'/4'}</span></div>
-      <small>${inv.strategy} • £${inv.min.toLocaleString()}-£${inv.max.toLocaleString()} • Min ${inv.minYield}% • ${inv.areas.join(', ')}</small><br>
-      <small style="color:${strategyMatch?'#16a34a':'#dc2626'}">Strategy ${strategyMatch?'✓':'✗'}</small> <small style="color:${budgetMatch?'#16a34a':'#dc2626'}">Budget ${budgetMatch?'✓':'✗'}</small> <small style="color:${areaMatch?'#16a34a':'#dc2626'}">Area ${areaMatch?'✓':'✗'}</small> <small style="color:${yieldMatch?'#16a34a':'#dc2626'}">Yield ${yieldMatch?'✓':'✗'}</small>
-    `;
-    div.appendChild(d);
-  });
-}
-
 function generateDealPack(){
   if(!lastLat){alert('Search a property first');return;}
-  const purchase=document.getElementById('yc_purchase').value;
+  trackAnalytics('deal_pack_generated');
+  const basePurchase=document.getElementById('yc_purchase').value;
+  const offerField=document.getElementById('dp_offer_price');
+  const purchase=offerField&&String(offerField.value).trim()?offerField.value:basePurchase;
   const refurb=document.getElementById('yc_refurb').value;
   const rent=document.getElementById('yc_rent').value;
   const gdv=document.getElementById('br_gdv').value;
   const zone=lastZone;
+  const materialField=id=>{const v=document.getElementById(id).value.trim();return v||'unknown';};
+  const packStrategy=materialField('dp_strategy');
+  const material={tenure:materialField('dp_tenure'),councilTax:materialField('dp_council_tax'),epc:materialField('dp_epc'),construction:materialField('dp_construction'),floodRisk:materialField('dp_flood_risk'),utilities:materialField('dp_utilities'),knownIssues:materialField('dp_known_issues')};
+  const sourcingFee=(document.getElementById('dp_sourcing_fee').value||'').trim()||'[X]';
   const html=`
+    <div class="compliance-banner">Sourcing information only. Figures are illustrative. Not financial or investment advice. Do your own due diligence.</div>
     <h2 style="color:#0f172a">Scunthorpe Deal Pack - ${lastAddress}</h2>
     <p><b>Address:</b> ${lastAddress}<br><b>Postcode:</b> ${lastPostcode} • <b>Ward:</b> ${zone?zone.ward:'-'} • <b>DN:</b> ${zone?zone.dn:'-'} • <b>Lat/Lon:</b> ${lastLat.toFixed(5)}, ${lastLon.toFixed(5)}</p>
     <p><b>Article 4:</b> ${zone&&zone.article4?'APPLIES - Planning required for small HMO from 26 Nov 2026':'Does not apply'} • <b>HMO Density:</b> See map - ${existingProps.filter(p=>haversine(lastLat,lastLon,p.lat,p.lon)<=500).length} deals within 500m</p>
     <h3>Investment Summary</h3>
-    <p>Purchase £${purchase} + Refurb £${refurb} = Total £${(parseFloat(purchase)+parseFloat(refurb)).toLocaleString()} • GDV £${gdv} • Rent £${rent}/mo • Zone Avg Yield ${zone?zone.yield+'%':''} • Best for ${zone?zone.strategies.join(', '):''}</p>
+    <p>Purchase £${purchase} + Refurb £${refurb} = Total £${(parseFloat(purchase)+parseFloat(refurb)).toLocaleString()} • GDV £${gdv} • Rent £${rent}/mo • Zone Avg Yield ${zone?zone.yield+'%':''} • Strategy ${packStrategy}${strategyRiskHTML(packStrategy)}</p>
+    <h3>Material Information</h3><table style="width:100%;border-collapse:collapse"><tr><th style="text-align:left">Item</th><th style="text-align:left">Value</th></tr><tr><td>Tenure</td><td>${material.tenure}</td></tr><tr><td>Council tax band</td><td>${material.councilTax}</td></tr><tr><td>EPC</td><td>${material.epc}</td></tr><tr><td>Construction</td><td>${material.construction}</td></tr><tr><td>Flood risk</td><td>${material.floodRisk}</td></tr><tr><td>Utilities</td><td>${material.utilities}</td></tr><tr><td>Known issues</td><td>${material.knownIssues}</td></tr></table><p><b>Sourcing fee: £${sourcingFee}</b></p>
     <h3>Calculators</h3>
     <div>${document.getElementById('yc_output').innerHTML}</div>
     <div>${document.getElementById('br_output').innerHTML}</div>
@@ -1090,7 +1157,7 @@ function generateDealPack(){
     <h3>Market Stats (UK HPI — retrieved at generation time)</h3><div>${document.getElementById('hpiCard').innerHTML}</div>
     <h3>Live Links</h3><p>Rightmove, Zoopla, Street View, EPC, HMO Register - see Live View tab</p>
     <h3>Legal Pack (V5)</h3>${legalPackDealPackHTML()}
-    <p style="font-size:10px;color:#64748b">Generated by Scunthorpe V4 Live Map - For professional investors only - Not financial advice - Do own due diligence, check planning, HMO licence, EPC.</p>
+    <p style="font-size:10px;color:#64748b">Sourcing information only. Figures are illustrative. Not financial or investment advice. Do your own due diligence.</p>
     ${complianceFooterHTML()}
   `;
   document.getElementById('dealPackPreview').innerHTML=html;
@@ -1145,6 +1212,72 @@ function useSDLTInYield(){
   document.getElementById('yc_sdlt').value=Math.round(sdltFor(parseFloat(document.getElementById('sdl_price').value)||0,document.getElementById('sdl_type').value));
   calcYield();switchTab('calc');
 }
+// Max Offer Price Calculator
+function numberInput(id){const raw=String(document.getElementById(id).value||'').trim();if(raw==='')return null;const n=Number(raw);return Number.isFinite(n)?n:null;}
+function money(n){return '£'+Math.round(Number(n)||0).toLocaleString('en-GB');}
+function maxOfferForScenario(gdv,refurb,other,strategy,target,rent,ltv,sdltType){
+  if(![gdv,refurb,other,target].every(Number.isFinite)||gdv<=0||refurb<0||other<0||target<0)return null;
+  if(strategy==='btl'&&(!Number.isFinite(rent)||rent<=0||target<=0))return null;
+  if(strategy==='brrr'&&(!Number.isFinite(ltv)||ltv<0||ltv>100))return null;
+  const refinanceLoan=strategy==='brrr'?gdv*ltv/100:0;
+  const meets=price=>{
+    const sdlt=sdltFor(price,sdltType);
+    const total=price+refurb+other+sdlt;
+    if(strategy==='btl')return rent*12/total*100>=target;
+    if(strategy==='brrr')return total-refinanceLoan<=target;
+    return gdv-total>=gdv*target/100;
+  };
+  if(!meets(0))return null;
+  let lo=0,hi=Math.max(gdv*2,100000),guard=0;
+  while(meets(hi)&&hi<10000000&&guard<20){hi*=2;guard++;}
+  if(meets(hi))return Math.floor(hi);
+  for(let i=0;i<70;i++){const mid=(lo+hi)/2;if(meets(mid))lo=mid;else hi=mid;}
+  return Math.floor(lo);
+}
+function updateMaxOfferFields(){
+  const strategy=document.getElementById('mo_strategy').value;
+  const label=document.getElementById('mo_target_label');
+  const rent=document.getElementById('mo_rent_group');
+  const ltv=document.getElementById('mo_ltv_group');
+  if(strategy==='btl'){label.textContent='Target gross yield %';rent.style.display='flex';ltv.style.display='none';document.getElementById('mo_target').value=8;}
+  if(strategy==='brrr'){label.textContent='Target money left in £';rent.style.display='none';ltv.style.display='flex';document.getElementById('mo_target').value=0;}
+  if(strategy==='flip'){label.textContent='Target profit % of GDV';rent.style.display='none';ltv.style.display='none';document.getElementById('mo_target').value=15;}
+  calcMaxOffer();
+}
+function maxOfferInputs(){return {gdv:numberInput('mo_gdv'),refurb:numberInput('mo_refurb'),other:numberInput('mo_other'),strategy:document.getElementById('mo_strategy').value,target:numberInput('mo_target'),rent:numberInput('mo_rent'),ltv:numberInput('mo_ltv'),sdltType:document.getElementById('mo_sdlt_type').value};}
+function calcMaxOffer(){
+  const x=maxOfferInputs();
+  const out=document.getElementById('mo_output');
+  const sens=document.getElementById('mo_sensitivity');
+  const required=[x.gdv,x.refurb,x.other,x.target];
+  if(required.some(v=>!Number.isFinite(v))||(x.strategy==='btl'&&(!Number.isFinite(x.rent)||x.rent<=0))||(x.strategy==='brrr'&&(!Number.isFinite(x.ltv)||x.ltv<0||x.ltv>100))){
+    maxOfferResult=null;out.innerHTML='<b>Highest price to offer:</b> insufficient data — complete the strategy inputs.';sens.innerHTML='';return;
+  }
+  const price=maxOfferForScenario(x.gdv,x.refurb,x.other,x.strategy,x.target,x.rent,x.ltv,x.sdltType);
+  if(price===null){maxOfferResult=null;out.innerHTML='<b>Highest price to offer:</b> no feasible price meets this target with the supplied inputs.';sens.innerHTML='';return;}
+  const sdlt=sdltFor(price,x.sdltType),total=price+x.refurb+x.other+sdlt,loan=x.gdv*(x.ltv||0)/100;
+  maxOfferResult=Object.assign({},x,{price,sdlt,total,loan});
+  let working='';
+  if(x.strategy==='btl')working='<b>Working:</b> Annual rent '+money(x.rent*12)+' ÷ total cost '+money(total)+' = '+(x.rent*12/total*100).toFixed(2)+'% gross yield (target '+x.target.toFixed(2)+'%).';
+  if(x.strategy==='brrr')working='<b>Working:</b> Purchase '+money(price)+' + refurb '+money(x.refurb)+' + other '+money(x.other)+' + SDLT '+money(sdlt)+' − refinance loan '+money(loan)+' = '+money(total-loan)+' money left in (target '+money(x.target)+').';
+  if(x.strategy==='flip')working='<b>Working:</b> GDV '+money(x.gdv)+' − purchase '+money(price)+' − refurb '+money(x.refurb)+' − other '+money(x.other)+' − SDLT '+money(sdlt)+' = '+money(x.gdv-total)+' profit (target '+x.target.toFixed(2)+'% of GDV = '+money(x.gdv*x.target/100)+').';
+  out.innerHTML='<b>Highest price to offer: '+money(price)+'</b><br><small>SDLT at this price: '+money(sdlt)+' • Total cost including SDLT: '+money(total)+'</small><br><small>'+working+'</small>';
+  const gdvs=[['GDV −5%',x.gdv*.95],['GDV base',x.gdv],['GDV +5%',x.gdv*1.05]];
+  const refs=[['Refurb −20%',x.refurb*.8],['Refurb −10%',x.refurb*.9],['Refurb base',x.refurb],['Refurb +10%',x.refurb*1.1],['Refurb +20%',x.refurb*1.2]];
+  sens.innerHTML='<div style="font-size:11px;font-weight:700;margin-bottom:4px">Sensitivity: maximum offer</div><table class="sensitivity-table"><tr><th>GDV \\ Refurb</th>'+refs.map(r=>'<th>'+r[0]+'</th>').join('')+'</tr>'+gdvs.map(g=>'<tr><th>'+g[0]+'</th>'+refs.map(r=>{const v=maxOfferForScenario(g[1],r[1],x.other,x.strategy,x.target,x.rent,x.ltv,x.sdltType);return '<td>'+(v===null?'—':money(v))+'</td>';}).join('')+'</tr>').join('')+'</table><div style="font-size:9px;color:#64748b;margin-top:4px">Each cell recalculates SDLT at the trial offer price. Sensitivity is illustrative and does not replace legal, tax, valuation or lender checks.</div>';
+}
+function useMaxOfferInDeal(){
+  if(!maxOfferResult||!Number.isFinite(maxOfferResult.price)){alert('Calculate a maximum offer first.');return;}
+  const price=Math.round(maxOfferResult.price);
+  document.getElementById('dp_offer_price').value=price;
+  document.getElementById('yc_purchase').value=price;
+  document.getElementById('br_purchase').value=price;
+  document.getElementById('sdl_price').value=price;
+  calcYield();calcBRRR();calcSDLT();
+  switchTab('dealpack');
+  const panel=document.getElementById('panel-dealpack');if(panel&&panel.scrollIntoView)panel.scrollIntoView({behavior:'smooth'});
+}
+
 const ZONE_DEFAULT_COLOR='#64748b';
 const zonePolygons=[];
 let heatmapOn=false;
@@ -1176,21 +1309,111 @@ function renderRentIntel(){
    '</table><div style="font-size:9px;color:#64748b;margin-top:5px">Estimates from the Rent Calculator comp bases (curated, Sep 2026) ÷ zone average prices (UK HPI-derived). Gross yields before costs. HMO = 5 rooms let. Row highlights for the currently searched property. <b>Not a substitute for real rent comparables — verify with agents.</b></div>';
 }
 
+// Deal Score (0–100)
+function clampScore(n){return Math.max(0,Math.min(100,n));}
+function scoreNumber(value){if(value===null||value===undefined||String(value).trim()==='')return null;const n=Number(value);return Number.isFinite(n)?n:null;}
+function dealZoneForScore(d){
+  if(d.zone){const byId=zones.find(z=>z.id===d.zone);if(byId)return byId;}
+  const lat=scoreNumber(d.lat),lon=scoreNumber(d.lon);
+  return lat!==null&&lon!==null?getZoneForPoint(lat,lon):null;
+}
+function dealStrategyForScore(strategy){
+  const text=String(strategy||'');
+  if(/HMO/i.test(text))return 'HMO Small';
+  if(/BRRR/i.test(text))return 'BRRR';
+  if(/R2SA|SA/i.test(text))return 'R2SA';
+  if(/Buy to Rent|BTL|Single Let/i.test(text))return 'Buy to Rent';
+  if(/Flip/i.test(text))return 'Flip';
+  return '';
+}
+function dealScoreFor(d){
+  const guide=scoreNumber(d.guide),refurb=scoreNumber(d.refurb),rent=scoreNumber(d.rent),fee=scoreNumber(d.fee)??0;
+  const zone=dealZoneForScore(d),lat=scoreNumber(d.lat),lon=scoreNumber(d.lon);
+  const compPrice=scoreNumber(d.compPrice??d.comp_price)??(zone?scoreNumber(zone.avgPrice):null);
+  const missing=[];
+  if(guide===null||guide<=0)missing.push('guide price');
+  if(refurb===null||refurb<0)missing.push('refurb cost');
+  if(rent===null||rent<=0)missing.push('monthly rent');
+  if(compPrice===null||compPrice<=0)missing.push('comparable price');
+  if(!zone)missing.push('zone demand data');
+  if(lat===null||lon===null)missing.push('property coordinates for density');
+  if(missing.length)return {score:null,label:'insufficient data',missing,breakdown:[]};
+  const total=guide+refurb+fee;
+  const grossYield=rent*12/total*100;
+  const discount=(compPrice-guide)/compPrice*100;
+  const refurbPct=guide?refurb/guide*100:100;
+  const strategy=dealStrategyForScore(d.strategy);
+  const demand=zone.demand[strategy];
+  if(!Number.isFinite(demand)){return {score:null,label:'insufficient data',missing:['demand score for '+(d.strategy||'this strategy')],breakdown:[]};}
+  const nearby=existingProps.filter(p=>haversine(lat,lon,p.lat,p.lon)<=500);
+  const hmoCount=nearby.filter(p=>p.strategy==='HMO Small').length;
+  const hmoScore=clampScore(100-(zone.article4?20:0)-Math.min(70,nearby.length*5+hmoCount*10));
+  const evidence=[d.source,d.source_url,d.blurb,d.note,d.gdv,d.compPrice,d.lat,d.lon].filter(v=>v!==undefined&&v!==null&&String(v).trim()!==''&&String(v)!=='0').length;
+  const explicitConfidence=scoreNumber(d.dataConfidence??d.data_confidence);
+  const confidence=clampScore(explicitConfidence===null?Math.round(35+evidence/8*65):explicitConfidence);
+  const breakdown=[
+    {key:'discountToComps',label:'Discount to comps',weight:DEAL_SCORE_WEIGHTS.discountToComps,score:clampScore(discount/30*100),reason:money(guide)+' offer vs '+money(compPrice)+' reference ('+(discount>=0?discount.toFixed(1)+'% below':'above by '+Math.abs(discount).toFixed(1)+'%')+')'},
+    {key:'grossYield',label:'Gross yield',weight:DEAL_SCORE_WEIGHTS.grossYield,score:clampScore((grossYield-4)/6*100),reason:grossYield.toFixed(1)+'% on guide, refurb and fee'},
+    {key:'refurbRisk',label:'Refurb risk',weight:DEAL_SCORE_WEIGHTS.refurbRisk,score:clampScore(100-refurbPct*2),reason:money(refurb)+' refurb is '+refurbPct.toFixed(1)+'% of guide'},
+    {key:'demand',label:'Demand',weight:DEAL_SCORE_WEIGHTS.demand,score:clampScore(demand*10),reason:strategy+' demand is '+demand+'/10 in '+zone.name},
+    {key:'hmoDensityArticle4',label:'HMO density / Article 4',weight:DEAL_SCORE_WEIGHTS.hmoDensityArticle4,score:hmoScore,reason:(zone.article4?'Article 4 applies':'No mapped Article 4 flag')+'; '+nearby.length+' mapped deals and '+hmoCount+' small HMO(s) within 500m'},
+    {key:'dataConfidence',label:'Data confidence',weight:DEAL_SCORE_WEIGHTS.dataConfidence,score:confidence,reason:confidence+'/100 from populated deal evidence fields and source details'}
+  ];
+  const score=breakdown.reduce((sum,x)=>sum+x.score*x.weight/100,0);
+  return {score:Math.round(score),label:Math.round(score)+'/100',missing:[],breakdown,zone,grossYield,discount,refurbPct,nearbyCount:nearby.length,hmoCount};
+}
+function scoreBadgeHTML(d){
+  const result=dealScoreFor(d);
+  if(result.score===null)return '<span class="score-badge score-badge-insufficient">DEAL SCORE: insufficient data</span>';
+  const cls=result.score>=70?'score-badge-good':result.score>=45?'score-badge-mid':'score-badge-low';
+  return '<span class="score-badge '+cls+'">DEAL SCORE '+result.score+'/100</span>';
+}
+function dealScoreDetailHTML(d){
+  const result=dealScoreFor(d);
+  if(result.score===null)return '<div class="score-breakdown"><h4>Deal score: insufficient data</h4><div class="score-reason">No score is shown because this deal is missing: '+result.missing.join(', ')+'.</div></div>';
+  return '<div class="score-breakdown"><h4>Deal score: '+result.score+'/100</h4>'+result.breakdown.map(x=>'<div class="score-row"><b>'+x.label+' ('+x.weight+'%): '+x.score.toFixed(0)+'/100 → '+(x.score*x.weight/100).toFixed(1)+' points</b><div class="score-reason">'+x.reason+'</div></div>').join('')+'<div class="score-reason" style="margin-top:6px">Weights are configured in config.js. This is a sourcing triage aid, not financial or investment advice.</div></div>';
+}
+function dealAddressHidden(d){return !!d&&(d.hideAddress===true||/^(true|1|yes)$/i.test(String(d.hideAddress||'')));}
+function publicDealAddress(d){return dealAddressHidden(d)?'Address withheld':(d.addr||'Property opportunity');}
+function renderHomeDeals(){
+  var grid=document.getElementById('homeDealsGrid');
+  if(!grid)return;
+  var list=dealsData.filter(function(d){return d.status!=='sold';}).slice(0,4);
+  if(!list.length)list=dealsData.slice(0,4);
+  if(!list.length){grid.innerHTML='<div class="home-deal-card"><p>No public deals are configured yet.</p></div>';return;}
+  grid.innerHTML=list.map(function(d){
+    var st=STATUS[d.status]||STATUS.available;
+    return '<div class="home-deal-card"><span class="status-badge" style="background:'+st.bg+';color:'+st.fg+'">'+st.label+'</span><h3>'+homeEscape(publicDealAddress(d))+'</h3><p>'+homeEscape(d.strategy||'Property opportunity')+(d.type?' · '+homeEscape(d.type):'')+'</p><div class="home-deal-meta">'+(d.guide?'<span>'+money(d.guide)+'</span>':'<span>Guide TBC</span>')+(d.refurb?'<span>Refurb '+money(d.refurb)+'</span>':'')+(d.rent?'<span>Rent '+money(d.rent)+'/mo</span>':'')+'</div><div class="home-actions"><button class="btn btn-blue" data-slug="'+homeEscape(d.slug)+'" onclick="openDeal(this.dataset.slug)">View deal</button></div></div>';
+  }).join('');
+}
+
+function dealsForDisplay(){
+  const list=dealsData.slice(),sort=(document.getElementById('dealSort')||{}).value||'score';
+  list.sort((a,b)=>{
+    if(sort==='price')return (scoreNumber(a.guide)??Infinity)-(scoreNumber(b.guide)??Infinity);
+    if(sort==='status')return String(a.status||'').localeCompare(String(b.status||''));
+    const as=dealScoreFor(a).score,bs=dealScoreFor(b).score;
+    if(as===null&&bs===null)return 0;if(as===null)return 1;if(bs===null)return -1;return bs-as;
+  });
+  return list;
+}
+
 // ===== V4.1: LIVE DEALS ENGINE =====
 let currentDeal=null;
 function dealBySlug(s){return dealsData.find(d=>d.slug===s);}
-function complianceFooterHTML(){const c=COMPLIANCE;const missing=!c.redress||c.redress.includes('XXXX');
- return '<div class="compliance"><b>'+(c.company||'Sourcer')+'</b> · '+(missing?'⚠️ Add your details: edit the COMPLIANCE config in index.html (redress scheme, HMRC AML, ICO)':(c.redress+' · '+c.aml+' · '+c.ico))+'<br>Sourcing fees payable on completion under a written agreement. Information is for guidance only — not financial advice. Always do your own due diligence (title, planning, HMO licensing, EPC, surveys). Data as of '+c.dataAsOf+'.</div>';}
+function strategyRiskHTML(strategy){return /R2SA|joint[- ]?venture|\bJV\b/i.test(String(strategy||''))?' <span class="risk-note">higher risk – illustrative figures</span>':'';}
+function complianceFooterHTML(){const c=COMPLIANCE;const ico=c.icoRegistration?'<br>ICO registration: '+c.icoRegistration:'';
+ return '<div class="compliance"><b>'+c.tradingName+'</b><br>Contact: <a href="mailto:'+c.contactEmail+'">'+c.contactEmail+'</a>'+ico+'<br>Sourcing information only. Figures are illustrative. Not financial or investment advice. Do your own due diligence.<br><a href="privacy-policy.html">Privacy Policy</a> · Data reference date: '+c.dataAsOf+'</div>';}
 function renderDeals(){
   const div=document.getElementById('dealsList');
-  div.innerHTML=dealsData.map(d=>{const st=STATUS[d.status]||STATUS.available;
+  div.innerHTML=dealsForDisplay().map(d=>{const st=STATUS[d.status]||STATUS.available;
     const guideTxt=d.guide?'£'+d.guide.toLocaleString():(d.price_label||'TBC');
     const profitTxt=d.gdv?('£'+((d.gdv||0)-d.guide-(d.fee||0)-(d.refurb||0)).toLocaleString()):'TBC';
     const yieldTxt=d.yieldPc?(d.yieldPc+'%'):'—';
     return '<div class="deal-card" onclick="openDeal(\''+d.slug+'\')">'+(d.sample?'<span class="sample-chip">SAMPLE</span>':'')+(d.auto?'<span class="sample-chip" style="border-style:solid;border-color:#0ea5e9;color:#0284c7">🤖 '+(d.source||'AUTO').toUpperCase()+'</span>':'')+
-    '<span class="status-badge" style="background:'+st.bg+';color:'+st.fg+'">'+st.label+'</span>'+
-    '<div style="font-weight:800;font-size:12px;margin:6px 0 2px">'+d.addr+'</div>'+
-    '<div style="font-size:10px;color:#64748b">'+(d.type?d.type+' · ':'')+d.strategy+'</div>'+
+    '<span class="status-badge" style="background:'+st.bg+';color:'+st.fg+'">'+st.label+'</span>'+scoreBadgeHTML(d)+
+    '<div style="font-weight:800;font-size:12px;margin:6px 0 2px">'+homeEscape(publicDealAddress(d))+'</div>'+
+    '<div style="font-size:10px;color:#64748b">'+(d.type?d.type+' · ':'')+d.strategy+strategyRiskHTML(d.strategy)+'</div>'+
     '<div class="deal-kpis"><div><b>'+guideTxt+'</b><span>'+(d.status==='sold'?'Sold for':'Guide')+'</span></div><div><b>'+yieldTxt+'</b><span>Est. yield</span></div><div><b>'+profitTxt+'</b><span>Est. profit</span></div></div>'+
     '<button class="icon-btn" style="background:#0ea5e9;width:100%" onclick="event.stopPropagation();openDeal(\''+d.slug+'\')">View deal →</button></div>';}).join('');
 }
@@ -1207,12 +1430,12 @@ async function loadLiveDeals(){
     const head=rows[0].map(h=>String(h||'').trim().toLowerCase());
     const live=rows.slice(1).filter(c=>c.some(x=>String(x||'').trim()!=='')).map(c=>{
       const g=n=>{const i=head.indexOf(n);return i>=0?String(c[i]||'').trim():'';};
-      const num=n=>{const v=parseFloat(g(n).replace(/[^0-9.\-]/g,''));return isNaN(v)?0:v;};
-      return {slug:g('slug')||('lot-'+Math.random().toString(36).slice(2,7)),addr:g('addr')||'Untitled lot',status:g('status')||'available',sample:false,guide:num('guide'),fee:num('fee'),refurb:num('refurb'),rent:num('rent'),gdv:num('gdv'),beds:num('beds'),type:g('type'),strategy:g('strategy')||'BRRR',zone:g('zone'),lat:parseFloat(g('lat'))||null,lon:parseFloat(g('lon'))||null,blurb:g('blurb'),note:g('note')};
+      const num=n=>{const raw=g(n);if(raw==='')return null;const v=parseFloat(raw.replace(/[^0-9.\-]/g,''));return isNaN(v)?null:v;};
+      return {slug:g('slug')||('lot-'+Math.random().toString(36).slice(2,7)),addr:g('addr')||'Untitled lot',status:g('status')||'available',sample:false,guide:num('guide'),fee:num('fee'),refurb:num('refurb'),rent:num('rent'),gdv:num('gdv'),compPrice:num('comp_price'),dataConfidence:num('data_confidence'),hideAddress:/^(true|1|yes)$/i.test(g('hide_address')),beds:num('beds'),type:g('type'),strategy:g('strategy')||'BRRR',zone:g('zone'),lat:parseFloat(g('lat'))||null,lon:parseFloat(g('lon'))||null,blurb:g('blurb'),note:g('note')};
     }).filter(d=>d.addr!=='Untitled lot');
     if(!live.length)throw new Error('no valid rows (needs an "addr" column)');
     dealsData.length=0;live.forEach(d=>dealsData.push(d));
-    backToDeals();drawDealPins();
+    backToDeals();drawDealPins();checkDealLink();
     if(st)st.innerHTML='🟢 <b>LIVE stock from your sheet</b> — '+live.length+' lot(s), refreshed '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'. <a href="#" onclick="loadLiveDeals();return false">↻ Refresh</a>';
   }catch(e){if(st)st.innerHTML='🟡 Sheet feed failed ('+e.message+') — showing built-in stock. <a href="#" onclick="loadLiveDeals();return false">↻ Retry</a>';}
 }
@@ -1226,7 +1449,7 @@ async function loadAutoStock(){
     const lots=(j.lots||[]).map(normalizeAutoLot).filter(Boolean);
     if(!lots.length)throw new Error('empty');
     dealsData.length=0;lots.forEach(d=>dealsData.push(d));BUILTIN_REAL.forEach(d=>dealsData.push(d));
-    backToDeals();drawDealPins();
+    backToDeals();drawDealPins();checkDealLink();
     const s=j.sources||{};
     const bits=Object.keys(s).map(k=>k.charAt(0).toUpperCase()+k.slice(1)+' '+(s[k].lots||0)).join(' · ');
     const nA=lots.filter(d=>d.status==='available').length,nS=lots.filter(d=>d.status==='sold').length;
@@ -1240,14 +1463,34 @@ function normalizeAutoLot(l){
   if(!l||!l.addr)return null;
   let zid=l.zone||'';
   if(!zid&&l.lat!=null&&l.lon!=null){try{const z=getZoneForPoint(l.lat,l.lon);if(z)zid=z.id;}catch(e){}}
-  return {slug:String(l.slug||('auto-'+Math.random().toString(36).slice(2,7))),addr:l.addr,status:l.status||'available',sample:false,auto:true,guide:l.guide||0,price_label:l.price_label||'',fee:l.fee||0,refurb:l.refurb||0,rent:l.rent||0,gdv:l.gdv||0,beds:l.beds||0,type:l.type||'',strategy:l.strategy||'Auction',zone:zid,lat:l.lat,lon:l.lon,blurb:l.blurb||'',note:l.note||'',source:l.source||'Auto',source_url:l.source_url||'',auction_date:l.auction_date||'',image:l.image||''};
+  return {slug:String(l.slug||('auto-'+Math.random().toString(36).slice(2,7))),addr:l.addr,status:l.status||'available',sample:false,auto:true,guide:l.guide||0,price_label:l.price_label||'',fee:l.fee||0,refurb:l.refurb||0,rent:l.rent||0,gdv:l.gdv||0,compPrice:l.comp_price??l.compPrice??null,dataConfidence:l.data_confidence??l.dataConfidence??null,hideAddress:/^(true|1|yes)$/i.test(String(l.hide_address??l.hideAddress??'')),beds:l.beds||0,type:l.type||'',strategy:l.strategy||'Auction',zone:zid,lat:l.lat,lon:l.lon,blurb:l.blurb||'',note:l.note||'',source:l.source||'Auto',source_url:l.source_url||'',auction_date:l.auction_date||'',image:l.image||''};
 }
 function parseCSV(t){const rows=[];let row=[],v='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){v+='"';i++;}else q=false;}else v+=c;}else{if(c==='"')q=true;else if(c===','){row.push(v);v='';}else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(v);v='';if(row.some(x=>x!==''))rows.push(row);row=[];}else v+=c;}}if(v!==''||row.length){row.push(v);rows.push(row);}return rows;}
 function openDealsPanel(){backToDeals();document.getElementById('panel-deals').style.display='block';}
 function closeDealsPanel(){document.getElementById('panel-deals').style.display='none';}
-function backToDeals(){document.getElementById('dealDetail').innerHTML='';document.getElementById('dealsBack').style.display='none';renderDeals();}
+function backToDeals(){document.getElementById('dealDetail').innerHTML='';document.getElementById('dealsList').style.display='grid';document.getElementById('auctionStockCard').style.display='';document.getElementById('dealsBack').style.display='none';renderDeals();renderHomeDeals();}
+
+function sharedAddressAcknowledged(slug){try{return sessionStorage.getItem('deal_address_ack_'+slug)==='yes';}catch(e){return false;}}
+function acknowledgeSharedAddress(slug){try{sessionStorage.setItem('deal_address_ack_'+slug,'yes');}catch(e){}openSharedDeal(slug);}
+function shareWhatsAppUrl(d,hidden){const label=hidden?(d.zone||'Scunthorpe property opportunity'):(d.addr||'property opportunity');const url=location.origin+location.pathname+'?deal='+encodeURIComponent(d.slug)+(d.hideAddress?'&hide=1':'');return 'https://wa.me/?text='+encodeURIComponent('Property opportunity: '+label+' — '+url);}
+function openSharedDeal(slug){
+  const d=dealBySlug(slug);if(!d){document.getElementById('panel-deals').style.display='block';document.getElementById('dealDetail').innerHTML='<div class="card"><b>Deal not found.</b><br>It may have been removed or is not currently public.</div>';return;}
+  currentDeal=d;trackAnalytics('deal_view',{deal_id:d.slug});
+  const zone=zones.find(z=>z.id===d.zone);const requestedHide=new URLSearchParams(location.search).get('hide')==='1';
+  const hidden=(dealAddressHidden(d)||requestedHide)&&!sharedAddressAcknowledged(d.slug);
+  const label=hidden?'Exact address withheld until acknowledgement':d.addr;
+  const total=(d.guide||0)+(d.fee||0)+(d.refurb||0);const gy=d.rent&&total?Math.round(d.rent*12/total*1000)/10:null;
+  document.getElementById('dealsList').style.display='none';document.getElementById('auctionStockCard').style.display='none';document.getElementById('dealsBack').style.display='inline-block';document.getElementById('dealDetail').innerHTML=
+    '<div class="share-view"><div class="card"><h2>Property opportunity</h2><h3 style="font-size:18px;margin:8px 0">'+label+'</h3>'+
+    (hidden?'<div class="share-hidden"><b>Exact address hidden.</b><br>Read the <a href="Fee-Agreement-Template.html?deal='+encodeURIComponent(d.slug)+'" target="_blank" rel="noopener">fee agreement template</a>, then tick the acknowledgement below to reveal it for this browser session.<br><label style="display:flex;gap:7px;align-items:flex-start;margin-top:8px"><input type="checkbox" id="shareAck" onchange="document.getElementById(\'shareReveal\').disabled=!this.checked"> I acknowledge that I have read the fee-agreement template and want to reveal the exact address.</label><button id="shareReveal" class="btn btn-blue" disabled onclick="acknowledgeSharedAddress(\''+d.slug+'\')">Reveal exact address</button></div>':'')+
+    '<div style="font-size:12px;color:#475569">'+(d.type?d.type+' · ':'')+'Strategy: '+(d.strategy||'—')+(zone?' · '+zone.name:'')+'</div><div class="deal-kpis"><div><b>'+(d.guide?money(d.guide):'TBC')+'</b><span>Guide price</span></div><div><b>'+(gy?gy+'%':'—')+'</b><span>Gross yield</span></div><div><b>'+(d.refurb?money(d.refurb):'TBC')+'</b><span>Est. refurb</span></div><div><b>'+(d.gdv?money(d.gdv):'TBC')+'</b><span>Est. GDV</span></div></div>'+
+    (hidden?'':'<p style="font-size:11px;line-height:1.6">'+(d.blurb||'Details available after acknowledgement.')+'</p>')+
+    '<div class="share-actions"><a class="icon-btn" style="background:#0ea5e9;text-decoration:none" href="Fee-Agreement-Template.html?deal='+encodeURIComponent(d.slug)+'" target="_blank" rel="noopener" onclick="trackAnalytics(\'reserve_deal_click\',{deal_id:\''+d.slug+'\'})">Reserve this deal →</a><a class="icon-btn" style="background:#25d366;color:#052e16;text-decoration:none" href="'+shareWhatsAppUrl(d,hidden)+'" target="_blank" rel="noopener" onclick="trackAnalytics(\'whatsapp_click\',{deal_id:\''+d.slug+'\'})">Share via WhatsApp</a></div>'+
+    '<div class="compliance" style="margin-top:12px">Sourcing information only. Figures are illustrative. Not financial or investment advice. Do your own due diligence.<br><a href="privacy-policy.html">Privacy Policy</a></div></div></div>';
+  document.getElementById('panel-deals').style.display='block';
+}
 function openDeal(slug){
-  const d=dealBySlug(slug);if(!d)return;currentDeal=d;
+  const d=dealBySlug(slug);if(!d)return;if(dealAddressHidden(d)&&!sharedAddressAcknowledged(d.slug)){openSharedDeal(slug);return;}currentDeal=d;trackAnalytics('deal_view',{deal_id:d.slug});
   const st=STATUS[d.status]||STATUS.available;
   const zone=zones.find(z=>z.id===d.zone);
   const allin=d.guide+(d.fee||0)+(d.refurb||0);
@@ -1255,7 +1498,7 @@ function openDeal(slug){
   document.getElementById('dealsBack').style.display='inline-block';
   document.getElementById('dealDetail').innerHTML=
    '<div class="card"><span class="status-badge" style="background:'+st.bg+';color:'+st.fg+'">'+st.label+'</span> '+(d.sample?'<span class="sample-chip" style="position:static">SAMPLE — replace with your live deal</span>':'')+
-   '<h3 style="margin:8px 0 2px">'+d.addr+'</h3><div style="font-size:11px;color:#64748b">'+(d.type?d.type+' · ':'')+'Strategy: '+d.strategy+(zone?' · Zone: '+zone.name:'')+'</div>'+
+   '<h3 style="margin:8px 0 2px">'+d.addr+'</h3><div style="font-size:11px;color:#64748b">'+(d.type?d.type+' · ':'')+'Strategy: '+d.strategy+strategyRiskHTML(d.strategy)+(zone?' · Zone: '+zone.name:'')+'</div>'+
    (d.image?'<img src="'+d.image+'" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:8px" onerror="this.style.display=\'none\'">':'')+
    (d.auto?'<div style="font-size:11px;margin-top:6px">🤖 Auto-scraped from <b>'+(d.source||'auctioneer')+'</b>'+(d.auction_date?' · Auction: '+d.auction_date:'')+(d.source_url?' · <a href="'+d.source_url+'" target="_blank" rel="noopener">View original lot →</a>':'')+'</div>':'')+
    '<div class="deal-kpis">'+
@@ -1268,6 +1511,7 @@ function openDeal(slug){
    '<div><b>'+(d.gdv?('£'+d.gdv.toLocaleString()):'TBC')+'</b><span>Est. GDV</span></div>'+
    '<div><b>'+(d.gdv?('£'+((d.gdv||0)-allin).toLocaleString()):'TBC')+'</b><span>Est. gross profit</span></div></div>'+
    '<div style="font-size:11px;line-height:1.6">'+d.blurb+(d.note?'<br><i style="color:#b45309">⚠️ '+d.note+'</i>':'')+'</div>'+
+   dealScoreDetailHTML(d)+
    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">'+
    '<button class="icon-btn" style="background:#0ea5e9" onclick="reserveDeal(\''+d.slug+'\')">🤝 Reserve / Enquire</button>'+
    '<button class="icon-btn" style="background:#16a34a" onclick="loadDealIntoCalcs(\''+d.slug+'\')">🧮 Load into calculators</button>'+
@@ -1276,7 +1520,7 @@ function openDeal(slug){
   document.getElementById('panel-deals').style.display='block';
 }
 function copyDealLink(slug){
-  const url=location.origin+location.pathname+'#deal='+slug;
+  const d=dealBySlug(slug);const url=location.origin+location.pathname+'?deal='+encodeURIComponent(slug)+(d&&d.hideAddress?'&hide=1':'');
   const show=()=>alert('Share this deal link:\n\n'+url+'\n\nOpening it loads the deal page automatically.');
   try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(show).catch(show);}else{show();}}catch(e){show();}
 }
@@ -1295,39 +1539,46 @@ function reserveDeal(slug){
   const box=document.getElementById('regBox');if(box&&box.scrollIntoView)box.scrollIntoView({behavior:'smooth'});
 }
 function updateRegCount(){
-  let n=0;try{n=JSON.parse(localStorage.getItem('inv_registrations')||'[]').length;}catch(e){}
-  document.getElementById('regCount').textContent=n?n+' registration'+(n>1?'s':'')+' stored on this device'+(REG_ENDPOINT?'':' (demo mode — set REG_ENDPOINT to collect remotely)'):(REG_ENDPOINT?'':'Demo mode: registrations save on this device until you set REG_ENDPOINT (e.g. Formspree).');
+  const out=document.getElementById('regCount');
+  if(out)out.textContent=REG_ENDPOINT?'Your details are sent to the alert registration service.':'Alert registration is not configured yet — add the endpoint in config.js before publishing.';
 }
-function registerInvestor(e){
+function registerForDealAlerts(e){
   if(e&&e.preventDefault)e.preventDefault();
-  const g=id=>document.getElementById(id).value.trim?document.getElementById(id).value.trim():document.getElementById(id).value;
-  const name=g('reg_name'),email=g('reg_email'),phone=g('reg_phone'),strategy=g('reg_strategy'),areas=g('reg_areas');
-  const bmin=parseFloat(g('reg_min'))||0,bmax=parseFloat(g('reg_max'))||0;
+  const value=id=>String(document.getElementById(id).value||'').trim();
+  const name=value('reg_name'),email=value('reg_email'),phone=value('reg_phone'),strategy=value('reg_strategy'),areas=value('reg_areas');
+  const bmin=Number(value('reg_min')),bmax=Number(value('reg_max'));
   const consent=document.getElementById('reg_consent').checked;
-  if(!name||!/^\S+@\S+\.\S+$/.test(email)){alert('Please enter your name and a valid email address.');return false;}
-  if(!consent){alert('Please tick the consent box so we can contact you about deals.');return false;}
-  const rec={name:name,email:email,phone:phone,strategy:strategy,budgetMin:bmin,budgetMax:bmax,areas:areas,deal:document.getElementById('regDeal').value,at:new Date().toISOString()};
-  try{const list=JSON.parse(localStorage.getItem('inv_registrations')||'[]');list.push(rec);localStorage.setItem('inv_registrations',JSON.stringify(list));}catch(err){}
-  const ok=()=>{document.getElementById('regMsg').innerHTML='<span style="color:#16a34a"><b>✅ Registered — you will be alerted on new deals matching your criteria.</b></span>';updateRegCount();};
-  if(REG_ENDPOINT){fetch(REG_ENDPOINT,{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify(rec)}).then(ok).catch(ok);}else{ok();}
+  const honeypot=value('website');
+  const validStrategies=['Any','HMO Small','BRRR','Buy to Rent','Flip','R2SA'];
+  let last=0;try{last=Number(sessionStorage.getItem('alert_form_last_submit')||0);}catch(err){}
+  if(Date.now()-last<60000){alert('Please wait a minute before sending another registration.');return false;}
+  if(honeypot||name.length<2||name.length>100||!/^\S+@\S+\.\S+$/.test(email)||email.length>254){alert('Please enter your name and a valid email address.');return false;}
+  if(phone.length>40||!validStrategies.includes(strategy)||!areas||areas.length>200||!Number.isFinite(bmin)||!Number.isFinite(bmax)||bmin<0||bmax<0||bmax<bmin){alert('Please check the phone, areas and budget fields.');return false;}
+  if(!consent){alert('Please tick the consent box after reading the privacy policy.');return false;}
+  if(!REG_ENDPOINT){document.getElementById('regMsg').innerHTML='<span style="color:#b45309">Alert registration is not configured yet.</span>';return false;}
+  const rec={name,email,phone,strategy,budgetMin:bmin,budgetMax:bmax,areas,deal:value('regDeal'),consent:true};
+  try{sessionStorage.setItem('alert_form_last_submit',String(Date.now()));}catch(err){}
+  document.getElementById('regMsg').textContent='Sending…';
+  fetch(REG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(rec)}).then(()=>{trackAnalytics('deal_alert_submitted');document.getElementById('regMsg').innerHTML='<span style="color:#16a34a"><b>Registration sent.</b> Thank you.</span>';}).catch(()=>{document.getElementById('regMsg').innerHTML='<span style="color:#dc2626">The registration could not be sent. Please try again later.</span>';});
   return false;
 }
 function drawDealPins(){
   dealsLayer.clearLayers();
   dealsData.forEach(d=>{if(d.lat==null)return;const st=STATUS[d.status]||STATUS.available;
     const mk=L.marker([d.lat,d.lon],{icon:L.divIcon({className:'',html:'<div style="background:'+st.bg+';color:'+st.fg+';padding:3px 8px;border-radius:12px;font-size:9px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)">'+st.label+'</div>',iconSize:[92,22]})});
-    mk.addTo(dealsLayer);mk.bindPopup(d.addr);if(mk.on)mk.on('click',()=>openDeal(d.slug));});
+    mk.addTo(dealsLayer);mk.bindPopup(publicDealAddress(d));if(mk.on)mk.on('click',()=>openDeal(d.slug));});
 }
-function checkHash(){const m=(location.hash||'').match(/deal=([\w-]+)/);if(m)openDeal(m[1]);}
+function checkDealLink(){const params=new URLSearchParams(location.search);const queryDeal=params.get('deal');if(queryDeal){openSharedDeal(queryDeal);return;}const m=(location.hash||'').match(/deal=([\w-]+)/);if(m)openDeal(m[1]);}
+function applyRefurbFromQuery(){const v=Number(new URLSearchParams(location.search).get('refurbTotal'));if(Number.isFinite(v)&&v>=0){renderRefurb();document.getElementById('yc_refurb').value=v;document.getElementById('br_refurb').value=v;calcYield();calcBRRR();}}
 
 // Init
-renderRefurb();calcYield();calcBRRR();calcRent();calcSDLT();renderInvestors();renderLPChecklist();renderLPSavedList();
+initAnalytics();renderHomeConfiguration();renderHomeDeals();renderRefurb();calcYield();calcBRRR();calcRent();calcSDLT();updateMaxOfferFields();applyRefurbFromQuery();renderLPChecklist();renderLPSavedList();
 zones.forEach(z=>{const poly=L.polygon(z.coords,{color:'#64748b',fillColor:'#64748b',fillOpacity:0.06,weight:1,dashArray:'6,4'}).addTo(zoneLayer).bindPopup(z.name);zonePolygons.push({z:z,poly:poly});});
 renderRentIntel();fetchHPI();
 document.getElementById('fullAddress').addEventListener('keydown',e=>{if(e.key==='Enter') searchFullAddress();});
 renderDeals();drawDealPins();updateRegCount();loadLiveDeals();
-document.getElementById('footerCompliance').innerHTML=complianceFooterHTML();
-if(window.addEventListener)window.addEventListener('hashchange',checkHash);
-checkHash();
-</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3eb6a012941f37d',t:'MTc5MDAxODI4OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+document.getElementById('siteFooter').innerHTML=complianceFooterHTML();
+if(window.addEventListener)window.addEventListener('hashchange',checkDealLink);
+checkDealLink();
+</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3eb6a012941f37d',t:'MTc5MDAxODI4OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3ec17e3ee967792',t:'MTc5MDAyNTQxMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
