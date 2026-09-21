@@ -114,7 +114,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <span class="chip" style="background:#0ea5e9;color:#000;border-color:#0ea5e9;font-weight:800" onclick="openDealsPanel()">🔥 LIVE DEALS</span>
       <span class="chip" style="background:#7c3aed;color:#fff;border-color:#7c3aed" onclick="toggleHeatmap()" id="heatChip" title="Recolour zones by estimated gross yield">🌡️ Yield heat</span>
       <span class="chip" style="background:#f59e0b;color:#000;border-color:#f59e0b;font-weight:800" onclick="switchTab('legalpack');document.getElementById('panel-legalpack').scrollIntoView({behavior:'smooth'})" title="Get title, EPC, planning, flood + auction legal pack links for the searched address">📜 Legal Pack</span>
-      <span class="chip" style="background:#16a34a;color:#fff;border-color:#16a34a" title="Live data: UK HPI + Land Registry + postcodes.io — Sep 2026">v5.2 🤖</span>
+      <span class="chip" style="background:#16a34a;color:#fff;border-color:#16a34a" title="Live data: UK HPI + Land Registry + postcodes.io — Sep 2026">v5.3</span>
     </div>
   </div>
 </header>
@@ -387,6 +387,11 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
         <div class="legal-grid" id="lpLinks">
           <div style="font-size:11px;color:#64748b;grid-column:1/-1">👆 Search an address to generate links…</div>
         </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px">
+          <button class="btn btn-primary" onclick="copyForHMLR()">📋 Copy address for HMLR search</button>
+          <span id="hmlrCopyMsg" style="font-size:11px;color:#16a34a"></span>
+        </div>
+        <div style="font-size:10px;color:#64748b;margin-top:6px">HMLR can't be pre-filled (their portal is session-based + £3 paywall — no site can deep-link a specific title). 3 steps: 1️⃣ open Title Register above → Start now 2️⃣ paste the copied address into HMLR's search 3️⃣ pay £3 → download the register PDF.</div>
         <div style="font-size:10px;color:#64748b;margin-top:8px">Why links, not direct download? HM Land Registry titles (£3–£7) and auction legal packs sit behind paid / login-walled portals — no public API can legally auto-download them. These deep-links take you to the exact search page with the address/postcode pre-filled, so the pack is 2–3 clicks away.</div>
       </div>
 
@@ -704,7 +709,7 @@ function updateLegalPack(displayName,postcode,lat,lon,ward,zone){
   const mini=document.getElementById('legalPackMini');
   if(mini)mini.innerHTML='Ready for <b>'+displayName+'</b> ('+(postcode||'no postcode')+') — title, EPC, planning, flood + auction search links generated. <a href="#" onclick="switchTab(\'legalpack\');return false">Open →</a>';
   const links=[
-    {t:'🏛️ HM Land Registry — Title Register (£3)',s:'Official title: tenure, owner, restrictions, lease. Search by address, pay £3, download PDF.',u:'https://www.gov.uk/search-property-information-land-registry',cls:'legal-btn-dark'},
+    {t:'🏛️ HM Land Registry — Title Register (£3)',s:'Official title: tenure, owner, restrictions, lease. Then use 📋 Copy below → paste into HMLR → pay £3 → download PDF.',u:'https://www.gov.uk/get-information-about-property-and-land/search-the-register',cls:'legal-btn-dark'},
     {t:'⚡ EPC Register — free certificate',s:'Rating, expiry, floor area for '+(postcode||'this postcode')+'. Pre-filled postcode search.',u:'https://find-energy-certificate.service.gov.uk/find-a-certificate/search-by-postcode?postcode='+encPC,cls:''},
     {t:'🏗️ North Lincs Planning Portal',s:'Planning history, Article 4, prior HMO refusals. Enter street name on the portal.',u:'https://planning.northlincs.gov.uk/',cls:''},
     {t:'🌊 Flood Risk Check (gov.uk)',s:'Long-term flood risk for '+((postcode||'this postcode'))+'.',u:pcNoSpace?('https://check-long-term-flood-risk.service.gov.uk/search?postcode='+encodeURIComponent(pcNoSpace)):'https://check-long-term-flood-risk.service.gov.uk/',cls:''},
@@ -725,6 +730,14 @@ function updateLegalPack(displayName,postcode,lat,lon,ward,zone){
   document.getElementById('lpAuctionLinks').innerHTML=auc.map(a=>'<a class="legal-btn" href="https://www.google.com/search?q='+encodeURIComponent('site:'+a.d+' '+displayName)+'" target="_blank" rel="noopener">🔨 '+a.t+'<small>site:'+a.d+' × "'+displayName+'"</small></a>').join('');
   document.getElementById('epcOutput').innerHTML='';
   renderLPChecklist();loadLegalPack(false);
+}
+function copyForHMLR(){
+  const msg=document.getElementById('hmlrCopyMsg');
+  if(!lastAddress){if(msg){msg.style.color='#dc2626';msg.textContent='Search an address first.';}return;}
+  const txt=lastAddress+(lastPostcode&&!lastAddress.toUpperCase().includes(lastPostcode.replace(/\s+/g,'').slice(0,4))?', '+lastPostcode:'');
+  const ok=()=>{if(msg){msg.style.color='#16a34a';msg.textContent='✅ Copied: '+txt+' — paste it into HMLR.';}};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok).catch(()=>{prompt('Copy this into the HMLR address search:',txt);ok();});}
+  else{prompt('Copy this into the HMLR address search:',txt);ok();}
 }
 function renderLPChecklist(){
   const div=document.getElementById('lpChecklist');if(!div)return;
@@ -1316,5 +1329,5 @@ renderDeals();drawDealPins();updateRegCount();loadLiveDeals();
 document.getElementById('footerCompliance').innerHTML=complianceFooterHTML();
 if(window.addEventListener)window.addEventListener('hashchange',checkHash);
 checkHash();
-</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3eb4498abb59564',t:'MTc5MDAxNjc1Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3eb6a012941f37d',t:'MTc5MDAxODI4OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
