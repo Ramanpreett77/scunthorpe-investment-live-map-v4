@@ -51,7 +51,10 @@ function saveDeal(deal) {
   var sheet = getSheet_(sheetName_('DEALS_SHEET_NAME', 'Deals'));
   headers.forEach(function (header) { ensureHeader_(sheet, header); });
   writeRow_(sheet, headers, clean, deal._rowNumber);
-  return {ok: true};
+  // Re-run matching immediately after every deal save, but never send automatically.
+  // The private UI still requires an individual preview and confirmation for each email.
+  var matching = getMatchedInvestors(clean);
+  return {ok: true, matching: matching};
 }
 
 function deleteDeal(rowNumber) {
