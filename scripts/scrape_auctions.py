@@ -340,24 +340,39 @@ def main():
         lot["first_seen"] = old_first.get(lot["slug"]) or lot.get("first_seen") or today
     print(f"total: {len(lots)} lots, {n_geo} geocoded", flush=True)
 
-    if (old.get("lots") == lots
-            and status_summary(old.get("sources", {})) == status_summary(sources)):
-        print("no change - data file left untouched", flush=True)
-        return 1 if problems else 0
-
     now = datetime.datetime.now(datetime.timezone.utc)
-    payload = {
-        "updated": now.strftime("%Y-%m-%dT%H:%M:%SZ"),  # time of last CHANGE
-        "updated_uk": now.astimezone(UK).strftime("%d %b %Y, %H:%M UK"),
-        "sources": sources,
-        "lots": lots,
-    }
+    checked = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    checked_uk = now.astimezone(UK).strftime("%d %b %Y, %H:%M UK")
+    lots_unchanged = old.get("lots") == lots
+    sources_unchanged = status_summary(old.get("sources", {})) == status_summary(sources)
+    if lots_unchanged and sources_unchanged:
+        # Keep the last lot-change timestamp, but record a fresh successful check.
+        # This prevents the public site from labelling an unchanged but freshly
+        # verified feed as stale simply because no lot fields changed.
+        payload = {
+            "updated": old.get("updated", checked),
+            "updated_uk": old.get("updated_uk", checked_uk),
+            "checked": checked,
+            "checked_uk": checked_uk,
+            "sources": sources,
+            "lots": lots,
+        }
+        print(f"no lot change - recording fresh check at {checked_uk}", flush=True)
+    else:
+        payload = {
+            "updated": checked,  # time of last LOT CHANGE
+            "updated_uk": checked_uk,
+            "checked": checked,
+            "checked_uk": checked_uk,
+            "sources": sources,
+            "lots": lots,
+        }
+        print(f"wrote {OUT_PATH} with changed lots", flush=True)
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
     tmp = OUT_PATH + ".tmp"
     with open(tmp, "w") as f:
         json.dump(payload, f, indent=1)
     os.replace(tmp, OUT_PATH)
-    print(f"wrote {OUT_PATH}", flush=True)
     return 1 if problems else 0
 
 
