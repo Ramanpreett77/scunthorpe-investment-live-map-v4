@@ -1496,7 +1496,7 @@ function renderDeals(){
 }
 // V5.2: LIVE STOCK — priority: Google Sheet (manual) > auto-scraped JSON (daily) > built-in
 async function loadLiveDeals(){
-  if(!SHEET_CSV_URL){loadAutoStock();return;}
+  if(!SHEET_CSV_URL){return loadAutoStock();}
   const st=document.getElementById('feedStatus');
   if(st)st.innerHTML='⏳ Loading live stock from your sheet…';
   try{
@@ -1529,8 +1529,14 @@ async function loadAutoStock(){
     backToDeals();drawDealPins();checkDealLink();
     const s=j.sources||{};
     const bits=Object.keys(s).map(k=>k.charAt(0).toUpperCase()+k.slice(1)+' '+(s[k].lots||0)).join(' · ');
+    const sourceWarnings=Object.keys(s).filter(k=>s[k].status&&s[k].status!=='ok').map(k=>k.charAt(0).toUpperCase()+k.slice(1)+' '+s[k].status).join(' · ');
     const nA=lots.filter(d=>d.status==='available').length,nS=lots.filter(d=>d.status==='sold').length;
-    if(st)st.innerHTML='🤖 <b>Auto stock</b> — '+lots.length+' lots ('+nA+' available · '+nS+' sold) — '+bits+'. Updated '+(j.updated_uk||j.updated||'')+', refreshes daily ~07:30 UK. <a href="#" onclick="loadAutoStock();return false">↻ Refresh</a>';
+    const checkedText=j.checked_uk||j.updated_uk||j.updated||'unknown';
+    const changedText=(j.updated_uk&&j.updated_uk!==checkedText)?' · last lot change '+j.updated_uk:'';
+    const checkedMs=Date.parse(j.checked||j.updated||'');
+    const stale=Number.isFinite(checkedMs)&&(Date.now()-checkedMs>36*60*60*1000);
+    const freshness=stale?'⚠️ Last checked ':'Checked ';
+    if(st)st.innerHTML='🤖 <b>Auto stock</b> — '+lots.length+' lots ('+nA+' available · '+nS+' sold) — '+bits+(sourceWarnings?' · ⚠️ '+sourceWarnings:'')+'. '+freshness+checkedText+changedText+', refreshes daily ~07:30 UK. <a href="#" onclick="loadAutoStock();return false">↻ Refresh</a>';
   }catch(e){
     dealsData.length=0;ORIGINAL_DEALS.forEach(d=>dealsData.push(d));backToDeals();drawDealPins();
     if(st)st.innerHTML='📦 Showing built-in stock ('+dealsData.length+' deals). Auto-scraper data not found yet — run the workflow once (Actions tab → Run workflow), or connect a Google Sheet (see README). <a href="#" onclick="loadAutoStock();return false">↻ Retry</a>';
@@ -1551,7 +1557,17 @@ function sharedAddressAcknowledged(slug){try{return sessionStorage.getItem('deal
 function acknowledgeSharedAddress(slug){try{sessionStorage.setItem('deal_address_ack_'+slug,'yes');}catch(e){}openSharedDeal(slug);}
 function shareWhatsAppUrl(d,hidden){const label=hidden?(d.zone||'Scunthorpe property opportunity'):(d.addr||'property opportunity');const url=location.origin+location.pathname+'?deal='+encodeURIComponent(d.slug)+(d.hideAddress?'&hide=1':'');return 'https://wa.me/?text='+encodeURIComponent('Property opportunity: '+label+' — '+url);}
 function openSharedDeal(slug){
-  const d=dealBySlug(slug);if(!d){document.getElementById('panel-deals').style.display='block';document.getElementById('dealDetail').innerHTML='<div class="card"><b>Deal not found.</b><br>It may have been removed or is not currently public.</div>';return;}
+  const d=dealBySlug(slug);
+  if(!d){
+    const panel=document.getElementById('panel-deals'),detail=document.getElementById('dealDetail');
+    if(panel)panel.style.display='block';
+    if(detail)detail.innerHTML='<div class="card"><b>Loading current deal feed…</b><br>Please wait while the latest auction stock is loaded.</div>';
+    const reload=SHEET_CSV_URL&&typeof loadLiveDeals==='function'?loadLiveDeals:(typeof loadAutoStock==='function'?loadAutoStock:null);
+    if(reload){
+      reload().then(function(){const fresh=dealBySlug(slug);if(fresh)openSharedDeal(slug);else if(detail)detail.innerHTML='<div class="card"><b>Deal not found.</b><br>This lot may have been removed or is not currently public. <a href="#" onclick="location.reload();return false">Reload</a></div>';});
+    }else if(detail){detail.innerHTML='<div class="card"><b>Deal not found.</b><br>This lot may have been removed or is not currently public.</div>';}
+    return;
+  }
   currentDeal=d;trackAnalytics('deal_view',{deal_id:d.slug});
   const zone=zones.find(z=>z.id===d.zone);const requestedHide=new URLSearchParams(location.search).get('hide')==='1';
   const hidden=(dealAddressHidden(d)||requestedHide)&&!sharedAddressAcknowledged(d.slug);
@@ -1567,7 +1583,17 @@ function openSharedDeal(slug){
   document.getElementById('panel-deals').style.display='block';
 }
 function openDeal(slug){
-  const d=dealBySlug(slug);if(!d)return;if(dealAddressHidden(d)&&!sharedAddressAcknowledged(d.slug)){openSharedDeal(slug);return;}currentDeal=d;trackAnalytics('deal_view',{deal_id:d.slug});
+  const d=dealBySlug(slug);
+  if(!d){
+    const panel=document.getElementById('panel-deals'),detail=document.getElementById('dealDetail');
+    if(panel)panel.style.display='block';
+    if(detail)detail.innerHTML='<div class="card"><b>Loading current deal feed…</b><br>Please wait while the latest auction stock is loaded.</div>';
+    const reload=SHEET_CSV_URL&&typeof loadLiveDeals==='function'?loadLiveDeals:(typeof loadAutoStock==='function'?loadAutoStock:null);
+    if(reload){
+      reload().then(function(){const fresh=dealBySlug(slug);if(fresh)openDeal(slug);else if(detail)detail.innerHTML='<div class="card"><b>Deal not found.</b><br>This lot may have been removed or is not currently public. <a href="#" onclick="location.reload();return false">Reload</a></div>';});
+    }else if(detail){detail.innerHTML='<div class="card"><b>Deal not found.</b><br>This lot may have been removed or is not currently public.</div>';}
+    return;
+  }if(dealAddressHidden(d)&&!sharedAddressAcknowledged(d.slug)){openSharedDeal(slug);return;}currentDeal=d;trackAnalytics('deal_view',{deal_id:d.slug});
   const st=STATUS[d.status]||STATUS.available;
   const zone=zones.find(z=>z.id===d.zone);
   const allin=d.guide+(d.fee||0)+(d.refurb||0);
