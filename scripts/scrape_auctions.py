@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Daily auction-stock scraper -> data/auction-stock.json  (patched version)
 
-Sources: Pugh Auctions (search cards) and Savills Auctions (sitemap -> DN lots).
+Source: BTG Eddisons current property-auction search (Scunthorpe radius).
 
 What changed vs the first version
   * Honest User-Agent (set SCRAPER_CONTACT to your email) instead of a fake browser.
@@ -119,6 +119,103 @@ def categorise(addr):
     if any(w in a for w in LAND_WORDS):
         return "land"
     return "residential"
+
+
+# ---------------------------------------------------------- BTG Eddisons
+# Pugh Auctions has migrated/redirected old lot URLs. The current property
+# auction inventory is now served by BTG Eddisons, so use its live AJAX search
+# and retain the canonical current lot URL from the response HTML.
+def scrape_btg(session):
+    lots, info = [], {"status": "ok", "detail": ""}
+    listing_url = "https://www.btgeddisonspropertyauctions.com/properties"
+    page = fetch(session, listing_url)
+    action_match = re.search(r'<form[^>]+data-listing-search-form[^>]+data-action="([^"]+)"', page, re.I)
+    token_match = re.search(r'<input[^>]+name="_token"[^>]+value="([^"]+)"', page, re.I)
+    if not action_match or not token_match:
+        raise RuntimeError("BTG Eddisons: live search form/token not found")
+    action = ihtml.unescape(action_match.group(1))
+    data = {
+        "auction_id": "", "catalogue_id": "", "prefiltered_id": "",
+        "auction_type": "", "search_type": "global", "auction_date": "",
+        "_token": token_match.group(1), "lat": "", "lng": "",
+        "nesw_geometry": "", "location": "Scunthorpe", "radius": "30",
+        "property_type": "", "min_price": "", "max_price": "",
+        "date_added": "", "sort": "date", "limit": "50"
+    }
+    headers = dict(UA)
+    headers.update({"X-Requested-With": "XMLHttpRequest", "Referer": listing_url})
+    response = session.post(action, data=data, headers=headers, timeout=30)
+    if response.status_code in (401, 403, 429, 503):
+        raise Blocked(f"BTG Eddisons HTTP {response.status_code}")
+    response.raise_for_status()
+    try:
+        payload = response.json()
+    except ValueError as exc:
+        raise RuntimeError("BTG Eddisons returned non-JSON search results") from exc
+    rows = ((payload.get("properties") or {}).get("data") or [])
+    content = payload.get("content") or ""
+    # The AJAX response includes the canonical current URL beside each card.
+    url_by_address = {}
+    for match in re.finditer(r'<a[^>]+aria-label="([^"]+)"[^>]+href="([^"]+)"', content, re.I):
+        url_by_address[ihtml.unescape(match.group(1)).strip()] = ihtml.unescape(match.group(2))
+    for row in rows:
+        address = re.sub(r"\s+", " ", str(row.get("full_address") or "").strip())
+        postcode = str(row.get("postcode") or "").upper().replace("  ", " ").strip()
+        if not address:
+            continue
+        # Only publish current, upcoming residential/commercial lots in the
+        # requested DN15/DN16/DN17 area. The BTG search response also contains
+        # nearby and past records, and sold_status_id=2 is not itself a sold flag.
+        if not re.search(r"\bDN1[567]\s*\d[A-Z]{2}\b", postcode):
+            continue
+        sold = bool(row.get("sold_price"))
+        if sold or not bool(row.get("upcoming")):
+            continue
+        source_url = url_by_address.get(address, "")
+        if not source_url:
+            # Address text may differ only by whitespace/entity decoding.
+            for label, url in url_by_address.items():
+                if label.replace(" ", "") == address.replace(" ", ""):
+                    source_url = url
+                    break
+        if not source_url:
+            info["detail"] += f"missing canonical URL for {address}; "
+            continue
+        guide_min = row.get("guide_price_min") or row.get("guide_price") or row.get("starting_price") or 0
+        guide_max = row.get("guide_price_max") or 0
+        try:
+            guide = float(guide_min or 0)
+        except (TypeError, ValueError):
+            guide = 0
+        label = "Guide TBC" if not guide else f"£{int(guide):,}+"
+        if guide_max and float(guide_max) > guide:
+            label = f"£{int(guide):,}–£{int(float(guide_max)):,}"
+        auction_date = str(row.get("url_date") or "").replace(" 13:00:00", "")
+        slug = re.sub(r"[^a-z0-9-]+", "-", str(row.get("eig_id") or address.lower())).strip("-").lower()
+        lots.append({
+            "slug": f"btg-{slug}",
+            "addr": address,
+            "status": "sold" if sold else "available",
+            "guide": 0 if sold else guide,
+            "sold_price": row.get("sold_price") or 0,
+            "price_label": label,
+            "category": categorise(address),
+            "fee": 0, "refurb": 0, "rent": 0, "gdv": 0,
+            "beds": row.get("bedrooms") or 0,
+            "type": "", "strategy": "Auction", "zone": "",
+            "lat": row.get("latitude"), "lon": row.get("longitude"),
+            "geo_precision": "property",
+            "blurb": re.sub(r"\s+", " ", str(row.get("description") or "")).strip()[:1000],
+            "note": "Auto-scraped from BTG Eddisons — verify guide, fees, auction date and legal pack on the current lot page.",
+            "source": "BTG Eddisons",
+            "source_url": source_url,
+            "auction_date": auction_date,
+            "image": "",
+        })
+    if not lots:
+        raise RuntimeError(f"BTG Eddisons: 0 current lots returned from Scunthorpe search (total={len(rows)})")
+    info["detail"] = f"{len(lots)} current DN15/DN16/DN17 lots from BTG Eddisons; sold and past records excluded"
+    return lots, info
 
 
 # ---------------------------------------------------------------- Pugh
@@ -314,7 +411,7 @@ def main():
             old_first[lot["slug"]] = lot["first_seen"]
 
     all_lots, sources, problems = [], {}, []
-    for name, label, fn in (("pugh", "Pugh", scrape_pugh), ("savills", "Savills", scrape_savills)):
+    for name, label, fn in (("btg", "BTG Eddisons", scrape_btg),):
         try:
             lots, info = fn(session)
             sources[name] = {"lots": len(lots), **info}
