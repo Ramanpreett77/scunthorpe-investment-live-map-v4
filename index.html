@@ -1549,7 +1549,12 @@ function normalizeAutoLot(l){
   return {slug:String(l.slug||('auto-'+Math.random().toString(36).slice(2,7))),addr:l.addr,status:l.status||'available',sample:false,auto:true,guide:l.guide||0,price_label:l.price_label||'',fee:l.fee||0,refurb:l.refurb||0,rent:l.rent||0,gdv:l.gdv||0,compPrice:l.comp_price??l.compPrice??null,dataConfidence:l.data_confidence??l.dataConfidence??null,hideAddress:/^(true|1|yes)$/i.test(String(l.hide_address??l.hideAddress??'')),beds:l.beds||0,type:l.type||'',strategy:l.strategy||'Auction',zone:zid,lat:l.lat,lon:l.lon,blurb:l.blurb||'',note:l.note||'',source:l.source||'Auto',source_url:l.source_url||'',auction_date:l.auction_date||'',image:l.image||''};
 }
 function parseCSV(t){const rows=[];let row=[],v='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){v+='"';i++;}else q=false;}else v+=c;}else{if(c==='"')q=true;else if(c===','){row.push(v);v='';}else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(v);v='';if(row.some(x=>x!==''))rows.push(row);row=[];}else v+=c;}}if(v!==''||row.length){row.push(v);rows.push(row);}return rows;}
-function openDealsPanel(){backToDeals();document.getElementById('panel-deals').style.display='block';}
+function openDealsPanel(){
+  backToDeals();
+  const panel=document.getElementById('panel-deals');
+  panel.style.display='block';
+  if(panel.scrollIntoView)panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function closeDealsPanel(){document.getElementById('panel-deals').style.display='none';}
 function backToDeals(){document.getElementById('dealDetail').innerHTML='';document.getElementById('dealsList').style.display='grid';document.getElementById('auctionStockCard').style.display='';document.getElementById('dealsBack').style.display='none';renderDeals();renderHomeDeals();}
 
