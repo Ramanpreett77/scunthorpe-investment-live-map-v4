@@ -1,6 +1,6 @@
 name: Refresh auction stock (daily)
 
-# Scrapes Pugh + Savills Scunthorpe/DN lots and commits data/auction-stock.json.
+# Scrapes BTG Eddisons + Savills Scunthorpe/DN lots and commits data/auction-stock.json.
 # Works on private repos too (free plan: 2,000 Actions minutes/month; this uses ~1-2/day).
 # Set a repository VARIABLE named SCRAPER_CONTACT (your email) under
 # Settings -> Secrets and variables -> Actions -> Variables.
