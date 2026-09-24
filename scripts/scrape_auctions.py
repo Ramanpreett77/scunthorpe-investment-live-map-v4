@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Daily auction-stock scraper -> data/auction-stock.json  (patched version)
 
-Source: BTG Eddisons current property-auction search (Scunthorpe radius).
+Sources (Scunthorpe DN15/DN16/DN17): BTG Eddisons live property search +
+Savills upcoming-auction catalogues.
 
 What changed vs the first version
   * Honest User-Agent (set SCRAPER_CONTACT to your email) instead of a fake browser.
@@ -11,7 +12,11 @@ What changed vs the first version
   * If a source errors or is blocked, its PREVIOUS lots are kept (marked stale)
     instead of being wiped.
   * Pugh: 0 cards, or cards but 0 parsed lots, is an error (layout probably changed).
-  * Savills: 0 lots is a "warning" with diagnostics, not a silent "ok".
+  * Savills: pages each upcoming catalogue at quantity-100 and keeps lots whose
+    catalogue address holds a DN15/DN16/DN17 postcode (addresses are on the
+    catalogue page, so individual lot pages are never fetched). 0 lots is a
+    "warning" with diagnostics, not an error; sold-prior/withdrawn lots are
+    skipped. Respects the host robots.txt crawl-delay (2s between requests).
   * `guide` is no longer overloaded: sold lots carry `sold_price` and guide = 0.
   * New fields: `category` (residential/land/commercial, keyword heuristic),
     `first_seen` (date first scraped, to spot stale listings), `geo_precision`.
@@ -273,87 +278,146 @@ def scrape_pugh(session):
 
 
 # ------------------------------------------------------------- Savills
+SAVILLS_BASE = "https://auctions.savills.co.uk"
+SAVILLS_PC_RE = re.compile(r"\bDN1[567]\s*\d[A-Z]{2}\b", re.I)
+SAVILLS_SLEEP = 2.0  # robots.txt crawl-delay for this host
+SAVILLS_MAX_PAGES = 20  # safety cap per catalogue (100 lots per page)
+
+
+def _savills_auction_date(slug, html):
+    mt = re.search(r"<title>(.*?)</title>", html, re.S)
+    if mt:
+        tail = ihtml.unescape(mt.group(1)).split("|")[-1].strip()
+        if tail and "savills" not in tail.lower():
+            return tail
+    m = (re.search(r"(\d{1,2})--(\d{1,2})-([a-z]+)-(\d{4})-\d+$", slug, re.I)
+         or re.search(r"(\d{1,2})-([a-z]+)-(\d{4})-\d+$", slug, re.I))
+    if m:
+        g = m.groups()
+        if len(g) == 4:
+            return f"{g[0]} & {g[1]} {g[2].capitalize()} {g[3]}"
+        return f"{g[0]} {g[1].capitalize()} {g[2]}"
+    return ""
+
+
+def _parse_savills_cards(html):
+    """Parse catalogue cards. Full addresses are on the catalogue page, so
+    individual lot pages are never fetched. Skips section-header cards."""
+    out = []
+    for card in re.split(r'<li class="lot ', html)[1:]:
+        m = re.search(r'<a class="lot-name" href="([^"]+)"[^>]*>(.*?)</a>', card, re.S)
+        if not m:
+            continue
+        url = ihtml.unescape(m.group(1)).strip().replace("http://", "https://")
+        addr = re.sub(r"\s+", " ", ihtml.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip())
+        if not addr:
+            continue
+        mid = re.search(r'data-lot_id="(\d+)"', card)
+        mg = re.search(r'price-container guide-price.*?<span class="value">(.*?)</span>', card, re.S)
+        mn = re.search(r'<p class="lot-number">(.*?)</p>', card, re.S)
+        mst = re.search(r'<div class="lot-status">(.*?)</div>', card, re.S)
+        first = ""
+        md = re.search(r'<div class="lot-details">(.*?)</div>', card, re.S)
+        if md:
+            bullets = re.findall(r"<li>(.*?)</li>", md.group(1), re.S)
+            if bullets:
+                first = re.sub(r"\s+", " ", ihtml.unescape(re.sub(r"<[^>]+>", "", bullets[0])).strip())
+        out.append({
+            "lot_id": mid.group(1) if mid else "",
+            "addr": addr,
+            "url": url,
+            "lot_no": re.sub(r"\s+", " ", ihtml.unescape(mn.group(1)).strip()) if mn else "",
+            "guide_text": re.sub(r"\s+", " ", ihtml.unescape(re.sub(r"<[^>]+>", "", mg.group(1))).strip()) if mg else "",
+            "status_text": re.sub(r"\s+", " ", ihtml.unescape(re.sub(r"<[^>]+>", "", mst.group(1))).strip()) if mst else "",
+            "first_bullet": first,
+        })
+    return out
+
+
 def scrape_savills(session):
     lots, info = [], {"status": "ok", "detail": ""}
-    subs = ["https://auctions.savills.co.uk/sitemap/sitemap1.xml",
-            "https://auctions.savills.co.uk/sitemap/sitemap2.xml"]
     try:
-        idx = fetch(session, "https://auctions.savills.co.uk/sitemap.xml")
-        found = re.findall(r"<loc>([^<]+)</loc>", idx)
-        if found:
-            subs = found
+        index = fetch(session, SAVILLS_BASE + "/upcoming-auctions")
     except Blocked:
         raise
-    except Exception:
-        pass
-    urls = []
-    for sm in subs:
+    except Exception as e:
+        raise RuntimeError(f"Savills: upcoming-auctions index failed ({e})")
+    time.sleep(SAVILLS_SLEEP)
+    cats = sorted(set(
+        m.group(1) for m in
+        re.finditer(r'href="https?://auctions\.savills\.co\.uk/auctions/([^"/]+)"', index)))
+    if not cats:
+        raise RuntimeError("Savills: 0 upcoming catalogues found - index layout may have changed")
+    scanned = skipped = 0
+    errors = []
+    for slug in cats:
+        base = f"{SAVILLS_BASE}/auctions/{slug}"
         try:
-            xml = fetch(session, sm)
-            time.sleep(SLEEP)
-            urls += re.findall(r"<loc>(?:<!\[CDATA\[)?([^<\]]+)", xml)
+            html = fetch(session, f"{base}/page-1/quantity-100")
         except Blocked:
             raise
         except Exception as e:
-            info["detail"] += f"sitemap {sm} failed ({e}); "
-    dn_all = sorted(set(u for u in urls if re.search(r"dn-?1[567]", u, re.I)
-                        and "/auctions/" in u and "com_bidding" not in u))
-    dn_urls = dn_all[:25]
-    for u in dn_urls:
-        try:
-            page = fetch(session, u)
-            time.sleep(SLEEP)
-            slug = u.rstrip("/").split("/")[-1]
-            m_pc = re.search(r"([a-z]{1,2}\d[a-z\d]?)-(\d[a-z]{2})-\d{4,6}$", slug, re.I)
-            pc = norm_pc(f"{m_pc.group(1)} {m_pc.group(2)}") if m_pc else ""
-            m_addr = (re.search(r'data-lot-name="([^"]+)"', page)
-                      or re.search(r'<meta property="og:title" content="([^"]+)"', page)
-                      or re.search(r"<h1[^>]*>(.*?)</h1>", page, re.S))
-            addr = ihtml.unescape(re.sub(r"<[^>]+>", "",
-                                         m_addr.group(1)).strip()) if m_addr else slug.replace("-", " ")
-            addr = re.sub(r"\s+", " ", addr)
-            if pc and pc not in addr:
-                addr = f"{addr} {pc}"
-            m_date = (re.search(r"/auctions/(\d{1,2})--(\d{1,2})-([a-z]+)-(\d{4})-", u, re.I)
-                      or re.search(r"/auctions/(\d{1,2})-([a-z]+)-(\d{4})-", u, re.I))
-            if m_date:
-                g = m_date.groups()
-                auction_date = (f"{g[0]} & {g[1]} {g[2].capitalize()} {g[3]}" if len(g) == 4
-                                else f"{g[0]} {g[1].capitalize()} {g[2]}")
-            else:
-                m2 = re.search(r"(\d{1,2}(?:\s*&\s*\d{1,2})?\s+\w+\s+\d{4})", page)
-                auction_date = m2.group(1) if m2 else ""
-            lid = re.search(r"-(\d{4,6})/?$", slug)
-            lots.append({
-                "slug": f"savills-{lid.group(1) if lid else stable_id(u)}",
-                "addr": addr,
-                "status": "available",
-                "guide": 0, "sold_price": 0,
-                "price_label": "Guide on lot page",
-                "category": categorise(addr),
-                "fee": 0, "refurb": 0, "rent": 0, "gdv": 0, "beds": 0,
-                "type": "", "strategy": "Auction", "zone": "",
-                "lat": None, "lon": None, "geo_precision": "postcode",
-                "blurb": (f"Savills auction lot{f' — auction {auction_date}' if auction_date else ''}. "
-                          "Guide price and legal pack on the lot page."),
-                "note": "Auto-scraped — verify guide and legal pack on the lot page before bidding.",
-                "source": "Savills",
-                "source_url": u,
-                "auction_date": auction_date,
-                "image": "",
-            })
-        except Blocked:
-            raise
-        except Exception as e:
-            info["detail"] += f"lot failed ({e}); "
-    info["detail"] += f"{len(lots)} DN lots from {len(urls)} sitemap urls"
-    if len(dn_all) > len(dn_urls):
-        info["detail"] += f" (capped at {len(dn_urls)} of {len(dn_all)})"
+            errors.append(f"{slug}: {e}")
+            continue
+        time.sleep(SAVILLS_SLEEP)
+        auc_date = _savills_auction_date(slug, html)
+        pages = [int(x) for x in set(re.findall(r"/page-(\d+)", html))]
+        max_page = min(max(pages) if pages else 1, SAVILLS_MAX_PAGES)
+        for p in range(1, max_page + 1):
+            if p > 1:
+                try:
+                    html = fetch(session, f"{base}/page-{p}/quantity-100")
+                except Blocked:
+                    raise
+                except Exception as e:
+                    errors.append(f"{slug} page {p}: {e}")
+                    break
+                time.sleep(SAVILLS_SLEEP)
+            for lot in _parse_savills_cards(html):
+                scanned += 1
+                slow = lot["status_text"].lower()
+                if "withdraw" in slow or "sold" in slow:
+                    skipped += 1
+                    continue
+                if not SAVILLS_PC_RE.search(lot["addr"]):
+                    continue
+                amount = money(lot["guide_text"])
+                label = (lot["guide_text"] if lot["guide_text"] and lot["guide_text"].upper() != "TBA"
+                         else "Guide TBC")
+                blurb = (f"Lot {lot['lot_no']} - {lot['first_bullet']}" if lot["first_bullet"]
+                         else f"Savills auction lot {lot['lot_no']}".rstrip())
+                if auc_date:
+                    blurb += f" (auction {auc_date})"
+                blurb += ". Guide price and legal pack on the lot page."
+                lots.append({
+                    "slug": f"savills-{lot['lot_id'] or stable_id(lot['url'])}",
+                    "addr": lot["addr"],
+                    "status": "available",
+                    "guide": amount, "sold_price": 0,
+                    "price_label": label,
+                    "category": categorise(lot["addr"]),
+                    "fee": 0, "refurb": 0, "rent": 0, "gdv": 0, "beds": 0,
+                    "type": "", "strategy": "Auction", "zone": "",
+                    "lat": None, "lon": None, "geo_precision": "postcode",
+                    "blurb": blurb[:1000],
+                    "note": "Auto-scraped - verify guide and legal pack on the lot page before bidding.",
+                    "source": "Savills",
+                    "source_url": lot["url"],
+                    "auction_date": auc_date,
+                    "image": "",
+                })
+    if scanned == 0:
+        raise RuntimeError(f"Savills: 0 lots parsed across {len(cats)} catalogues"
+                           + (f" ({'; '.join(errors)})" if errors else " - layout may have changed"))
+    if errors:
+        info["detail"] += "; ".join(errors) + "; "
     if not lots:
-        loose = [u for u in urls if re.search(r"dn\d|scunthorpe", u, re.I)]
         info["status"] = "warning"
-        info["detail"] += (f" | WARNING 0 lots: {len(loose)} urls mention dn/scunthorpe; "
-                           f"sample: {loose[:5]}")
+        info["detail"] += (f"0 DN15/DN16/DN17 lots in {len(cats)} upcoming catalogues "
+                           f"({scanned} scanned, {skipped} sold/withdrawn skipped)")
+    else:
+        info["detail"] += (f"{len(lots)} DN15/DN16/DN17 lots from {len(cats)} upcoming catalogues "
+                           f"({scanned} scanned, {skipped} sold/withdrawn skipped)")
     return lots, info
 
 
@@ -411,7 +475,8 @@ def main():
             old_first[lot["slug"]] = lot["first_seen"]
 
     all_lots, sources, problems = [], {}, []
-    for name, label, fn in (("btg", "BTG Eddisons", scrape_btg),):
+    for name, label, fn in (("btg", "BTG Eddisons", scrape_btg),
+                                ("savills", "Savills", scrape_savills)):
         try:
             lots, info = fn(session)
             sources[name] = {"lots": len(lots), **info}
