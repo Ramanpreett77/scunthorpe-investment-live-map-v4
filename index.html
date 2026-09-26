@@ -129,6 +129,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <span class="chip" onclick="quickSearch('Bottesford Road, Scunthorpe DN16 3DA')">Bottesford</span>
       <span class="chip" onclick="quickSearch('Gunness, Scunthorpe DN17 3DW')">Gunness</span>
       <span class="chip" style="background:#0ea5e9;color:#000;border-color:#0ea5e9;font-weight:800" onclick="openDealsPanel()">🔥 LIVE DEALS</span>
+      <span class="chip" style="background:#dc2626;color:#fff;border-color:#dc2626;font-weight:800" onclick="openSellPanel()">🏠 SELL YOUR HOUSE</span>
       <span class="chip" style="background:#7c3aed;color:#fff;border-color:#7c3aed" onclick="toggleHeatmap()" id="heatChip" title="Recolour zones by estimated gross yield">🌡️ Yield heat</span>
       <span class="chip" style="background:#f59e0b;color:#000;border-color:#f59e0b;font-weight:800" onclick="switchTab('legalpack');document.getElementById('panel-legalpack').scrollIntoView({behavior:'smooth'})" title="Get title, EPC, planning, flood + auction legal pack links for the searched address">📜 Legal Pack</span>
       <span class="chip" style="background:#16a34a;color:#fff;border-color:#16a34a" title="Live data: UK HPI + Land Registry + postcodes.io — Sep 2026">v5.3</span>
@@ -148,6 +149,11 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
           <button class="home-button secondary" onclick="scrollToToolsApp()">Use the free tools</button>
         </div>
       </div>
+    </section>
+
+    <section class="home-section" id="sell-teaser">
+      <div class="home-section-head"><div><h2>Need to sell fast?</h2><p>Probate, arrears, a problem tenant, relocation, or a house that just needs too much work — tell us about it and we will see if it fits a cash-ready buyer on our list. No obligation, no fee to you as the seller.</p></div>
+      <button class="home-button" onclick="openSellPanel()">Tell us about your property</button></div>
     </section>
 
     <section class="home-section" id="deals">
@@ -289,6 +295,48 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
   </div>
 
   <div class="right">
+    <div id="panel-sell" class="panel-deals" style="display:none">
+      <button class="icon-btn" onclick="closeSellPanel()">← Back</button>
+      <h2 style="margin:14px 0 4px">🏠 Sell your house fast</h2>
+      <p style="font-size:12px;color:#475569;max-width:520px">Tell us a little about the property and your situation. A real person reviews every enquiry — this is not an automatic offer, and there is never a fee to you as the seller. See our <a href="privacy-policy.html" target="_blank" rel="noopener">privacy policy</a> for how your details are used.</p>
+      <div class="card" style="max-width:520px;margin-top:10px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:3px">Your name</label>
+        <input id="sell_name" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #cbd5e1;border-radius:6px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:3px">Email</label>
+        <input id="sell_email" type="email" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #cbd5e1;border-radius:6px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:3px">Phone (optional)</label>
+        <input id="sell_phone" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #cbd5e1;border-radius:6px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:3px">Property address + postcode</label>
+        <input id="sell_address" placeholder="e.g. 12 Digby Road, Scunthorpe DN15 6DB" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #cbd5e1;border-radius:6px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:3px">What best describes your situation?</label>
+        <select id="sell_situation" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #cbd5e1;border-radius:6px">
+          <option value="">Select one…</option>
+          <option>Probate / inheritance</option>
+          <option>Facing repossession or mortgage arrears</option>
+          <option>Relocating quickly</option>
+          <option>Divorce or separation</option>
+          <option>Problem tenant / hard to manage</option>
+          <option>Property needs too much work to sell normally</option>
+          <option>Just exploring my options</option>
+          <option>Other</option>
+        </select>
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:3px">How soon do you need to sell?</label>
+        <select id="sell_timeframe" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #cbd5e1;border-radius:6px">
+          <option value="">Select one…</option>
+          <option>As soon as possible (within 4 weeks)</option>
+          <option>1–3 months</option>
+          <option>3–6 months</option>
+          <option>Just exploring, no fixed timeframe</option>
+        </select>
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:3px">Anything else we should know? (optional)</label>
+        <textarea id="sell_notes" rows="3" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #cbd5e1;border-radius:6px"></textarea>
+        <input id="sell_website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+        <label style="font-size:12px;display:flex;gap:6px;align-items:flex-start;margin-bottom:10px"><input id="sell_consent" type="checkbox" style="margin-top:2px">I have read the <a href="privacy-policy.html" target="_blank" rel="noopener">privacy policy</a> and consent to being contacted about my property.</label>
+        <button class="icon-btn" style="background:#dc2626" onclick="submitSellerLead()">Send my details</button>
+        <div id="sellMsg" style="font-size:12px;margin-top:8px"></div>
+      </div>
+    </div>
+
     <div class="tabs">
       <div class="tab active" onclick="switchTab('calc')" id="tab-calc">Yield / BRRR / Refurb</div>
       <div class="tab" onclick="switchTab('comps')" id="tab-comps">Rent & GDV Comps</div>
@@ -1664,6 +1712,30 @@ function updateRegCount(){
   const out=document.getElementById('regCount');
   if(out)out.textContent=REG_ENDPOINT?'Your details are sent to the alert registration service.':'Alert registration is not configured yet — add the endpoint in config.js before publishing.';
 }
+function openSellPanel(){document.getElementById('panel-deals').style.display='none';document.getElementById('panel-sell').style.display='block';trackAnalytics('sell_panel_opened');}
+function closeSellPanel(){document.getElementById('panel-sell').style.display='none';}
+function submitSellerLead(){
+  const value=id=>String(document.getElementById(id).value||'').trim();
+  const name=value('sell_name'),email=value('sell_email'),phone=value('sell_phone'),address=value('sell_address'),
+        situation=value('sell_situation'),timeframe=value('sell_timeframe'),notes=value('sell_notes'),honeypot=value('sell_website');
+  const consent=document.getElementById('sell_consent').checked;
+  const msg=document.getElementById('sellMsg');
+  let last=0;try{last=Number(sessionStorage.getItem('sell_form_last_submit')||0);}catch(err){}
+  if(Date.now()-last<60000){alert('Please wait a minute before sending another enquiry.');return false;}
+  if(honeypot||name.length<2||name.length>100||!/^\S+@\S+\.\S+$/.test(email)||email.length>254){alert('Please enter your name and a valid email address.');return false;}
+  if(phone.length>40||address.length<8||address.length>300){alert('Please enter the full property address, including postcode.');return false;}
+  if(!situation||!timeframe){alert('Please select your situation and timeframe.');return false;}
+  if(notes.length>1000){alert('Please keep additional notes under 1000 characters.');return false;}
+  if(!consent){alert('Please tick the consent box after reading the privacy policy.');return false;}
+  if(!REG_ENDPOINT){msg.innerHTML='<span style="color:#b45309">This form is not connected yet — add the endpoint in config.js before publishing.</span>';return false;}
+  const rec={kind:'seller',name,email,phone,address,situation,timeframe,notes,consent:true};
+  try{sessionStorage.setItem('sell_form_last_submit',String(Date.now()));}catch(err){}
+  msg.textContent='Sending…';
+  fetch(REG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(rec)})
+    .then(()=>{trackAnalytics('seller_lead_submitted');msg.innerHTML='<span style="color:#16a34a"><b>Thank you — we\'ve received your details and will be in touch.</b></span>';})
+    .catch(()=>{msg.innerHTML='<span style="color:#16a34a"><b>Thank you — we\'ve received your details and will be in touch.</b></span>';});
+  return false;
+}
 function registerForDealAlerts(e){
   if(e&&e.preventDefault)e.preventDefault();
   const value=id=>String(document.getElementById(id).value||'').trim();
@@ -1702,5 +1774,5 @@ renderDeals();drawDealPins();updateRegCount();loadLiveDeals();
 document.getElementById('siteFooter').innerHTML=complianceFooterHTML();
 if(window.addEventListener)window.addEventListener('hashchange',checkDealLink);
 checkDealLink();
-</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3eb6a012941f37d',t:'MTc5MDAxODI4OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4133615e9b514e7',t:'MTc5MDQzNTU5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</script></body>
 </html>
