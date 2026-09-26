@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Daily auction-stock scraper -> data/auction-stock.json  (patched version)
 
-Sources (DN postcode area): BTG Eddisons live property search +
+Sources (DN15-DN20): BTG Eddisons live property search +
 Savills upcoming-auction catalogues.
 
 What changed vs the first version
@@ -13,7 +13,7 @@ What changed vs the first version
     instead of being wiped.
   * Pugh: 0 cards, or cards but 0 parsed lots, is an error (layout probably changed).
   * Savills: pages each upcoming catalogue at quantity-100 and keeps lots whose
-    catalogue address holds a DN-area postcode (addresses are on the
+    catalogue address holds a DN15-DN20 postcode (addresses are on the
     catalogue page, so individual lot pages are never fetched). 0 lots is a
     "warning" with diagnostics, not an error; sold-prior/withdrawn lots are
     skipped. Respects the host robots.txt crawl-delay (2s between requests).
@@ -171,7 +171,7 @@ def scrape_btg(session):
         # Only publish current, upcoming residential/commercial lots in the
         # requested DN postcode area. The BTG search response also contains
         # nearby and past records, and sold_status_id=2 is not itself a sold flag.
-        if not re.search(r"\bDN\d{1,2}\s*\d[A-Z]{2}\b", postcode):
+        if not re.search(r"\bDN(1[5-9]|20)\s*\d[A-Z]{2}\b", postcode):
             continue
         sold = bool(row.get("sold_price"))
         if sold or not bool(row.get("upcoming")):
@@ -219,7 +219,7 @@ def scrape_btg(session):
         })
     if not lots:
         raise RuntimeError(f"BTG Eddisons: 0 current lots returned from Scunthorpe search (total={len(rows)})")
-    info["detail"] = f"{len(lots)} current DN-area lots from BTG Eddisons; sold and past records excluded"
+    info["detail"] = f"{len(lots)} current DN15-DN20 lots from BTG Eddisons; sold and past records excluded"
     return lots, info
 
 
@@ -279,7 +279,7 @@ def scrape_pugh(session):
 
 # ------------------------------------------------------------- Savills
 SAVILLS_BASE = "https://auctions.savills.co.uk"
-SAVILLS_PC_RE = re.compile(r"\bDN\d{1,2}\s*\d[A-Z]{2}\b", re.I)
+SAVILLS_PC_RE = re.compile(r"\bDN(1[5-9]|20)\s*\d[A-Z]{2}\b", re.I)
 SAVILLS_SLEEP = 2.0  # robots.txt crawl-delay for this host
 SAVILLS_MAX_PAGES = 20  # safety cap per catalogue (100 lots per page)
 
@@ -413,10 +413,10 @@ def scrape_savills(session):
         info["detail"] += "; ".join(errors) + "; "
     if not lots:
         info["status"] = "warning"
-        info["detail"] += (f"0 DN-area lots in {len(cats)} upcoming catalogues "
+        info["detail"] += (f"0 DN15-DN20 lots in {len(cats)} upcoming catalogues "
                            f"({scanned} scanned, {skipped} sold/withdrawn skipped)")
     else:
-        info["detail"] += (f"{len(lots)} DN-area lots from {len(cats)} upcoming catalogues "
+        info["detail"] += (f"{len(lots)} DN15-DN20 lots from {len(cats)} upcoming catalogues "
                            f"({scanned} scanned, {skipped} sold/withdrawn skipped)")
     return lots, info
 
