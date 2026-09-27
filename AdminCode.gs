@@ -90,27 +90,77 @@ function updateSellerLeadStatus(rowNumber, status) {
   return {ok: true};
 }
 
-function convertSellerLeadToPipeline(rowNumber) {
-  var leadSheet = getSheet_(sheetName_('SELLER_LEADS_SHEET_NAME', 'SellerLeads'));
-  var n = validRow_(leadSheet, rowNumber);
-  var headers = headerRow_(leadSheet);
-  var row = leadSheet.getRange(n, 1, 1, headers.length).getDisplayValues()[0];
-  var lead = {};
-  headers.forEach(function (h, i) { lead[h] = row[i]; });
-  var pipelineHeaders = pipelineHeaders_();
-  var clean = {};
-  pipelineHeaders.forEach(function (h) { clean[h] = ''; });
-  clean.stage = 'Lead';
-  clean.address = lead.address || '';
-  clean.lead_source = 'Seller enquiry (' + (lead.email || 'no email') + ')';
-  clean.seller_motive = lead.situation || '';
-  clean.notes = 'Timeframe: ' + (lead.timeframe || '') + '. ' + (lead.notes || '') +
-    ' [Contact: ' + (lead.name || '') + ', ' + (lead.phone || 'no phone') + ']';
-  var pipelineSheet = getSheet_(sheetName_('PIPELINE_SHEET_NAME', 'Pipeline'));
-  pipelineHeaders.forEach(function (h) { ensureHeader_(pipelineSheet, h); });
-  writeRow_(pipelineSheet, pipelineHeaders, clean, null);
-  updateSellerLeadStatus(rowNumber, 'appraising');
+function prepareSellerMessage(rowNumber) {
+  var lead = sellerLeadByRow_(rowNumber);
+  assertCanContactSeller_(lead);
+  var message = buildSellerMessage_(lead);
+  return {
+    rowNumber: lead._rowNumber,
+    name: lead.name || 'Contact',
+    email: lead.email || '',
+    phone: lead.phone || '',
+    subject: message.subject,
+    body: message.body,
+    whatsappUrl: lead.phone ? whatsappUrl_(lead.phone, message.body) : ''
+  };
+}
+
+function sendSellerEmail(rowNumber) {
+  var lead = sellerLeadByRow_(rowNumber);
+  assertCanContactSeller_(lead);
+  var message = buildSellerMessage_(lead);
+  MailApp.sendEmail({to: lead.email, subject: message.subject, body: message.body});
+  appendSendLog_('seller_email', {slug: '', addr: lead.address || ''}, lead, message.subject, 'sent');
+  return {ok: true, email: lead.email};
+}
+
+function logSellerWhatsAppClick(rowNumber) {
+  var lead = sellerLeadByRow_(rowNumber);
+  assertCanContactSeller_(lead);
+  appendSendLog_('seller_whatsapp_click', {slug: '', addr: lead.address || ''}, lead, 'WhatsApp click-to-chat opened', 'clicked');
   return {ok: true};
+}
+
+function sellerLeadByRow_(rowNumber) {
+  var sheet = getSheet_(sheetName_('SELLER_LEADS_SHEET_NAME', 'SellerLeads'));
+  var n = validRow_(sheet, rowNumber);
+  var values = sheet.getRange(n, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
+  var headers = headerRow_(sheet);
+  var item = {_rowNumber: n};
+  headers.forEach(function (header, i) { if (header) item[header] = values[i] || ''; });
+  return item;
+}
+
+function assertCanContactSeller_(lead) {
+  if (!lead || String(lead.consent).toLowerCase() !== 'true') throw new Error('This seller has not given consent.');
+  if (String(lead.status).toLowerCase() === 'not_a_fit') throw new Error('This seller is marked not a fit.');
+  if (!lead.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(lead.email))) throw new Error('This seller has no valid email.');
+}
+
+function buildSellerMessage_(lead) {
+  var name = lead.name || 'there';
+  var address = lead.address || 'your property';
+  var situation = String(lead.situation || '').trim();
+  var timeframe = String(lead.timeframe || '').trim();
+  var context = '';
+  if (situation) {
+    context = 'You mentioned ' + situation.charAt(0).toLowerCase() + situation.slice(1);
+    context += timeframe ? ', with a timeframe of ' + timeframe + '.' : '.';
+  } else if (timeframe) {
+    context = 'You mentioned a timeframe of ' + timeframe + '.';
+  }
+  var phoneLine = lead.phone
+    ? 'Please reply with a good time to reach you on ' + lead.phone + ', or just reply to this email.'
+    : 'Please reply to this email with a good time for a short call.';
+  var body = 'Hi ' + name + ',\n\n' +
+    'Thanks for getting in touch about ' + address + '.' +
+    (context ? ' ' + context : '') + '\n\n' +
+    'I work with sellers across Scunthorpe and may be able to help you move forward. ' +
+    'The next step is a short call (about 10 minutes) to understand what you need.\n\n' +
+    phoneLine + '\n\n' +
+    'If you have already sold, or no longer want to hear from me, just reply STOP and I will update your record.\n\n' +
+    'Regards';
+  return {subject: 'Your enquiry about selling ' + address, body: body};
 }
 
 function getMatchedInvestors(deal) {
@@ -191,7 +241,7 @@ function investorMatch_(deal, investor) {
 }
 
 function normaliseStrategy_(value) {
-  var text = String(value || '').toLowerCase();
+  var text = String(value || '').toLowerCase().replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
   if (!text || text === 'any') return text ? 'any' : '';
   if (text.indexOf('hmo') >= 0) return 'hmo';
   if (text.indexOf('brrr') >= 0) return 'brrr';
