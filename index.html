@@ -583,12 +583,6 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
   <section class="home-section" id="about">
     <h2>About</h2>
     <p>This service is operated by a sole trader.</p>
-    <ul class="home-list" style="margin-top:8px">
-      <li><b>Name:</b> <span id="aboutName">[YOUR NAME]</span></li>
-      <li><b>Trading name:</b> <span id="aboutTradingName">[TRADING NAME]</span></li>
-      <li><b>Area covered:</b> <span id="aboutArea">[AREA COVERED]</span></li>
-      <li><b>Contact:</b> <a id="aboutEmail" href="/cdn-cgi/l/email-protection#08534d4549414455">[EMAIL]</a></li>
-    </ul>
   </section>
 </section>
 <section class="home-section home-faq" id="faq">
@@ -645,8 +639,6 @@ function renderHomeConfiguration(){
   var feeHtml='';if(fees.intro)feeHtml+='<p>'+homeEscape(fees.intro)+'</p>';
   var items=Array.isArray(fees.items)?fees.items:[];if(items.length){feeHtml+='<div class="home-fee-list">'+items.map(function(item){return '<div class="home-fee-row"><b>'+homeEscape(item&&item.label)+'</b><span>'+homeEscape(item&&item.value)+'</span></div>';}).join('')+'</div>';}
   if(fees.note)feeHtml+='<p class="home-note">'+homeEscape(fees.note)+'</p>';if(!feeHtml)feeHtml='<p>Fee information will be shown here once configured.</p>';document.getElementById('feeStructureContent').innerHTML=feeHtml;
-  var name=c.yourName||'[YOUR NAME]',trading=c.tradingName||'[TRADING NAME]',area=c.areaCovered||'[AREA COVERED]',email=c.contactEmail||'[EMAIL]';
-  document.getElementById('aboutName').textContent=name;document.getElementById('aboutTradingName').textContent=trading;document.getElementById('aboutArea').textContent=area;var emailEl=document.getElementById('aboutEmail');emailEl.textContent=email;emailEl.href='mailto:'+email;
   renderConfiguredProof('trackRecord','trackRecordList',c.trackRecord,'No track record entries have been configured.');renderConfiguredProof('testimonials','testimonialsList',c.testimonials,'No testimonials have been configured.');
 }
 function proofEntryIsReal(entry){if(typeof entry==='string')return !!configuredText(entry);if(!entry||typeof entry!=='object')return false;return ['title','label','text','detail','description','quote','author','name','role'].some(function(k){return !!configuredText(entry[k]);});}
@@ -1527,8 +1519,12 @@ function dealsForDisplay(){
 let currentDeal=null;
 function dealBySlug(s){return dealsData.find(d=>d.slug===s);}
 function strategyRiskHTML(strategy){return /R2SA|joint[- ]?venture|\bJV\b/i.test(String(strategy||''))?' <span class="risk-note">higher risk – illustrative figures</span>':'';}
-function complianceFooterHTML(){const c=COMPLIANCE;const ico=c.icoRegistration?'<br>ICO registration: '+c.icoRegistration:'';
- return '<div class="compliance"><b>'+c.tradingName+'</b><br>Contact: <a href="mailto:'+c.contactEmail+'">'+c.contactEmail+'</a>'+ico+'<br>Sourcing information only. Figures are illustrative. Not financial or investment advice. Do your own due diligence.<br><a href="privacy-policy.html">Privacy Policy</a> · Data reference date: '+c.dataAsOf+'</div>';}
+function complianceFooterHTML(){const c=COMPLIANCE;const parts=[];
+ if(c.tradingName&&c.tradingName.charAt(0)!=='[')parts.push('<b>'+c.tradingName+'</b>');
+ if(c.contactEmail&&c.contactEmail.indexOf('@')>0)parts.push('Contact: <a href="mailto:'+c.contactEmail+'">'+c.contactEmail+'</a>');
+ if(c.icoRegistration)parts.push('ICO registration: '+c.icoRegistration);
+ parts.push('Sourcing information only. Figures are illustrative. Not financial or investment advice. Do your own due diligence.');
+ return '<div class="compliance">'+parts.join('<br>')+'<br><a href="privacy-policy.html">Privacy Policy</a> · Data reference date: '+c.dataAsOf+'</div>';}
 function renderDeals(){
   const div=document.getElementById('dealsList');
   div.innerHTML=dealsForDisplay().map(d=>{const st=STATUS[d.status]||STATUS.available;
@@ -1774,5 +1770,5 @@ renderDeals();drawDealPins();updateRegCount();loadLiveDeals();
 document.getElementById('siteFooter').innerHTML=complianceFooterHTML();
 if(window.addEventListener)window.addEventListener('hashchange',checkDealLink);
 checkDealLink();
-</script></body>
+</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a41d6e0aabcb98f0',t:'MTc5MDU0Mjc0Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
