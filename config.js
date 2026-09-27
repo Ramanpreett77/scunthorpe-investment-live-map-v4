@@ -2,9 +2,9 @@
  * Do not put API keys, Sheet IDs with write access, or personal data here.
  */
 window.SITE_CONFIG = Object.freeze({
-  tradingName: 'SGJ',
-  yourName: 'Ramanpreett Singh Chhabra',
-  contactEmail: 'ramanpreettsinghchhabra@gmail.com',
+  tradingName: '',
+  yourName: '',
+  contactEmail: 'chhabraprsinghchhabra@gmail.com',
   // Leave blank until a valid ICO registration reference exists. Blank = hidden in the footer.
   icoRegistration: '',
   // Paste the deployed, anonymous alert-only Apps Script web-app URL here.
@@ -27,7 +27,7 @@ window.SITE_CONFIG = Object.freeze({
     scriptUrl: 'https://plausible.io/js/script.js',
     domain: ''
   }),
-  areaCovered: 'Scunthorpe',
+  areaCovered: '',
   feeStructure: Object.freeze({
     title: 'Fee structure',
     intro: 'Our sourcing fee is £3,000–£5,000 or 1%–3% of purchase price, whichever is greater, payable in three stages.',
