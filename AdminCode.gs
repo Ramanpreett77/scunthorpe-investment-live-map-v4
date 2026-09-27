@@ -9,6 +9,7 @@
  *   ALERTS_SHEET_NAME    defaults to Alerts
  *   PIPELINE_SHEET_NAME  defaults to Pipeline
  *   SELLERS_SHEET_NAME   defaults to Sellers
+ *   SELLER_LEADS_SHEET_NAME  defaults to SellerLeads (public "sell your house" form)
  *   SEND_LOG_SHEET_NAME  defaults to SendLog
  *   VIEWINGS_SHEET_NAME  defaults to Viewings
  *   VIEWING_DRIVE_FOLDER_ID  Drive folder ID used for viewing photos
@@ -31,6 +32,7 @@ function getDashboardData() {
     alerts: readTable_(sheetName_('ALERTS_SHEET_NAME', 'Alerts')),
     pipeline: readTable_(sheetName_('PIPELINE_SHEET_NAME', 'Pipeline')),
     sellers: readTable_(sheetName_('SELLERS_SHEET_NAME', 'Sellers')),
+    sellerLeads: readTable_(sheetName_('SELLER_LEADS_SHEET_NAME', 'SellerLeads')),
     sendLog: readTable_(sheetName_('SEND_LOG_SHEET_NAME', 'SendLog'), 100),
     viewings: readTable_(sheetName_('VIEWINGS_SHEET_NAME', 'Viewings'), 50),
     publicSiteUrl: PropertiesService.getScriptProperties().getProperty('PUBLIC_SITE_URL') || ''
@@ -74,6 +76,40 @@ function updateAlertStatus(rowNumber, status) {
   var column = ensureHeader_(sheet, 'status');
   var allowed = ['new', 'contacted', 'opted_out'];
   sheet.getRange(n, column).setValue(allowed.indexOf(status) >= 0 ? status : 'new');
+  return {ok: true};
+}
+
+/* -------------------------- Seller leads (public form) ------------------ */
+
+function updateSellerLeadStatus(rowNumber, status) {
+  var sheet = getSheet_(sheetName_('SELLER_LEADS_SHEET_NAME', 'SellerLeads'));
+  var n = validRow_(sheet, rowNumber);
+  var column = ensureHeader_(sheet, 'status');
+  var allowed = ['new', 'contacted', 'appraising', 'offer_made', 'closed', 'not_a_fit'];
+  sheet.getRange(n, column).setValue(allowed.indexOf(status) >= 0 ? status : 'new');
+  return {ok: true};
+}
+
+function convertSellerLeadToPipeline(rowNumber) {
+  var leadSheet = getSheet_(sheetName_('SELLER_LEADS_SHEET_NAME', 'SellerLeads'));
+  var n = validRow_(leadSheet, rowNumber);
+  var headers = headerRow_(leadSheet);
+  var row = leadSheet.getRange(n, 1, 1, headers.length).getDisplayValues()[0];
+  var lead = {};
+  headers.forEach(function (h, i) { lead[h] = row[i]; });
+  var pipelineHeaders = pipelineHeaders_();
+  var clean = {};
+  pipelineHeaders.forEach(function (h) { clean[h] = ''; });
+  clean.stage = 'Lead';
+  clean.address = lead.address || '';
+  clean.lead_source = 'Seller enquiry (' + (lead.email || 'no email') + ')';
+  clean.seller_motive = lead.situation || '';
+  clean.notes = 'Timeframe: ' + (lead.timeframe || '') + '. ' + (lead.notes || '') +
+    ' [Contact: ' + (lead.name || '') + ', ' + (lead.phone || 'no phone') + ']';
+  var pipelineSheet = getSheet_(sheetName_('PIPELINE_SHEET_NAME', 'Pipeline'));
+  pipelineHeaders.forEach(function (h) { ensureHeader_(pipelineSheet, h); });
+  writeRow_(pipelineSheet, pipelineHeaders, clean, null);
+  updateSellerLeadStatus(rowNumber, 'appraising');
   return {ok: true};
 }
 
@@ -270,6 +306,10 @@ function sellerHeaders_() {
   return ['address', 'postcode', 'days_on_market', 'price_reductions_count', 'price_reduction_pct', 'probate', 'vacant', 'repossession_auction', 'tired_landlord', 'notes'];
 }
 
+function sellerLeadHeaders_() {
+  return ['timestamp', 'name', 'email', 'phone', 'address', 'situation', 'timeframe', 'notes', 'consent', 'status'];
+}
+
 /* -------------------------- Mobile viewings --------------------------- */
 
 function saveViewing(payload) {
@@ -369,6 +409,7 @@ function headersForSheet_(name) {
   if (name === sheetName_('ALERTS_SHEET_NAME', 'Alerts')) return ['timestamp', 'name', 'email', 'phone', 'strategy', 'budgetMin', 'budgetMax', 'areas', 'deal', 'consent', 'status'];
   if (name === sheetName_('PIPELINE_SHEET_NAME', 'Pipeline')) return pipelineHeaders_();
   if (name === sheetName_('SELLERS_SHEET_NAME', 'Sellers')) return sellerHeaders_();
+  if (name === sheetName_('SELLER_LEADS_SHEET_NAME', 'SellerLeads')) return sellerLeadHeaders_();
   if (name === sheetName_('SEND_LOG_SHEET_NAME', 'SendLog')) return ['timestamp', 'channel', 'deal_slug', 'address', 'investor_row', 'investor_email', 'subject', 'result'];
   if (name === sheetName_('VIEWINGS_SHEET_NAME', 'Viewings')) return viewingHeaders_();
   return [];
