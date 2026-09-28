@@ -778,7 +778,7 @@ function pickBestGeocodeResult(data,q){
   }
   var ranked=data.map(scoreOf).sort(function(x,y){return y.s-x.s;});
   var best=ranked[0];var item=best.d;
-  var out={item:item,grade:'area',srcLabel:'Nominatim (approximate)',warn:''};
+  var out={item:item,grade:'area',srcLabel:'Nominatim (approximate)',warn:'',qNum:qNum};
   if(qNumNorm&&best.hn&&best.hn===qNumNorm){out.grade='house-exact';out.srcLabel='Nominatim (house-number match)';}
   else{
     var isRoad=item.class==='highway'||String(item.addresstype||'')==='road';
@@ -793,22 +793,23 @@ async function searchFullAddress(){
   document.getElementById('propertyHero').style.display='block';
   document.getElementById('propertyHero').innerHTML='Searching actual property...';
   try{
-    let lat=null,lon=null,wardGeo='',pcGeo='',srcLabel='',matchGrade='none',matchWarn='',pcCheck='';
+    let lat=null,lon=null,wardGeo='',pcGeo='',srcLabel='',matchGrade='none',matchWarn='',pcCheck='',houseNum='',houseVerified=false;
     const pcMatch=q.match(new RegExp('\\b([A-Z]{1,2}\\d[A-Z\\d]?\\s*\\d[A-Z]{2})\\b','i'));
     const pcNorm=pcMatch?pcMatch[1].toUpperCase().replace(/\s+/g,''):'';
+    const qNumTop=((q||'').match(/^\s*(\d+[a-z]?)/i)||[])[1]||'';
     if(pcNorm){
       // V4.2: postcodes.io first — exact UK postcode centroids, ward names, no rate-limit drama
       try{
         const r=await fetch('https://api.postcodes.io/postcodes/'+pcNorm);
         const j=await r.json();
-        if(j&&j.status===200&&j.result){lat=j.result.latitude;lon=j.result.longitude;pcGeo=j.result.postcode;wardGeo=j.result.admin_ward||'';srcLabel='postcodes.io (exact postcode)';matchGrade='postcode-exact';}
+        if(j&&j.status===200&&j.result){lat=j.result.latitude;lon=j.result.longitude;pcGeo=j.result.postcode;wardGeo=j.result.admin_ward||'';srcLabel='postcodes.io (exact postcode)';matchGrade='postcode-exact';houseNum=qNumTop;}
       }catch(e){}
       if(lat==null){
         // retired/terminated postcodes live under a separate endpoint
         try{
           const r2=await fetch('https://api.postcodes.io/terminated_postcodes/'+pcNorm);
           const j2=await r2.json();
-          if(j2&&j2.status===200&&j2.result){lat=j2.result.latitude;lon=j2.result.longitude;pcGeo=j2.result.postcode;wardGeo='';srcLabel='postcodes.io (retired postcode)';matchGrade='postcode-exact';matchWarn='That postcode is retired — pin is its last known location.';}
+          if(j2&&j2.status===200&&j2.result){lat=j2.result.latitude;lon=j2.result.longitude;pcGeo=j2.result.postcode;wardGeo='';srcLabel='postcodes.io (retired postcode)';matchGrade='postcode-exact';houseNum=qNumTop;matchWarn='That postcode is retired — pin is its last known location.';}
         }catch(e2){}
       }
     }
@@ -824,6 +825,8 @@ async function searchFullAddress(){
       wardGeo=(item.address&&item.address.suburb)||'';
       srcLabel=pick.srcLabel;matchGrade=pick.grade;
       if(pick.warn)matchWarn=pick.warn;
+      houseNum=pick.qNum||'';
+      houseVerified=(pick.grade==='house-exact');
     }
     // F4: authoritative postcode for the pin — postcodes.io beats Nominatim attribution
     if(lat!=null&&lon!=null){
@@ -843,9 +846,10 @@ async function searchFullAddress(){
     const zone=getZoneForPoint(lat,lon);lastZone=zone;
     const ward=zone?zone.ward:(wardGeo||'Scunthorpe');const dn=zone?zone.dn:(lastPostcode.split(' ')[0]||'DN');
 
+    const housePin=houseNum?(houseNum+' · '):'';
     if(propertyMarker) map.removeLayer(propertyMarker);
     if(radiusCircle) map.removeLayer(radiusCircle);
-    propertyMarker=L.marker([lat,lon],{icon:L.divIcon({className:'',html:`<div style="background:#38bdf8;color:#000;padding:6px 10px;border-radius:20px;font-weight:800;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.3)">📍 ${lastPostcode||'Property'}</div>`,iconSize:[140,32]})}).addTo(map);
+    propertyMarker=L.marker([lat,lon],{icon:L.divIcon({className:'',html:`<div style="background:#38bdf8;color:#000;padding:6px 10px;border-radius:20px;font-weight:800;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.3)">📍 ${housePin}${lastPostcode||'Property'}</div>`,iconSize:[140,32]})}).addTo(map);
     radiusCircle=L.circle([lat,lon],{radius:500,color:'#38bdf8',fillColor:'#38bdf8',fillOpacity:0.08,weight:2,dashArray:'6,6'}).addTo(map);
     map.setView([lat,lon],16);
     zoneLayer.clearLayers();
@@ -853,6 +857,8 @@ async function searchFullAddress(){
     if(zone) L.polygon(zone.coords,{color:'#38bdf8',fillColor:'#38bdf8',fillOpacity:0.22,weight:3}).addTo(zoneLayer);
 
     // Hero
+    const houseLine=houseNum?('No.'+houseNum+(houseVerified?' ✅ verified match':(matchGrade==='postcode-exact'?' (pin = postcode centroid)':' (unverified)'))):'—';
+    const housePanel=houseNum?('No.'+houseNum+(houseVerified?' ✓':'')+' • '):'';
     const matchBanner=(matchGrade==='postcode-exact'||matchGrade==='house-exact')
       ?'<div style="background:#052e16;border:1px solid:#16a34a;color:#bbf7d0;border-radius:8px;padding:8px;margin:8px 0;font-size:12px">✅ <b>Exact match</b> — '+srcLabel+'</div>'
       :'<div style="background:#451a03;border:1px solid:#f59e0b;color:#fde68a;border-radius:8px;padding:8px;margin:8px 0;font-size:12px">⚠️ <b>Approximate pin</b> — '+(matchWarn||'low-confidence match')+'</div>';
@@ -861,6 +867,7 @@ async function searchFullAddress(){
       ${matchBanner}
       <div style="font-size:11px;color:#94a3b8;margin-top:6px">
         <b>Query:</b> ${displayName}<br>
+        <b>House:</b> ${houseLine}<br>
         <b>Postcode:</b> ${lastPostcode} • <b>DN:</b> ${dn} • <b>Ward:</b> ${ward}<br>
         <b>Lat/Lon:</b> ${lat.toFixed(5)}, ${lon.toFixed(5)} • <b>Zone:</b> ${zone?zone.name:'Outside core'}<br>
         <b>Geocoder:</b> ${lastGeoSource} • Live sold comps loading in Comps tab ↓
@@ -902,7 +909,7 @@ async function searchFullAddress(){
     `;
 
     analyzeSurrounding(lat,lon);
-    updateLiveView(lat,lon,lastPostcode,displayName,ward,dn,zone);
+    updateLiveView(lat,lon,lastPostcode,displayName,ward,dn,zone,housePanel);
     updateLegalPack(displayName,lastPostcode,lat,lon,ward,zone);
     updateComps(zone);
     calcYield();calcBRRR();calcRent();
@@ -946,7 +953,8 @@ function analyzeSurrounding(lat,lon){
   nearbyLotsList.forEach(p=>{L.marker([p.lat,p.lon],{icon:L.divIcon({className:'',html:`<div style="background:#f59e0b;color:#000;padding:2px 6px;border-radius:10px;font-size:9px;font-weight:800">LOT ${p.dist.toFixed(0)}m</div>`})}).addTo(lotsLayer);});
 }
 
-function updateLiveView(lat,lon,postcode,displayName,ward,dn,zone){
+function updateLiveView(lat,lon,postcode,displayName,ward,dn,zone,housePanel){
+  housePanel=housePanel||'';
   const encPostcode=encodeURIComponent(postcode);
   const gsv=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`;
   const gmaps=`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
@@ -968,7 +976,7 @@ function updateLiveView(lat,lon,postcode,displayName,ward,dn,zone){
       <a href="${epc}" target="_blank" style="display:block;padding:8px;background:#f1f5f9;border-radius:8px;text-align:center;text-decoration:none;font-size:11px;color:#0f172a">⚡ EPC</a>
       <a href="${hmoReg}" target="_blank" style="display:block;padding:8px;background:#fef2f2;border-radius:8px;text-align:center;text-decoration:none;font-size:11px;color:#991b1b">📋 HMO Register</a>
     </div>
-    <div style="margin-top:8px;font-size:10px;color:#64748b">Postcode: ${postcode} • Ward: ${ward} • ${displayName}</div>
+    <div style="margin-top:8px;font-size:10px;color:#64748b">${housePanel}Postcode: ${postcode} • Ward: ${ward} • ${displayName}</div>
   `;
   document.getElementById('zoneInfo').innerHTML=zone?`<b>${zone.name}</b><br><span class="badge badge-blue">${zone.ward}</span> <span class="badge badge-dark">${zone.dn}</span><br><small>${zone.desc}</small><br><br><b>Roads:</b> ${zone.roads.join(', ')}`:`Outside core zones - Ward: ${ward}, DN: ${dn}`;
   let demandHtml='';if(zone){Object.entries(zone.demand).forEach(([s,sc])=>{const col=sc>=8?'#dc2626':sc>=6?'#f59e0b':'#64748b';demandHtml+=`<div style="margin-bottom:4px"><div style="display:flex;justify-content:space-between;font-size:11px"><b>${s}</b><span class="badge" style="background:${col}">${sc}/10</span></div><div class="demand-bar"><div class="demand-fill" style="width:${sc*10}%;background:${col}"></div></div></div>`;});} document.getElementById('demandScores').innerHTML=demandHtml||'No zone';
@@ -1829,5 +1837,5 @@ renderDeals();drawDealPins();updateRegCount();loadLiveDeals();
 document.getElementById('siteFooter').innerHTML=complianceFooterHTML();
 if(window.addEventListener)window.addEventListener('hashchange',checkDealLink);
 checkDealLink();
-</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a42308986c353238',t:'MTc5MDYwMTUwMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a42316618bd0b461',t:'MTc5MDYwMjA2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
