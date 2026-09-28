@@ -755,13 +755,45 @@ function setDataFreshness(idValue,text,kind){const el=document.getElementById(id
 
 function quickSearch(q){document.getElementById('fullAddress').value=q;searchFullAddress();}
 
+// F3: score Nominatim candidates — never blindly trust data[0].
+// Pure function (no DOM/fetch): safe to unit-test. Returns {item,grade,srcLabel,warn}.
+function pickBestGeocodeResult(data,q){
+  var qNum=((q||'').match(/^\s*(\d+[a-z]?)/i)||[])[1]||'';
+  var qNumNorm=qNum.toLowerCase().replace(/\s+/g,'');
+  var qRoads=String(q||'').toLowerCase().replace(/[^a-z\s]/g,' ').split(/\s+/).filter(function(w){return w.length>3&&!/^(road|street|avenue|lane|drive|close|place|terrace|crescent|court|gardens|grove|way|flat|unit|scunthorpe|lincolnshire)$/.test(w);});
+  function normHn(v){return String(v||'').toLowerCase().replace(/\s+/g,'');}
+  function scoreOf(d){
+    var a=d.address||{};var s=0;
+    var hn=normHn(a.house_number);
+    if(qNumNorm&&hn&&hn===qNumNorm)s+=10;
+    else if(hn)s+=4;
+    var candRoad=String(a.road||'').toLowerCase();
+    if(qRoads.length&&candRoad&&qRoads.some(function(w){return candRoad.indexOf(w)>=0;}))s+=3;
+    var t=String(d.addresstype||d.type||'').toLowerCase();
+    if(/(house|building|amenity|shop|office)/.test(t))s+=2;
+    else if(d.class==='highway'||/(road|street)/.test(t))s+=0;
+    else s+=1;
+    var imp=parseFloat(d.importance||0);if(!isNaN(imp))s+=Math.min(2,imp*4);
+    return {d:d,s:s,hn:hn};
+  }
+  var ranked=data.map(scoreOf).sort(function(x,y){return y.s-x.s;});
+  var best=ranked[0];var item=best.d;
+  var out={item:item,grade:'area',srcLabel:'Nominatim (approximate)',warn:''};
+  if(qNumNorm&&best.hn&&best.hn===qNumNorm){out.grade='house-exact';out.srcLabel='Nominatim (house-number match)';}
+  else{
+    var isRoad=item.class==='highway'||String(item.addresstype||'')==='road';
+    out.grade=isRoad?'street':'area';
+    out.warn=(isRoad?('Matched the STREET, not house '+(qNum||'—')+'. The pin is approximate.'):('Low-confidence area match for "'+q+'". The pin is approximate.'))+' Add the full postcode for an exact pin.';
+  }
+  return out;
+}
 async function searchFullAddress(){
   const q=document.getElementById('fullAddress').value.trim();if(!q) return;
   document.getElementById('firstLookCard').style.display='none';
   document.getElementById('propertyHero').style.display='block';
   document.getElementById('propertyHero').innerHTML='Searching actual property...';
   try{
-    let lat=null,lon=null,wardGeo='',pcGeo='',srcLabel='';
+    let lat=null,lon=null,wardGeo='',pcGeo='',srcLabel='',matchGrade='none',matchWarn='',pcCheck='';
     const pcMatch=q.match(new RegExp('\\b([A-Z]{1,2}\\d[A-Z\\d]?\\s*\\d[A-Z]{2})\\b','i'));
     const pcNorm=pcMatch?pcMatch[1].toUpperCase().replace(/\s+/g,''):'';
     if(pcNorm){
@@ -769,19 +801,42 @@ async function searchFullAddress(){
       try{
         const r=await fetch('https://api.postcodes.io/postcodes/'+pcNorm);
         const j=await r.json();
-        if(j&&j.status===1&&j.result){lat=j.result.latitude;lon=j.result.longitude;pcGeo=j.result.postcode;wardGeo=j.result.admin_ward||'';srcLabel='postcodes.io (exact postcode)';}
+        if(j&&j.status===200&&j.result){lat=j.result.latitude;lon=j.result.longitude;pcGeo=j.result.postcode;wardGeo=j.result.admin_ward||'';srcLabel='postcodes.io (exact postcode)';matchGrade='postcode-exact';}
       }catch(e){}
+      if(lat==null){
+        // retired/terminated postcodes live under a separate endpoint
+        try{
+          const r2=await fetch('https://api.postcodes.io/terminated_postcodes/'+pcNorm);
+          const j2=await r2.json();
+          if(j2&&j2.status===200&&j2.result){lat=j2.result.latitude;lon=j2.result.longitude;pcGeo=j2.result.postcode;wardGeo='';srcLabel='postcodes.io (retired postcode)';matchGrade='postcode-exact';matchWarn='That postcode is retired — pin is its last known location.';}
+        }catch(e2){}
+      }
     }
     let item=null;
     if(lat==null){
       // fallback: Nominatim (street-level queries, non-UK formats)
-      const url=`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}&addressdetails=1`;
+      const url=`https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=gb&viewbox=-0.90,53.75,-0.35,53.45&q=${encodeURIComponent(q)}&addressdetails=1`;
       const res=await fetch(url);const data=await res.json();
-      if(!data.length){document.getElementById('propertyHero').innerHTML=`<b>❌ No match for "${q}"</b><br>Try postcode DN15 6DB`;return;}
-      item=data[0];lat=parseFloat(item.lat);lon=parseFloat(item.lon);
-      pcGeo=item.address?.postcode||(pcMatch?pcMatch[1]:'');
-      wardGeo=item.address?.suburb||'';
-      srcLabel='Nominatim (OpenStreetMap)';
+      if(!data||!data.length){document.getElementById('propertyHero').innerHTML=`<b>❌ No match for "${q}"</b><br>Try a full address with postcode, e.g. 66 Digby Street DN15 7LU`;return;}
+      const pick=pickBestGeocodeResult(data,q);
+      item=pick.item;lat=parseFloat(item.lat);lon=parseFloat(item.lon);
+      pcGeo=(item.address&&item.address.postcode)||(pcMatch?pcMatch[1]:'');
+      wardGeo=(item.address&&item.address.suburb)||'';
+      srcLabel=pick.srcLabel;matchGrade=pick.grade;
+      if(pick.warn)matchWarn=pick.warn;
+    }
+    // F4: authoritative postcode for the pin — postcodes.io beats Nominatim attribution
+    if(lat!=null&&lon!=null){
+      try{
+        const rr=await fetch('https://api.postcodes.io/postcodes?lon='+lon+'&lat='+lat+'&limit=1&radius=150');
+        const jj=await rr.json();
+        if(jj&&jj.status===200&&jj.result&&jj.result.length)pcCheck=jj.result[0].postcode;
+      }catch(e3){}
+      if(!pcGeo&&pcCheck)pcGeo=pcCheck;
+      if(pcGeo&&pcCheck&&String(pcGeo).toUpperCase().replace(/\s+/g,'')!==String(pcCheck).toUpperCase().replace(/\s+/g,'')){
+        matchWarn+=(matchWarn?' ':'')+'Nearest postcode to this pin is '+pcCheck+'.';
+        if(matchGrade==='house-exact')matchGrade='house-unverified';
+      }
     }
     const displayName=q;
     lastLat=lat;lastLon=lon;lastPostcode=pcGeo;lastAddress=displayName;lastGeoSource=srcLabel;
@@ -798,8 +853,12 @@ async function searchFullAddress(){
     if(zone) L.polygon(zone.coords,{color:'#38bdf8',fillColor:'#38bdf8',fillOpacity:0.22,weight:3}).addTo(zoneLayer);
 
     // Hero
+    const matchBanner=(matchGrade==='postcode-exact'||matchGrade==='house-exact')
+      ?'<div style="background:#052e16;border:1px solid:#16a34a;color:#bbf7d0;border-radius:8px;padding:8px;margin:8px 0;font-size:12px">✅ <b>Exact match</b> — '+srcLabel+'</div>'
+      :'<div style="background:#451a03;border:1px solid:#f59e0b;color:#fde68a;border-radius:8px;padding:8px;margin:8px 0;font-size:12px">⚠️ <b>Approximate pin</b> — '+(matchWarn||'low-confidence match')+'</div>';
     document.getElementById('propertyHero').innerHTML=`
       <h3>📍 ${displayName.split(',').slice(0,3).join(',')}</h3>
+      ${matchBanner}
       <div style="font-size:11px;color:#94a3b8;margin-top:6px">
         <b>Query:</b> ${displayName}<br>
         <b>Postcode:</b> ${lastPostcode} • <b>DN:</b> ${dn} • <b>Ward:</b> ${ward}<br>
@@ -1091,7 +1150,7 @@ async function fetchSoldComps(lat,lon,postcode){
       try{
         const r=await fetch('https://api.postcodes.io/postcodes/'+norm(target)+'/nearest?limit=10&radius=400');
         const j=await r.json();
-        if(j&&j.status===1&&j.result)j.result.forEach(x=>{const p=String(x.postcode).trim().toUpperCase().replace(/\s+/g,' ').replace(/^([A-Z]{1,2}\d[A-Z\d]?)\s*(\d[A-Z]{2})$/,'$1 $2');if(!pcs.includes(p)&&pcs.length<7)pcs.push(p);});
+        if(j&&j.status===200&&j.result)j.result.forEach(x=>{const p=String(x.postcode).trim().toUpperCase().replace(/\s+/g,' ').replace(/^([A-Z]{1,2}\d[A-Z\d]?)\s*(\d[A-Z]{2})$/,'$1 $2');if(!pcs.includes(p)&&pcs.length<7)pcs.push(p);});
       }catch(e){}
     }
     let items=[];
@@ -1770,5 +1829,5 @@ renderDeals();drawDealPins();updateRegCount();loadLiveDeals();
 document.getElementById('siteFooter').innerHTML=complianceFooterHTML();
 if(window.addEventListener)window.addEventListener('hashchange',checkDealLink);
 checkDealLink();
-</script></body>
+</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a42308986c353238',t:'MTc5MDYwMTUwMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
