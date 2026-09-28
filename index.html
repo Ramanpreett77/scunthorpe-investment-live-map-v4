@@ -787,6 +787,7 @@ function pickBestGeocodeResult(data,q){
   }
   return out;
 }
+function scrollToHero(){try{var el=document.getElementById('propertyHero');if(!el)return;var r=el.getBoundingClientRect();if(r.top<0||r.bottom>window.innerHeight)el.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}
 async function searchFullAddress(){
   const q=document.getElementById('fullAddress').value.trim();if(!q) return;
   document.getElementById('firstLookCard').style.display='none';
@@ -818,7 +819,7 @@ async function searchFullAddress(){
       // fallback: Nominatim (street-level queries, non-UK formats)
       const url=`https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=gb&viewbox=-0.90,53.75,-0.35,53.45&q=${encodeURIComponent(q)}&addressdetails=1`;
       const res=await fetch(url);const data=await res.json();
-      if(!data||!data.length){document.getElementById('propertyHero').innerHTML=`<b>❌ No match for "${q}"</b><br>Try a full address with postcode, e.g. 66 Digby Street DN15 7LU`;return;}
+      if(!data||!data.length){document.getElementById('propertyHero').innerHTML=`<b>❌ No match for "${q}"</b><br>Try a full address with postcode, e.g. 66 Digby Street DN15 7LU`;scrollToHero();return;}
       const pick=pickBestGeocodeResult(data,q);
       item=pick.item;lat=parseFloat(item.lat);lon=parseFloat(item.lon);
       pcGeo=(item.address&&item.address.postcode)||(pcMatch?pcMatch[1]:'');
@@ -846,7 +847,7 @@ async function searchFullAddress(){
     const zone=getZoneForPoint(lat,lon);lastZone=zone;
     const ward=zone?zone.ward:(wardGeo||'Scunthorpe');const dn=zone?zone.dn:(lastPostcode.split(' ')[0]||'DN');
 
-    const housePin=houseNum?(houseNum+' · '):'';
+    const housePin=houseNum?(houseNum+(houseVerified?'':'?')+' · '):'';
     if(propertyMarker) map.removeLayer(propertyMarker);
     if(radiusCircle) map.removeLayer(radiusCircle);
     propertyMarker=L.marker([lat,lon],{icon:L.divIcon({className:'',html:`<div style="background:#38bdf8;color:#000;padding:6px 10px;border-radius:20px;font-weight:800;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.3)">📍 ${housePin}${lastPostcode||'Property'}</div>`,iconSize:[140,32]})}).addTo(map);
@@ -857,8 +858,8 @@ async function searchFullAddress(){
     if(zone) L.polygon(zone.coords,{color:'#38bdf8',fillColor:'#38bdf8',fillOpacity:0.22,weight:3}).addTo(zoneLayer);
 
     // Hero
-    const houseLine=houseNum?('No.'+houseNum+(houseVerified?' ✅ verified match':(matchGrade==='postcode-exact'?' (pin = postcode centroid)':' (unverified)'))):'—';
-    const housePanel=houseNum?('No.'+houseNum+(houseVerified?' ✓':'')+' • '):'';
+    const houseLine=houseNum?('No.'+houseNum+(houseVerified?' ✅ verified match':(matchGrade==='postcode-exact'?' (pin = postcode centroid)':(matchGrade==='street'?' (unverified — street pin)':' (unverified)')))):'—';
+    const housePanel=houseNum?('No.'+houseNum+(houseVerified?' ✓':'?')+' • '):'';
     const matchBanner=(matchGrade==='postcode-exact'||matchGrade==='house-exact')
       ?'<div style="background:#052e16;border:1px solid:#16a34a;color:#bbf7d0;border-radius:8px;padding:8px;margin:8px 0;font-size:12px">✅ <b>Exact match</b> — '+srcLabel+'</div>'
       :'<div style="background:#451a03;border:1px solid:#f59e0b;color:#fde68a;border-radius:8px;padding:8px;margin:8px 0;font-size:12px">⚠️ <b>Approximate pin</b> — '+(matchWarn||'low-confidence match')+'</div>';
@@ -916,8 +917,9 @@ async function searchFullAddress(){
     showAreaPics(zone,q);
     fetchSoldComps(lat,lon,lastPostcode);
     fetchHPI();renderRentIntel();
+    scrollToHero();
 
-  }catch(e){document.getElementById('propertyHero').innerHTML=`Error: ${e.message}`;}
+  }catch(e){document.getElementById('propertyHero').innerHTML=`Error: ${e.message}`;scrollToHero();}
 }
 
 function analyzeSurrounding(lat,lon){
@@ -1837,5 +1839,5 @@ renderDeals();drawDealPins();updateRegCount();loadLiveDeals();
 document.getElementById('siteFooter').innerHTML=complianceFooterHTML();
 if(window.addEventListener)window.addEventListener('hashchange',checkDealLink);
 checkDealLink();
-</script></body>
+</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a42383f95c26f2b2',t:'MTc5MDYwNjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
