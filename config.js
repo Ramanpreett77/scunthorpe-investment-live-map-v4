@@ -4,7 +4,7 @@
 window.SITE_CONFIG = Object.freeze({
   tradingName: '',
   yourName: '',
-  contactEmail: 'chhabraprsinghchhabra@gmail.com',
+  contactEmail: 'chhabraprsingh37@gmail.com',
   // Leave blank until a valid ICO registration reference exists. Blank = hidden in the footer.
   icoRegistration: '',
   // Paste the deployed, anonymous alert-only Apps Script web-app URL here.
