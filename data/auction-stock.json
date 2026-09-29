@@ -1,8 +1,8 @@
 {
- "updated": "2026-09-29T12:28:24Z",
- "updated_uk": "29 Sep 2026, 13:28 UK",
- "checked": "2026-09-29T12:28:24Z",
- "checked_uk": "29 Sep 2026, 13:28 UK",
+ "updated": "2026-09-29T12:30:14Z",
+ "updated_uk": "29 Sep 2026, 13:30 UK",
+ "checked": "2026-09-29T12:30:14Z",
+ "checked_uk": "29 Sep 2026, 13:30 UK",
  "sources": {
   "btg": {
    "lots": 1,
@@ -11,8 +11,8 @@
   },
   "savills": {
    "lots": 0,
-   "status": "blocked",
-   "detail": "Blocked('robots.txt disallows (or could not be read) for https://auctions.savills.co.uk/upcoming-auctions') | kept 0 previous lots (stale)"
+   "status": "warning",
+   "detail": "0 DN15-DN20 lots in 3 upcoming catalogues (454 scanned, 75 sold/withdrawn skipped)"
   }
  },
  "lots": [
