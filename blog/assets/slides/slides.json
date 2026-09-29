@@ -1,0 +1,28 @@
+{
+  "pngs": [
+    "output/slides/slide-01.png",
+    "output/slides/slide-02.png",
+    "output/slides/slide-03.png",
+    "output/slides/slide-04.png",
+    "output/slides/slide-05.png",
+    "output/slides/slide-06.png",
+    "output/slides/slide-07.png"
+  ],
+  "pdf": "output/slides/carousel.pdf",
+  "caption": "A good sourcer can transform your portfolio. A bad one can quietly cost you everything. Here's the exact checklist smart investors use \ud83d\udc47",
+  "hashtags": [
+    "#PropertySourcing",
+    "#UKProperty",
+    "#PropertyInvestment",
+    "#DueDiligence"
+  ],
+  "urls": [
+    "https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog/assets/slides/slide-01.png",
+    "https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog/assets/slides/slide-02.png",
+    "https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog/assets/slides/slide-03.png",
+    "https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog/assets/slides/slide-04.png",
+    "https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog/assets/slides/slide-05.png",
+    "https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog/assets/slides/slide-06.png",
+    "https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog/assets/slides/slide-07.png"
+  ]
+}

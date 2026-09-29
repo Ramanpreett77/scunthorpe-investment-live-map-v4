@@ -1,0 +1,29 @@
+name: Engagement Bot
+
+# Twice daily: reply to new comments in a warm, human tone.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 9,17 * * *"
+
+jobs:
+  reply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Restore replied-comment state
+        uses: actions/cache@v4
+        with:
+          path: bot/output/replied_comments.json
+          key: replied-comments
+      - name: Reply to new comments
+        env:
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ vars.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: cd bot && python3 engagement_bot.py --platforms all --post
