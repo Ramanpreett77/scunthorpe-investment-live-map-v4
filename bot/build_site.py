@@ -260,6 +260,8 @@ ABOUT = """
   <p style="margin:18px 0">Everything here is general information, not financial advice: rules, taxes and lending
   criteria change, and every deal is different. Always verify with your local council, lender and
   qualified professionals.</p>
+  <p style="margin:18px 0">Wantevery deal is different. Always verify with your local council, lender and
+  qualified professionals.</p>
   <p style="margin:18px 0">Want to collaborate, advertise or invest alongside us? <a href="contact.html">Get in touch</a> -
   or ask the assistant in the corner, available 24/7.</p>
 </section>
@@ -322,8 +324,10 @@ def main():
     ap.add_argument("--posts", default="_posts")
     ap.add_argument("--out", default="docs")
     ap.add_argument("--site-url", default=os.environ.get("SITE_URL", ""))
-    ap.add_argument("--newsletter-action", default="https://formspree.io/f/YOUR_FORM_ID")
-    ap.add_argument("--contact-action", default="https://formspree.io/f/YOUR_FORM_ID")
+    ap.add_argument("--newsletter-action", default=None,
+                    help="Form endpoint (default: https://formsubmit.co/<contact-email>)")
+    ap.add_argument("--contact-action", default=None,
+                    help="Form endpoint (default: https://formsubmit.co/<contact-email>)")
     ap.add_argument("--contact-email", default="hello@example.com")
     args = ap.parse_args()
 
@@ -380,7 +384,8 @@ def main():
             c.lower(), c, len(plist), "s" if len(plist) != 1 else "",
             "".join(card(p) for p in plist))
     home = HOME.format(featured=featured, strategy_sections=sec_html,
-                       newsletter_action=args.newsletter_action)
+                       newsletter_action=(args.newsletter_action or
+                                          "https://formsubmit.co/" + args.contact_email))
     open(os.path.join(out, "index.html"), "w").write(
         shell(BRAND + " - " + "UK Property Investment Blog", TAGLINE, home))
 
@@ -398,7 +403,9 @@ def main():
     open(os.path.join(out, "about.html"), "w").write(shell("About - " + BRAND, TAGLINE, ABOUT))
     open(os.path.join(out, "contact.html"), "w").write(shell(
         "Contact - " + BRAND, "Get in touch",
-        CONTACT.format(contact_action=args.contact_action, contact_email=args.contact_email)))
+        CONTACT.format(contact_action=(args.contact_action or
+                                       "https://formsubmit.co/" + args.contact_email),
+                       contact_email=args.contact_email)))
     open(os.path.join(out, "privacy.html"), "w").write(shell(
         "Privacy Policy - " + BRAND, "How we handle your data",
         PRIVACY.format(contact_email=args.contact_email)))
