@@ -27,6 +27,7 @@ import os
 import sys
 
 GRAPH = "https://graph.facebook.com/v23.0"
+LINKEDIN_VERSION = "202601"
 
 
 # ---------------------------------------------------------------- content ---
