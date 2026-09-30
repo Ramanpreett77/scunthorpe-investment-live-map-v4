@@ -189,6 +189,29 @@ SHELL = """<!DOCTYPE html>
   Tax treatment, licensing and lending criteria change - always confirm with your local council and qualified professionals.<br>
   &copy; 2026 &middot; Built with the Property Blog Bot &middot; <a href="privacy.html" style="color:#8fa3b8">Privacy</a>
 </footer>
+<script>
+/* Resilient forms: try the online endpoint, fall back to a prefilled email. */
+document.addEventListener('submit', function (e) {{
+  var f = e.target;
+  if (!f.dataset || !f.dataset.fallback) return;
+  e.preventDefault();
+  var d = new FormData(f), body = new URLSearchParams();
+  d.forEach(function (v, k) {{ body.append(k, v); }});
+  fetch(f.action, {{ method: 'POST', headers: {{ 'Accept': 'application/json' }}, body: body }})
+    .then(function (r) {{
+      if (!r.ok) throw 0;
+      f.innerHTML = '<p style="color:#0f7a3d;font-weight:700;padding:12px 0">&#10004; Sent - thank you! We reply within one working day.</p>';
+    }})
+    .catch(function () {{
+      location.href = 'mailto:' + f.dataset.fallback +
+        '?subject=' + encodeURIComponent(d.get('_subject') || 'SGJM enquiry') +
+        '&body=' + encodeURIComponent('Name: ' + (d.get('name') || '') +
+          '\\nEmail: ' + (d.get('email') || '') +
+          '\\nSubject: ' + (d.get('subject') || '') +
+          '\\n\\n' + (d.get('message') || d.get('email') || ''));
+    }});
+}});
+</script>
 <script>window.PB_ARTICLES = {articles_json};</script>
 <script src="assets/js/chat.js"></script>
 </body>
@@ -211,7 +234,9 @@ HOME = """
   <aside class="ctabox" style="max-width:none;margin:0">
     <h2 style="color:#fff">Get every new breakdown first</h2>
     <p>One email a week: HMO yields, BRR case studies and lending updates. No spam.</p>
-    <form action="{newsletter_action}" method="POST" style="max-width:460px;margin:0 auto;display:flex;gap:10px">
+    <form action="{newsletter_action}" method="POST" data-fallback="{fb_email}" style="max-width:460px;margin:0 auto;display:flex;gap:10px">
+      <input type="hidden" name="_subject" value="New SGJM newsletter signup">
+      <input type="hidden" name="_captcha" value="false">
       <input type="email" name="email" required placeholder="you@example.com" style="flex:1;border-radius:6px;border:none;padding:12px">
       <button class="btn" type="submit">Subscribe</button>
     </form>
@@ -271,7 +296,9 @@ CONTACT = """
 <section class="wrap" style="max-width:760px">
   <h2 class="sec">Contact & enquiries</h2>
   <p class="sub">Sales, partnerships, advertising or reader questions - we reply within one working day.</p>
-  <form action="{contact_action}" method="POST">
+  <form action="{contact_action}" method="POST" data-fallback="{contact_email}">
+    <input type="hidden" name="_subject" value="New SGJM website enquiry">
+    <input type="hidden" name="_captcha" value="false">
     <div class="two">
       <input name="name" placeholder="Your name" required>
       <input name="email" type="email" placeholder="Email address" required>
@@ -385,7 +412,8 @@ def main():
             "".join(card(p) for p in plist))
     home = HOME.format(featured=featured, strategy_sections=sec_html,
                        newsletter_action=(args.newsletter_action or
-                                          "https://formsubmit.co/" + args.contact_email))
+                                          "https://formsubmit.co/" + args.contact_email),
+                       fb_email=args.contact_email)
     open(os.path.join(out, "index.html"), "w").write(
         shell(BRAND + " - " + "UK Property Investment Blog", TAGLINE, home))
 
