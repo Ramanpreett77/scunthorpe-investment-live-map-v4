@@ -1,12 +1,12 @@
 ---
 layout: post
-title: "HMO Investing in 2026: Yields, Licensing and What It Really Costs to Start"
+title: "Is an HMO Right for Your Portfolio? Yields, Licensing and Setup Costs Explained"
 date: 2026-09-30
 categories: HMO Strategy
 excerpt: "Why HMOs deliver some of the strongest yields in UK property, what licensing and setup cost, and a worked example from the West Midlands."
 ---
 
-If you want the strongest rental yields in UK property, Houses in Multiple Occupation keep coming up - and for good reason. Renting by the room instead of the property can push gross yields into double digits in areas like Scunthorpe & the West Midlands. But HMOs aren't passive income: they come with licensing, higher setup costs and more hands-on management. Here's an honest breakdown for 2026.
+Walk through any investor meet-up in Scunthorpe & the West Midlands and someone will be talking HMOs. The maths is genuinely attractive - but so is the fine print. Licensing rules, room sizes, fire doors, management intensity. This guide covers what you actually need to know before you convert your first property.
 
 ## Why HMOs outperform single lets
 
