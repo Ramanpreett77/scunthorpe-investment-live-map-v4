@@ -107,32 +107,23 @@ def post_instagram(page_id, token, caption, image_url, ig_user_id=None):
 
 
 # ------------------------------------------------------- carousel posting ---
-def post_linkedin_carousel(token, pdf_path, caption):
-    """LinkedIn document post = the familiar swipeable carousel."""
+def post_linkedin_article(token, caption, link, title, description):
+    """LinkedIn link-card post - the reliable rich format on the default app tier.
+    (PDF/image carousels are not permitted by the default Share-on-LinkedIn tier.)"""
     import requests
     import linkedin_poster
     person = linkedin_poster.get_person_id(token)
-    h = {"Authorization": "Bearer " + token, "LinkedIn-Version": "202601",
-         "X-Restli-Protocol-Version": "2.0.0", "Content-Type": "application/json"}
-    r = requests.post("https://api.linkedin.com/rest/documents?action=initializeUpload",
-                      headers=h, json={"initializeUploadRequest":
-                                       {"owner": "urn:li:person:" + person}}, timeout=30)
-    if r.status_code not in (200, 201):
-        sys.exit("LinkedIn document upload init failed (%s): %s" % (r.status_code, r.text[:300]))
-    v = r.json()["value"]
-    with open(pdf_path, "rb") as f:
-        up = requests.put(v["uploadUrl"], data=f.read(),
-                          headers={"Authorization": "Bearer " + token}, timeout=120)
-    if up.status_code not in (200, 201):
-        sys.exit("LinkedIn PDF upload failed (%s)" % up.status_code)
     body = {"author": "urn:li:person:" + person, "commentary": caption,
             "visibility": "PUBLIC", "lifecycleState": "PUBLISHED",
             "distribution": {"feedDistribution": "MAIN_FEED", "targetEntities": [],
                              "thirdPartyDistributionChannels": []},
-            "content": {"document": v["document"]}}
+            "content": {"article": {"source": link, "title": title[:200],
+                                    "description": description[:300]}}}
+    h = {"Authorization": "Bearer " + token, "LinkedIn-Version": LINKEDIN_VERSION,
+         "X-Restli-Protocol-Version": "2.0.0", "Content-Type": "application/json"}
     r = requests.post("https://api.linkedin.com/rest/posts", json=body, headers=h, timeout=30)
     if r.status_code not in (200, 201):
-        sys.exit("LinkedIn carousel post failed (%s): %s" % (r.status_code, r.text[:300]))
+        sys.exit("LinkedIn article post failed (%s): %s" % (r.status_code, r.text[:300]))
     return r.headers.get("x-restli-id") or "(published)"
 
 
@@ -235,9 +226,10 @@ def main():
         if slides:
             if args.post:
                 results.append(("LinkedIn", "SKIPPED - set LINKEDIN_ACCESS_TOKEN" if not li_token
-                                else "Carousel published (%s)" % post_linkedin_carousel(li_token, slides["pdf"], cap)))
+                                else "Link-card published (%s)" %
+                                post_linkedin_article(li_token, cap, link, meta["title"], meta["excerpt"])))
             else:
-                results.append(("LinkedIn", "WOULD POST CAROUSEL (%s)\n%s" % (slides["pdf"], cap)))
+                results.append(("LinkedIn", "WOULD POST LINK-CARD (%s)\n%s" % (link, cap)))
         else:
             li_text = linkedin_poster.build_post(meta, site_url)
             if args.post:
