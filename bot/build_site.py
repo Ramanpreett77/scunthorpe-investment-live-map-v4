@@ -190,26 +190,38 @@ SHELL = """<!DOCTYPE html>
   &copy; 2026 &middot; Built with the Property Blog Bot &middot; <a href="privacy.html" style="color:#8fa3b8">Privacy</a>
 </footer>
 <script>
-/* Resilient forms: try the online endpoint, fall back to a prefilled email. */
+/* Resilient forms: Web3Forms -> FormSubmit -> prefilled email. */
 document.addEventListener('submit', function (e) {{
   var f = e.target;
-  if (!f.dataset || !f.dataset.fallback) return;
+  if (!f.dataset || (!f.dataset.fallback && !f.dataset.w3f)) return;
   e.preventDefault();
-  var d = new FormData(f), body = new URLSearchParams();
-  d.forEach(function (v, k) {{ body.append(k, v); }});
-  fetch(f.action, {{ method: 'POST', headers: {{ 'Accept': 'application/json' }}, body: body }})
-    .then(function (r) {{
-      if (!r.ok) throw 0;
-      f.innerHTML = '<p style="color:#0f7a3d;font-weight:700;padding:12px 0">&#10004; Sent - thank you! We reply within one working day.</p>';
-    }})
-    .catch(function () {{
-      location.href = 'mailto:' + f.dataset.fallback +
-        '?subject=' + encodeURIComponent(d.get('_subject') || 'SGJM enquiry') +
-        '&body=' + encodeURIComponent('Name: ' + (d.get('name') || '') +
-          '\\nEmail: ' + (d.get('email') || '') +
-          '\\nSubject: ' + (d.get('subject') || '') +
-          '\\n\\n' + (d.get('message') || d.get('email') || ''));
-    }});
+  var d = new FormData(f);
+  function ok() {{ f.innerHTML = '<p style="color:#0f7a3d;font-weight:700;padding:12px 0">&#10004; Sent - thank you! We reply within one working day.</p>'; }}
+  function mailto() {{
+    location.href = 'mailto:' + f.dataset.fallback +
+      '?subject=' + encodeURIComponent(d.get('_subject') || 'SGJM enquiry') +
+      '&body=' + encodeURIComponent('Name: ' + (d.get('name') || '') +
+        '\\nEmail: ' + (d.get('email') || '') +
+        '\\nSubject: ' + (d.get('subject') || '') +
+        '\\n\\n' + (d.get('message') || d.get('email') || ''));
+  }}
+  function tryFS() {{
+    var body = new URLSearchParams();
+    d.forEach(function (v, k) {{ body.append(k, v); }});
+    fetch(f.action, {{ method: 'POST', headers: {{ 'Accept': 'application/json' }}, body: body }})
+      .then(function (r) {{ if (!r.ok) throw 0; ok(); }})
+      .catch(mailto);
+  }}
+  if (f.dataset.w3f) {{
+    var payload = {{ access_key: f.dataset.w3f, subject: d.get('_subject') || 'SGJM enquiry' }};
+    d.forEach(function (v, k) {{ if (k.charAt(0) !== '_') payload[k] = v; }});
+    fetch('https://api.web3forms.com/submit', {{ method: 'POST',
+        headers: {{ 'Content-Type': 'application/json', 'Accept': 'application/json' }},
+        body: JSON.stringify(payload) }})
+      .then(function (r) {{ return r.json(); }})
+      .then(function (j) {{ if (j && j.success) ok(); else tryFS(); }})
+      .catch(tryFS);
+  }} else {{ tryFS(); }}
 }});
 </script>
 <script>window.PB_ARTICLES = {articles_json};</script>
@@ -234,7 +246,7 @@ HOME = """
   <aside class="ctabox" style="max-width:none;margin:0">
     <h2 style="color:#fff">Get every new breakdown first</h2>
     <p>One email a week: HMO yields, BRR case studies and lending updates. No spam.</p>
-    <form action="{newsletter_action}" method="POST" data-fallback="{fb_email}" style="max-width:460px;margin:0 auto;display:flex;gap:10px">
+    <form action="{newsletter_action}" method="POST" data-fallback="{fb_email}" data-w3f="{w3f_key}" style="max-width:460px;margin:0 auto;display:flex;gap:10px">
       <input type="hidden" name="_subject" value="New SGJM newsletter signup">
       <input type="hidden" name="_captcha" value="false">
       <input type="email" name="email" required placeholder="you@example.com" style="flex:1;border-radius:6px;border:none;padding:12px">
@@ -296,7 +308,7 @@ CONTACT = """
 <section class="wrap" style="max-width:760px">
   <h2 class="sec">Contact & enquiries</h2>
   <p class="sub">Sales, partnerships, advertising or reader questions - we reply within one working day.</p>
-  <form action="{contact_action}" method="POST" data-fallback="{contact_email}">
+  <form action="{contact_action}" method="POST" data-fallback="{contact_email}" data-w3f="{w3f_key}">
     <input type="hidden" name="_subject" value="New SGJM website enquiry">
     <input type="hidden" name="_captcha" value="false">
     <div class="two">
@@ -356,6 +368,8 @@ def main():
     ap.add_argument("--contact-action", default=None,
                     help="Form endpoint (default: https://formsubmit.co/<contact-email>)")
     ap.add_argument("--contact-email", default="hello@example.com")
+    ap.add_argument("--w3f-key", default="7d7560e5-c7f8-41fb-865d-9bbdd3dfb159",
+                    help="Web3Forms access key for on-page form delivery")
     args = ap.parse_args()
 
     posts = []
@@ -413,7 +427,7 @@ def main():
     home = HOME.format(featured=featured, strategy_sections=sec_html,
                        newsletter_action=(args.newsletter_action or
                                           "https://formsubmit.co/" + args.contact_email),
-                       fb_email=args.contact_email)
+                       fb_email=args.contact_email, w3f_key=args.w3f_key)
     open(os.path.join(out, "index.html"), "w").write(
         shell(BRAND + " - " + "UK Property Investment Blog", TAGLINE, home))
 
@@ -433,7 +447,7 @@ def main():
         "Contact - " + BRAND, "Get in touch",
         CONTACT.format(contact_action=(args.contact_action or
                                        "https://formsubmit.co/" + args.contact_email),
-                       contact_email=args.contact_email)))
+                       contact_email=args.contact_email, w3f_key=args.w3f_key)))
     open(os.path.join(out, "privacy.html"), "w").write(shell(
         "Privacy Policy - " + BRAND, "How we handle your data",
         PRIVACY.format(contact_email=args.contact_email)))

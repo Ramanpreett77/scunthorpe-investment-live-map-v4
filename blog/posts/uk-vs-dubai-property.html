@@ -85,26 +85,38 @@ document.querySelectorAll('.share a').forEach(function(a){
   &copy; 2026 &middot; Built with the Property Blog Bot &middot; <a href="privacy.html" style="color:#8fa3b8">Privacy</a>
 </footer>
 <script>
-/* Resilient forms: try the online endpoint, fall back to a prefilled email. */
+/* Resilient forms: Web3Forms -> FormSubmit -> prefilled email. */
 document.addEventListener('submit', function (e) {
   var f = e.target;
-  if (!f.dataset || !f.dataset.fallback) return;
+  if (!f.dataset || (!f.dataset.fallback && !f.dataset.w3f)) return;
   e.preventDefault();
-  var d = new FormData(f), body = new URLSearchParams();
-  d.forEach(function (v, k) { body.append(k, v); });
-  fetch(f.action, { method: 'POST', headers: { 'Accept': 'application/json' }, body: body })
-    .then(function (r) {
-      if (!r.ok) throw 0;
-      f.innerHTML = '<p style="color:#0f7a3d;font-weight:700;padding:12px 0">&#10004; Sent - thank you! We reply within one working day.</p>';
-    })
-    .catch(function () {
-      location.href = 'mailto:' + f.dataset.fallback +
-        '?subject=' + encodeURIComponent(d.get('_subject') || 'SGJM enquiry') +
-        '&body=' + encodeURIComponent('Name: ' + (d.get('name') || '') +
-          '\nEmail: ' + (d.get('email') || '') +
-          '\nSubject: ' + (d.get('subject') || '') +
-          '\n\n' + (d.get('message') || d.get('email') || ''));
-    });
+  var d = new FormData(f);
+  function ok() { f.innerHTML = '<p style="color:#0f7a3d;font-weight:700;padding:12px 0">&#10004; Sent - thank you! We reply within one working day.</p>'; }
+  function mailto() {
+    location.href = 'mailto:' + f.dataset.fallback +
+      '?subject=' + encodeURIComponent(d.get('_subject') || 'SGJM enquiry') +
+      '&body=' + encodeURIComponent('Name: ' + (d.get('name') || '') +
+        '\nEmail: ' + (d.get('email') || '') +
+        '\nSubject: ' + (d.get('subject') || '') +
+        '\n\n' + (d.get('message') || d.get('email') || ''));
+  }
+  function tryFS() {
+    var body = new URLSearchParams();
+    d.forEach(function (v, k) { body.append(k, v); });
+    fetch(f.action, { method: 'POST', headers: { 'Accept': 'application/json' }, body: body })
+      .then(function (r) { if (!r.ok) throw 0; ok(); })
+      .catch(mailto);
+  }
+  if (f.dataset.w3f) {
+    var payload = { access_key: f.dataset.w3f, subject: d.get('_subject') || 'SGJM enquiry' };
+    d.forEach(function (v, k) { if (k.charAt(0) !== '_') payload[k] = v; });
+    fetch('https://api.web3forms.com/submit', { method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (j && j.success) ok(); else tryFS(); })
+      .catch(tryFS);
+  } else { tryFS(); }
 });
 </script>
 <script>window.PB_ARTICLES = [{"slug":"uk-vs-dubai-property","title":"Dubai or UK Property? An Honest Comparison for 2026","cat":"Strategy Dubai","excerpt":"Yields, tax, leverage and risk: a balanced UK vs Dubai property comparison, and the type of investor each market actually suits."}, {"slug":"hmo-investing","title":"Is an HMO Right for Your Portfolio? Yields, Licensing and Setup Costs Explained","cat":"HMO Strategy","excerpt":"Why HMOs deliver some of the strongest yields in UK property, what licensing and setup cost, and a worked example from the West Midlands."}, {"slug":"first-buy-to-let","title":"How to Buy Your First Buy-to-Let Property in 2026 (Without Costly Mistakes)","cat":"BuyToLet Guides","excerpt":"The practical route to a first UK buy-to-let: ownership structure, deposits, SDLT, mortgages and the numbers that actually matter."}, {"slug":"brr-strategy","title":"The BRR Strategy in 2026: How UK Investors Keep Recycling the Same Capital","cat":"BRR Strategy","excerpt":"How the Buy-Refurbish-Refinance strategy works, a worked example of capital recycling, and the risks to stress-test before your first project."}, {"slug":"refinancing-portfolio","title":"Property Refinancing in 2026: When to Remortgage and How Much You Can Release","cat":"Finance Strategy","excerpt":"When refinancing makes sense, how lenders value your property, and how to release equity without stretching yourself too thin."}, {"slug":"choose-a-property-sourcer","title":"Property Sourcing Explained: What a Good Sourcer Does (and Must Never Do)","cat":"Sourcing Compliance","excerpt":"What UK property sourcers do, what they typically charge, and the compliance checklist - AML, ICO, redress scheme - to demand before working with anyone."}, {"slug":"hmo-investing","title":"HMO Investing in 2026: Yields, Licensing and What It Really Costs to Start","cat":"HMO Strategy","excerpt":"Why HMOs deliver some of the strongest yields in UK property, what licensing and setup cost, and a worked example from the West Midlands."}, {"slug":"first-buy-to-let","title":"How to Buy Your First Buy-to-Let Property in 2026 (Without Costly Mistakes)","cat":"BuyToLet Guides","excerpt":"The practical route to a first UK buy-to-let: ownership structure, deposits, SDLT, mortgages and the numbers that actually matter."}, {"slug":"brr-strategy","title":"BRR Investing Explained: Buy, Refurbish, Refinance - Then Go Again","cat":"BRR Strategy","excerpt":"How the Buy-Refurbish-Refinance strategy works, a worked example of capital recycling, and the risks to stress-test before your first project."}];</script>
