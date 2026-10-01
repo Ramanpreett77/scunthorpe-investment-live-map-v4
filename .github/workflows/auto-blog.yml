@@ -22,9 +22,10 @@ jobs:
         run: pip install requests pillow
 
       - name: Generate article
-        run: cd bot && python3 blog_generator.py --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}"
+        run: cd bot && python3 blog_generator.py --ai --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}"
         env:
-          BLOG_REGION: "Scunthorpe & the West Midlands"
+          BLOG_REGION: "Scunthorpe & North Lincolnshire"
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Build carousel slides
         run: cd bot && python3 carousel_builder.py --url-prefix "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}/assets/slides/"

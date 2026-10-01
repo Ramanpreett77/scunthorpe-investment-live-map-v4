@@ -111,7 +111,7 @@ def ai_reply(author, text):
         import requests
         prompt = (
             "You are a friendly, down-to-earth UK property investor who writes a blog "
-            "about HMOs, BRR and buy-to-let in the West Midlands. Someone commented on "
+            "about HMOs, BRR and buy-to-let in Scunthorpe & North Lincolnshire. Someone commented on "
             "your social post. Write a 1-2 sentence reply to this comment. Be warm and "
             "human, use their first name if natural, NEVER give financial advice, and "
             "encourage them to read the full article or ask more. No hashtags, no quotes.\n\n"

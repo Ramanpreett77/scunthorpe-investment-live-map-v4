@@ -26,7 +26,7 @@ import random
 import re
 import sys
 
-REGION_DEFAULT = "the West Midlands"
+REGION_DEFAULT = "Scunthorpe & North Lincolnshire"
 
 DISCLAIMER = (
     "This article is for general information only and is not financial, tax or "
@@ -52,7 +52,7 @@ TOPICS = [
         "topic_short": "BRR",
         "category": "BRR",
         "categories": ["BRR", "Strategy"],
-        "hashtags": ["#UKProperty", "#PropertyInvestment", "#BRR", "#BuyToLet", "#WestMidlands"],
+        "hashtags": ["#UKProperty", "#PropertyInvestment", "#BRR", "#BuyToLet", "#Scunthorpe"],
         "titles": [
             "The BRR Strategy in {year}: How UK Investors Keep Recycling the Same Capital",
             "BRR Investing Explained: Buy, Refurbish, Refinance - Then Go Again",
@@ -145,13 +145,13 @@ TOPICS = [
         "topic_short": "HMO investing",
         "category": "HMO",
         "categories": ["HMO", "Strategy"],
-        "hashtags": ["#HMO", "#UKProperty", "#PropertyInvestment", "#BuyToLet", "#WestMidlands"],
+        "hashtags": ["#HMO", "#UKProperty", "#PropertyInvestment", "#BuyToLet", "#Scunthorpe"],
         "titles": [
             "HMO Investing in {year}: Yields, Licensing and What It Really Costs to Start",
             "Is an HMO Right for Your Portfolio? Yields, Licensing and Setup Costs Explained",
         ],
         "hook": "Single-let yields of 5-6% are fine. HMOs in the right area can genuinely deliver double digits gross. But there's work behind those numbers",
-        "excerpt": "Why HMOs deliver some of the strongest yields in UK property, what licensing and setup cost, and a worked example from the West Midlands.",
+        "excerpt": "Why HMOs deliver some of the strongest yields in UK property, what licensing and setup cost, and a worked example from Scunthorpe.",
         "intros": [
             "If you want the strongest rental yields in UK property, Houses in Multiple Occupation keep coming up - and for good reason. Renting by the room instead of the property can push gross yields into double digits in areas like {region}. But HMOs aren't passive income: they come with licensing, higher setup costs and more hands-on management. Here's an honest breakdown for {year}.",
             "Walk through any investor meet-up in {region} and someone will be talking HMOs. The maths is genuinely attractive - but so is the fine print. Licensing rules, room sizes, fire doors, management intensity. This guide covers what you actually need to know before you convert your first property.",
