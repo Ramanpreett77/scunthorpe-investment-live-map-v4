@@ -218,7 +218,13 @@ def scrape_btg(session):
             "image": "",
         })
     if not lots:
-        raise RuntimeError(f"BTG Eddisons: 0 current lots returned from Scunthorpe search (total={len(rows)})")
+        # Zero unsold Scunthorpe lots is a legitimate state (e.g. the day after an
+        # auction sold out, or before the next catalogue loads) - warn, don't fail.
+        info["status"] = "warning"
+        info["detail"] = (f"0 current DN15-DN20 lots in Scunthorpe search "
+                          f"(total={len(rows)} rows scanned) - zero-stock day or source "
+                          f"layout change; verify manually if it persists for >1 week")
+        return [], info
     info["detail"] = f"{len(lots)} current DN15-DN20 lots from BTG Eddisons; sold and past records excluded"
     return lots, info
 
