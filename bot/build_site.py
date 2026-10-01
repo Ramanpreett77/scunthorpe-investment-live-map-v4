@@ -133,6 +133,13 @@ CHAT_JS = r"""
         var leads = []; try { leads = JSON.parse(localStorage.pb_leads || '[]'); } catch (e) {}
         leads.push({ email: m[0], when: new Date().toISOString() });
         localStorage.pb_leads = JSON.stringify(leads);
+        try {
+          var fk = document.querySelector('form[data-w3f]');
+          if (fk) fetch('https://api.web3forms.com/submit', { method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accesskey: fk.dataset.w3f, subject: 'New chat lead - SGJM blog',
+              email: m[0], message: 'Chat visitor left their email on ' + location.href }) });
+        } catch (e) {}
         return "Perfect - thanks! I've noted <b>" + esc(m[0]) + "</b> and we'll be in touch shortly. Meanwhile, browse the articles above or email us any time. \u{1F3E0}";
       }
       waitingForEmail = false;
@@ -233,7 +240,7 @@ document.addEventListener('submit', function (e) {{
 HOME = """
 <section class="hero">
   <h1>UK Property Investing, <em>Without the Fluff</em></h1>
-  <p>Practical breakdowns of HMOs, BRR, buy-to-let and deal sourcing - with real numbers, West Midlands focus, and zero hype.</p>
+  <p>Practical breakdowns of HMOs, BRR, buy-to-let and deal sourcing - with real numbers, a Scunthorpe &amp; Humber focus, and zero hype.</p>
   <a class="btn" href="#latest">Read the latest</a><a class="btn ghost" href="contact.html">Book a Free Chat</a>
 </section>
 <section class="wrap" id="latest">
@@ -252,6 +259,7 @@ HOME = """
       <input type="email" name="email" required placeholder="you@example.com" style="flex:1;border-radius:6px;border:none;padding:12px">
       <button class="btn" type="submit">Subscribe</button>
     </form>
+    <p style="font-size:.75rem;color:#c8d4e2;margin-top:8px">By subscribing you agree to our <a href="privacy.html" style="color:#fff">privacy policy</a>. Unsubscribe any time.</p>
   </aside>
 </section>
 """
@@ -291,13 +299,11 @@ document.querySelectorAll('.share a').forEach(function(a){
 ABOUT = """
 <section class="wrap" style="max-width:820px">
   <h2 class="sec">About this site</h2>
-  <p style="margin:18px 0">Property Investment Insights is a UK property education blog with a West Midlands
+  <p style="margin:18px 0">SGJM is a UK property education blog with a Scunthorpe and North Lincolnshire
   heart. We publish practical, numbers-first breakdowns of the strategies real investors use -
   HMOs, BRR, buy-to-let, refinancing and deal sourcing - written to be actionable, not aspirational.</p>
   <p style="margin:18px 0">Everything here is general information, not financial advice: rules, taxes and lending
   criteria change, and every deal is different. Always verify with your local council, lender and
-  qualified professionals.</p>
-  <p style="margin:18px 0">Wantevery deal is different. Always verify with your local council, lender and
   qualified professionals.</p>
   <p style="margin:18px 0">Want to collaborate, advertise or invest alongside us? <a href="contact.html">Get in touch</a> -
   or ask the assistant in the corner, available 24/7.</p>
@@ -318,9 +324,10 @@ CONTACT = """
     <input name="subject" placeholder="Subject (e.g. joint venture, advertising, question)">
     <textarea name="message" rows="6" placeholder="How can we help?" required></textarea>
     <button class="btn" type="submit">Send message</button>
+    <p style="font-size:.78rem;color:#66707c;margin:10px 0 0">By submitting you agree to our <a href="privacy.html">privacy policy</a>.</p>
   </form>
-  <p style="margin-top:22px;font-size:.9rem;color:#66707c">Prefer email? <a href="mailto:{contact_email}">{contact_email}</a>.
-  The chat assistant (bottom right) is also available 24/7 and can take your details.</p>
+  <p style="margin-top:22px;font-size:.9rem;color:#66707c">Prefer email? Use the form above, or the chat assistant
+  (bottom right) can take your details - we reply within one working day.</p>
 </section>
 """
 
@@ -333,9 +340,10 @@ PRIVACY = """
   Newsletter sign-ups collect your email address only.</p>
   <p style="margin:14px 0"><b>How we use it.</b> Solely to respond to your enquiry or send the
   newsletter you requested. We never sell your data. Forms are processed by our email
-  form provider (Formspree) on our behalf.</p>
+  form-delivery providers (Web3Forms and FormSubmit) on our behalf.</p>
   <p style="margin:14px 0"><b>Cookies & storage.</b> This site sets no advertising or tracking
-  cookies. The chat assistant stores leads you submit in your own browser's local storage
+  cookies. When you leave details with the chat assistant they are passed to us (via our form
+  provider) so we can respond, and a copy is kept in your own browser's local storage
   so nothing is lost if the page reloads.</p>
   <p style="margin:14px 0"><b>Your rights.</b> You may request a copy or deletion of any details
   you've sent us at any time by emailing <a href="mailto:{contact_email}">{contact_email}</a>.</p>

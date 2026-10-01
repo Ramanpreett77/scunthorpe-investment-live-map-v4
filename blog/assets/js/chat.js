@@ -54,6 +54,13 @@
         var leads = []; try { leads = JSON.parse(localStorage.pb_leads || '[]'); } catch (e) {}
         leads.push({ email: m[0], when: new Date().toISOString() });
         localStorage.pb_leads = JSON.stringify(leads);
+        try {
+          var fk = document.querySelector('form[data-w3f]');
+          if (fk) fetch('https://api.web3forms.com/submit', { method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accesskey: fk.dataset.w3f, subject: 'New chat lead - SGJM blog',
+              email: m[0], message: 'Chat visitor left their email on ' + location.href }) });
+        } catch (e) {}
         return "Perfect - thanks! I've noted <b>" + esc(m[0]) + "</b> and we'll be in touch shortly. Meanwhile, browse the articles above or email us any time. \u{1F3E0}";
       }
       waitingForEmail = false;
