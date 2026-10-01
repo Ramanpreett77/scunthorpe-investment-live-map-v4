@@ -1,0 +1,38 @@
+name: Gazette probate watch (daily)
+
+# Fetches Deceased Estates notices for North Lincolnshire / NE Lincolnshire
+# from The Gazette's official API, filters DN15-DN20, and logs NEW ones to the
+# owner's PRIVATE Google Sheet. Personal data never enters the repository:
+# only anonymous notice IDs are committed (data/probate-seen.json) for
+# de-duplication. No one is contacted from this data while pre-registration.
+
+on:
+  schedule:
+    - cron: "15 7 * * *" # 07:15 UTC daily
+  workflow_dispatch: {} # manual button
+
+permissions:
+  contents: write
+
+concurrency:
+  group: probate-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Run probate watch
+        run: python scripts/scrape_probate.py
+      - name: Commit de-dupe IDs (no personal data)
+        run: |
+          git config user.name "probate-watch-bot"
+          git config user.email "probate-watch-bot@users.noreply.github.com"
+          git add data/probate-seen.json
+          git diff --cached --quiet || (git commit -m "🕊️ Probate watch de-dupe update" && git push)
