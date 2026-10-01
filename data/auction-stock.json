@@ -1,18 +1,18 @@
 {
- "updated": "2026-09-29T12:30:14Z",
- "updated_uk": "29 Sep 2026, 13:30 UK",
- "checked": "2026-09-30T12:50:57Z",
- "checked_uk": "30 Sep 2026, 13:50 UK",
+ "updated": "2026-10-01T13:17:44Z",
+ "updated_uk": "01 Oct 2026, 14:17 UK",
+ "checked": "2026-10-01T13:17:44Z",
+ "checked_uk": "01 Oct 2026, 14:17 UK",
  "sources": {
   "btg": {
    "lots": 1,
-   "status": "ok",
-   "detail": "1 current DN15-DN20 lots from BTG Eddisons; sold and past records excluded"
+   "status": "error",
+   "detail": "RuntimeError('BTG Eddisons: 0 current lots returned from Scunthorpe search (total=19)') | kept 1 previous lots (stale)"
   },
   "savills": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 DN15-DN20 lots in 3 upcoming catalogues (467 scanned, 98 sold/withdrawn skipped)"
+   "detail": "0 DN15-DN20 lots in 2 upcoming catalogues (107 scanned, 0 sold/withdrawn skipped)"
   }
  },
  "lots": [
