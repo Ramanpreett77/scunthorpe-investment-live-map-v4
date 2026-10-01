@@ -41,6 +41,12 @@ jobs:
           git config user.email "auction-stock-bot@users.noreply.github.com"
           git add data/auction-stock.json
           git diff --cached --quiet && echo "No changes" || (git commit -m "🤖 Auction stock refresh" && git push)
+      - name: Refresh Scunthorpe Auction Watch article + rebuild blog
+        run: |
+          python bot/scunthorpe_pack.py
+          python bot/build_site.py --posts bot/_posts --out blog --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}"
+          git add bot/_posts blog
+          git diff --cached --quiet && echo "Auction Watch unchanged" || (git commit -m "📰 Auction Watch refresh" && git push)
       - name: Fail loudly if a source broke
         if: steps.scrape.outcome == 'failure'
         run: |

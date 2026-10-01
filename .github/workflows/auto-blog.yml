@@ -30,7 +30,7 @@ jobs:
         run: cd bot && python3 carousel_builder.py --url-prefix "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}/assets/slides/"
 
       - name: Build static website
-        run: cd bot && python3 build_site.py --out ../blog --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}" --contact-email "${{ vars.CONTACT_EMAIL || 'hello@sgjm.example' }}"
+        run: cd bot && python3 build_site.py --out ../blog --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}"
 
       - name: Commit to GitHub Pages
         run: |
