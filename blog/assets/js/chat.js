@@ -19,8 +19,8 @@
     var open = panel.style.display === 'flex';
     panel.style.display = open ? 'none' : 'flex';
     if (!open && !msgs.childElementCount) {
-      bot("Hi there! I'm the assistant for this property blog - here 24/7 for questions about our articles, strategies (HMO, BRR, buy-to-let) or how to work with us. How can I help?");
-      showChips(["What is BRR?", "HMO basics", "First buy-to-let", "Work with us"]);
+      bot("Hi there! I'm the assistant for this property blog - here 24/7 for questions about our articles, strategies (HMO, BRR, buy-to-let) or how to book a free chat. How can I help?");
+      showChips(["What is BRR?", "HMO basics", "First buy-to-let", "Book a free chat"]);
     }
   };
   function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
@@ -58,20 +58,20 @@
       }
       waitingForEmail = false;
     }
-    if (/\b(hi|hello|hey)\b/.test(t)) return "Hello! Ask me about BRR, HMOs, buy-to-let, or how to work with us.";
+    if (/\b(hi|hello|hey)\b/.test(t)) return "Hello! Ask me about BRR, HMOs, buy-to-let, or how to book a free chat.";
     if (/brr|refurbish|refinance/.test(t)) { var a = find(/BRR/i); return "BRR = <b>Buy, Refurbish, Refinance</b>: buy below market value, add value through refurbishment, then refinance on the new valuation to recycle your capital into the next deal." + articleLink(a); }
     if (/hmo|licen|room/.test(t)) { var b = find(/HMO/i); return "An HMO rents by the room, which can lift yields well above single lets - but licensing (mandatory, additional, selective) and setup costs are the key details." + articleLink(b); }
     if (/first|start|begin|new/.test(t)) { var c = find(/First|Buy-to-Let/i); return "For your first buy-to-let: sort your structure (personal vs company), budget ~25% deposit plus the extra SDLT surcharge, and buy for the tenant - not for yourself." + articleLink(c); }
     if (/mortgage|finance|refinan|equity/.test(t)) { var d = find(/Refinanc|Finance/i); return "Refinancing releases equity from existing properties - typically up to ~75% LTV on the new valuation - to fund your next purchase. Timing and costs (ERCs, fees) decide whether it's worth it." + articleLink(d); }
     if (/deal|sourc|find/.test(t)) { var e = find(/Sourc|Deal/i); return "The best deals come from auctions, direct-to-vendor, probate and networking - and a genuine bargain always has evidence: comps, real quotes, a proven exit." + articleLink(e); }
-    if (/contact|talk|human|call|email|work|service|help me|invest with|advert/.test(t)) {
+    if (/contact|talk|human|call|email|work|service|help me|invest with|advert|book|chat|consult/.test(t)) {
       waitingForEmail = true;
       return "Of course! For sales, partnerships or support we reply within one working day. What's the best <b>email address</b> for us to reach you?";
     }
-    if (/sourc|deal for me|find me a|off-market/.test(t)) return "SGJM's sourcing service launches as soon as our registrations complete - meanwhile we're building the <b>investor waitlist</b>. Type 'work with us' to leave your buying criteria and you'll be first in line (plus I'll send you the free sourcing checklist today).";
-    if (/dubai/.test(t)) return "For Dubai I introduce investors to vetted, RERA-licensed partners - plain-English market education, and any referral fee is always disclosed. Want the Dubai intro pack? Type 'work with us'.";
+    if (/sourc|deal for me|find me a|off-market/.test(t)) return "SGJM's sourcing service launches as soon as our registrations complete - meanwhile we're building the <b>investor waitlist</b>. Type 'book a free chat' to leave your buying criteria and you'll be first in line (plus I'll send you the free sourcing checklist today).";
+    if (/dubai/.test(t)) return "For Dubai I introduce investors to vetted, RERA-licensed partners - plain-English market education, and any referral fee is always disclosed. Want the Dubai intro pack? Type 'book a free chat'.";
     if (/yield|return|profit/.test(t)) return "Yields vary by strategy: well-run HMOs in strong areas can reach double-digit gross yields, while single lets typically land lower with less effort. The articles include worked examples.";
-    return "I can help with: <b>BRR</b>, <b>HMOs</b>, <b>first buy-to-let</b>, <b>refinancing</b>, <b>deal sourcing</b> - or type 'work with us' to leave your details.";
+    return "I can help with: <b>BRR</b>, <b>HMOs</b>, <b>first buy-to-let</b>, <b>refinancing</b>, <b>deal sourcing</b> - or type 'book a free chat' to leave your details.";
   }
   function user(t) { add('user', esc(t)); setTimeout(function () { add('bot', answer(t)); }, 500); }
   box.querySelector('#pbForm').onsubmit = function (e) {
