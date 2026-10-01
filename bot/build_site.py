@@ -25,7 +25,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from blog_generator import md_to_html_body  # noqa: E402
 
-BRAND = "Property Investment Insights"
+BRAND = "SGJM"
 TAGLINE = "Practical UK property investing: HMOs, BRR, buy-to-let and real deal numbers."
 
 # ------------------------------------------------------------------ styles ---
@@ -139,6 +139,10 @@ CHAT_JS = r"""
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ accesskey: fk.dataset.w3f, subject: 'New chat lead - SGJM blog',
               email: m[0], message: 'Chat visitor left their email on ' + location.href }) });
+          var su = fk.dataset.sheet;
+          if (su) fetch(su, { method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ source: 'chat assistant', email: m[0] }) });
         } catch (e) {}
         return "Perfect - thanks! I've noted <b>" + esc(m[0]) + "</b> and we'll be in touch shortly. Meanwhile, browse the articles above or email us any time. \u{1F3E0}";
       }
@@ -192,7 +196,7 @@ SHELL = """<!DOCTYPE html>
 </nav></header>
 {body}
 <footer>
-  <b>Property Investment Insights</b> &middot; UK property education, not financial advice.<br>
+  <b>SGJM</b> &middot; UK property education, not financial advice.<br>
   Tax treatment, licensing and lending criteria change - always confirm with your local council and qualified professionals.<br>
   &copy; 2026 &middot; Built with the Property Blog Bot &middot; <a href="privacy.html" style="color:#8fa3b8">Privacy</a>
 </footer>
@@ -203,6 +207,17 @@ document.addEventListener('submit', function (e) {{
   if (!f.dataset || (!f.dataset.fallback && !f.dataset.w3f)) return;
   e.preventDefault();
   var d = new FormData(f);
+  /* Log the lead to the private Google Sheet (fire-and-forget) */
+  if (f.dataset.sheet) {{
+    try {{
+      var pl = {{}};
+      d.forEach(function (v, k) {{ if (k.charAt(0) !== '_') pl[k] = v; }});
+      pl.source = f.dataset.sheetsrc || 'website form';
+      fetch(f.dataset.sheet, {{ method: 'POST', mode: 'no-cors',
+        headers: {{ 'Content-Type': 'text/plain;charset=utf-8' }},
+        body: JSON.stringify(pl) }});
+    }} catch (e2) {{}}
+  }}
   function ok() {{ f.innerHTML = '<p style="color:#0f7a3d;font-weight:700;padding:12px 0">&#10004; Sent - thank you! We reply within one working day.</p>'; }}
   function mailto() {{
     location.href = 'mailto:' + f.dataset.fallback +
@@ -253,7 +268,7 @@ HOME = """
   <aside class="ctabox" style="max-width:none;margin:0">
     <h2 style="color:#fff">Get every new breakdown first</h2>
     <p>One email a week: HMO yields, BRR case studies and lending updates. No spam.</p>
-    <form action="{newsletter_action}" method="POST" data-fallback="{fb_email}" data-w3f="{w3f_key}" style="max-width:460px;margin:0 auto;display:flex;gap:10px">
+    <form action="{newsletter_action}" method="POST" data-fallback="{fb_email}" data-w3f="{w3f_key}" data-sheet="{sheet_url}" data-sheetsrc="homepage newsletter" style="max-width:460px;margin:0 auto;display:flex;gap:10px">
       <input type="hidden" name="_subject" value="New SGJM newsletter signup">
       <input type="hidden" name="_captcha" value="false">
       <input type="email" name="email" required placeholder="you@example.com" style="flex:1;border-radius:6px;border:none;padding:12px">
@@ -314,7 +329,7 @@ CONTACT = """
 <section class="wrap" style="max-width:760px">
   <h2 class="sec">Contact & enquiries</h2>
   <p class="sub">Sales, partnerships, advertising or reader questions - we reply within one working day.</p>
-  <form action="{contact_action}" method="POST" data-fallback="{contact_email}" data-w3f="{w3f_key}">
+  <form action="{contact_action}" method="POST" data-fallback="{contact_email}" data-w3f="{w3f_key}" data-sheet="{sheet_url}" data-sheetsrc="contact form">
     <input type="hidden" name="_subject" value="New SGJM website enquiry">
     <input type="hidden" name="_captcha" value="false">
     <div class="two">
@@ -340,7 +355,8 @@ PRIVACY = """
   Newsletter sign-ups collect your email address only.</p>
   <p style="margin:14px 0"><b>How we use it.</b> Solely to respond to your enquiry or send the
   newsletter you requested. We never sell your data. Forms are processed by our email
-  form-delivery providers (Web3Forms and FormSubmit) on our behalf.</p>
+  form-delivery providers (Web3Forms and FormSubmit) on our behalf. Leads are also logged to a
+  private spreadsheet so no enquiry is ever lost.</p>
   <p style="margin:14px 0"><b>Cookies & storage.</b> This site sets no advertising or tracking
   cookies. When you leave details with the chat assistant they are passed to us (via our form
   provider) so we can respond, and a copy is kept in your own browser's local storage
@@ -378,6 +394,8 @@ def main():
     ap.add_argument("--contact-email", default="hello@example.com")
     ap.add_argument("--w3f-key", default="7d7560e5-c7f8-41fb-865d-9bbdd3dfb159",
                     help="Web3Forms access key for on-page form delivery")
+    ap.add_argument("--sheet-url", default="https://script.google.com/macros/s/AKfycbyEU1RcmAaQOIGZF01Jk_bBJvm8XmlvjSgS16iR-nfJ9WEqcPL8pF7ne29Asm6lYCg0fA/exec",
+                    help="Google Apps Script web-app URL that logs leads to a spreadsheet")
     args = ap.parse_args()
 
     posts = []
@@ -435,7 +453,8 @@ def main():
     home = HOME.format(featured=featured, strategy_sections=sec_html,
                        newsletter_action=(args.newsletter_action or
                                           "https://formsubmit.co/" + args.contact_email),
-                       fb_email=args.contact_email, w3f_key=args.w3f_key)
+                       fb_email=args.contact_email, w3f_key=args.w3f_key,
+                       sheet_url=args.sheet_url)
     open(os.path.join(out, "index.html"), "w").write(
         shell(BRAND + " - " + "UK Property Investment Blog", TAGLINE, home))
 
@@ -455,7 +474,8 @@ def main():
         "Contact - " + BRAND, "Get in touch",
         CONTACT.format(contact_action=(args.contact_action or
                                        "https://formsubmit.co/" + args.contact_email),
-                       contact_email=args.contact_email, w3f_key=args.w3f_key)))
+                       contact_email=args.contact_email, w3f_key=args.w3f_key,
+                       sheet_url=args.sheet_url)))
     open(os.path.join(out, "privacy.html"), "w").write(shell(
         "Privacy Policy - " + BRAND, "How we handle your data",
         PRIVACY.format(contact_email=args.contact_email)))

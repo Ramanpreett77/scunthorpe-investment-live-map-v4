@@ -60,6 +60,10 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ accesskey: fk.dataset.w3f, subject: 'New chat lead - SGJM blog',
               email: m[0], message: 'Chat visitor left their email on ' + location.href }) });
+          var su = fk.dataset.sheet;
+          if (su) fetch(su, { method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ source: 'chat assistant', email: m[0] }) });
         } catch (e) {}
         return "Perfect - thanks! I've noted <b>" + esc(m[0]) + "</b> and we'll be in touch shortly. Meanwhile, browse the articles above or email us any time. \u{1F3E0}";
       }

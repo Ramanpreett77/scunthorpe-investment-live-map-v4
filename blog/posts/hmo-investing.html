@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HMO Investing in 2026: Yields, Licensing and What It Really Costs to Start - Property Investment Insights</title>
+<title>HMO Investing in 2026: Yields, Licensing and What It Really Costs to Start - SGJM</title>
 <meta name="description" content="Why HMOs deliver some of the strongest yields in UK property, what licensing and setup cost, and a worked example from the West Midlands.">
-<meta property="og:title" content="HMO Investing in 2026: Yields, Licensing and What It Really Costs to Start - Property Investment Insights">
+<meta property="og:title" content="HMO Investing in 2026: Yields, Licensing and What It Really Costs to Start - SGJM">
 <meta property="og:description" content="Why HMOs deliver some of the strongest yields in UK property, what licensing and setup cost, and a worked example from the West Midlands.">
 <meta property="og:image" content="assets/og-image.jpg">
 <meta property="og:type" content="website">
@@ -89,7 +89,7 @@ document.querySelectorAll('.share a').forEach(function(a){
 </script>
 
 <footer>
-  <b>Property Investment Insights</b> &middot; UK property education, not financial advice.<br>
+  <b>SGJM</b> &middot; UK property education, not financial advice.<br>
   Tax treatment, licensing and lending criteria change - always confirm with your local council and qualified professionals.<br>
   &copy; 2026 &middot; Built with the Property Blog Bot &middot; <a href="privacy.html" style="color:#8fa3b8">Privacy</a>
 </footer>
@@ -100,6 +100,17 @@ document.addEventListener('submit', function (e) {
   if (!f.dataset || (!f.dataset.fallback && !f.dataset.w3f)) return;
   e.preventDefault();
   var d = new FormData(f);
+  /* Log the lead to the private Google Sheet (fire-and-forget) */
+  if (f.dataset.sheet) {
+    try {
+      var pl = {};
+      d.forEach(function (v, k) { if (k.charAt(0) !== '_') pl[k] = v; });
+      pl.source = f.dataset.sheetsrc || 'website form';
+      fetch(f.dataset.sheet, { method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(pl) });
+    } catch (e2) {}
+  }
   function ok() { f.innerHTML = '<p style="color:#0f7a3d;font-weight:700;padding:12px 0">&#10004; Sent - thank you! We reply within one working day.</p>'; }
   function mailto() {
     location.href = 'mailto:' + f.dataset.fallback +

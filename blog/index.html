@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Property Investment Insights - UK Property Investment Blog</title>
+<title>SGJM - UK Property Investment Blog</title>
 <meta name="description" content="Practical UK property investing: HMOs, BRR, buy-to-let and real deal numbers.">
-<meta property="og:title" content="Property Investment Insights - UK Property Investment Blog">
+<meta property="og:title" content="SGJM - UK Property Investment Blog">
 <meta property="og:description" content="Practical UK property investing: HMOs, BRR, buy-to-let and real deal numbers.">
 <meta property="og:image" content="assets/og-image.jpg">
 <meta property="og:type" content="website">
@@ -96,7 +96,7 @@
   <aside class="ctabox" style="max-width:none;margin:0">
     <h2 style="color:#fff">Get every new breakdown first</h2>
     <p>One email a week: HMO yields, BRR case studies and lending updates. No spam.</p>
-    <form action="https://formsubmit.co/ramanpreettsinghchhabra@gmail.com" method="POST" data-fallback="ramanpreettsinghchhabra@gmail.com" data-w3f="7d7560e5-c7f8-41fb-865d-9bbdd3dfb159" style="max-width:460px;margin:0 auto;display:flex;gap:10px">
+    <form action="https://formsubmit.co/ramanpreettsinghchhabra@gmail.com" method="POST" data-fallback="ramanpreettsinghchhabra@gmail.com" data-w3f="7d7560e5-c7f8-41fb-865d-9bbdd3dfb159" data-sheet="https://script.google.com/macros/s/AKfycbyEU1RcmAaQOIGZF01Jk_bBJvm8XmlvjSgS16iR-nfJ9WEqcPL8pF7ne29Asm6lYCg0fA/exec" data-sheetsrc="homepage newsletter" style="max-width:460px;margin:0 auto;display:flex;gap:10px">
       <input type="hidden" name="_subject" value="New SGJM newsletter signup">
       <input type="hidden" name="_captcha" value="false">
       <input type="email" name="email" required placeholder="you@example.com" style="flex:1;border-radius:6px;border:none;padding:12px">
@@ -107,7 +107,7 @@
 </section>
 
 <footer>
-  <b>Property Investment Insights</b> &middot; UK property education, not financial advice.<br>
+  <b>SGJM</b> &middot; UK property education, not financial advice.<br>
   Tax treatment, licensing and lending criteria change - always confirm with your local council and qualified professionals.<br>
   &copy; 2026 &middot; Built with the Property Blog Bot &middot; <a href="privacy.html" style="color:#8fa3b8">Privacy</a>
 </footer>
@@ -118,6 +118,17 @@ document.addEventListener('submit', function (e) {
   if (!f.dataset || (!f.dataset.fallback && !f.dataset.w3f)) return;
   e.preventDefault();
   var d = new FormData(f);
+  /* Log the lead to the private Google Sheet (fire-and-forget) */
+  if (f.dataset.sheet) {
+    try {
+      var pl = {};
+      d.forEach(function (v, k) { if (k.charAt(0) !== '_') pl[k] = v; });
+      pl.source = f.dataset.sheetsrc || 'website form';
+      fetch(f.dataset.sheet, { method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(pl) });
+    } catch (e2) {}
+  }
   function ok() { f.innerHTML = '<p style="color:#0f7a3d;font-weight:700;padding:12px 0">&#10004; Sent - thank you! We reply within one working day.</p>'; }
   function mailto() {
     location.href = 'mailto:' + f.dataset.fallback +
