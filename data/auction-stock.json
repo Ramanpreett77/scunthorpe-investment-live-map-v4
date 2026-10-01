@@ -1,13 +1,13 @@
 {
- "updated": "2026-10-01T13:17:44Z",
- "updated_uk": "01 Oct 2026, 14:17 UK",
- "checked": "2026-10-01T13:37:23Z",
- "checked_uk": "01 Oct 2026, 14:37 UK",
+ "updated": "2026-10-01T13:42:56Z",
+ "updated_uk": "01 Oct 2026, 14:42 UK",
+ "checked": "2026-10-01T13:42:56Z",
+ "checked_uk": "01 Oct 2026, 14:42 UK",
  "sources": {
   "btg": {
-   "lots": 1,
-   "status": "error",
-   "detail": "RuntimeError('BTG Eddisons: 0 current lots returned from Scunthorpe search (total=19)') | kept 1 previous lots (stale)"
+   "lots": 0,
+   "status": "warning",
+   "detail": "0 current DN15-DN20 lots in Scunthorpe search (total=19 rows scanned) - zero-stock day or source layout change; verify manually if it persists for >1 week"
   },
   "savills": {
    "lots": 0,
@@ -15,33 +15,5 @@
    "detail": "0 DN15-DN20 lots in 2 upcoming catalogues (107 scanned, 0 sold/withdrawn skipped)"
   }
  },
- "lots": [
-  {
-   "slug": "btg-202608211350sq-3id9",
-   "addr": "27 High Street, Messingham, Scunthorpe, Lincolnshire DN17 3RX",
-   "status": "available",
-   "guide": 80000.0,
-   "sold_price": 0,
-   "price_label": "\u00a380,000+",
-   "category": "residential",
-   "fee": 0,
-   "refurb": 0,
-   "rent": 0,
-   "gdv": 0,
-   "beds": 3,
-   "type": "",
-   "strategy": "Auction",
-   "zone": "",
-   "lat": 53.530293,
-   "lon": -0.654239,
-   "geo_precision": "property",
-   "blurb": "A three bedroom terrace property located in Messingham, a sought after village on the outskirts of Scunthorpe. The accommodation benefits from gas central heating, double glazing and requires some general modernisation. The property comprises a lounge, kitchen, three bedrooms and a bathroom. Outside there is a rear garden. The property has a small local High Street within walking distance with a range of shops, coffee shops, pubs and bars.",
-   "note": "Auto-scraped from BTG Eddisons \u2014 verify guide, fees, auction date and legal pack on the current lot page.",
-   "source": "BTG Eddisons",
-   "source_url": "https://www.btgeddisonspropertyauctions.com/properties/202608211350sq_3id9-300926/for-auction-scunthorpe",
-   "auction_date": "2026-09-30 10:00:00",
-   "image": "",
-   "first_seen": "2026-09-23"
-  }
- ]
+ "lots": []
 }
