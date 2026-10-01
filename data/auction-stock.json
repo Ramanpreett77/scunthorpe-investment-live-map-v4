@@ -1,8 +1,8 @@
 {
  "updated": "2026-10-01T13:42:56Z",
  "updated_uk": "01 Oct 2026, 14:42 UK",
- "checked": "2026-10-01T13:42:56Z",
- "checked_uk": "01 Oct 2026, 14:42 UK",
+ "checked": "2026-10-01T14:38:32Z",
+ "checked_uk": "01 Oct 2026, 15:38 UK",
  "sources": {
   "btg": {
    "lots": 0,
@@ -12,7 +12,7 @@
   "savills": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 DN15-DN20 lots in 2 upcoming catalogues (107 scanned, 0 sold/withdrawn skipped)"
+   "detail": "0 DN15-DN20 lots in 2 upcoming catalogues (108 scanned, 0 sold/withdrawn skipped)"
   }
  },
  "lots": []
