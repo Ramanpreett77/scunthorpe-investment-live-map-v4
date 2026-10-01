@@ -561,6 +561,109 @@ TOPICS = [
             "The sophisticated answer is often 'both', sized to your risk tolerance.",
         ],
     },
+    {
+        "slug": "dubai-buyer-protection",
+        "topic_short": "Dubai Protection",
+        "category": "Dubai",
+        "categories": ["Dubai", "Education"],
+        "hashtags": ["#DubaiProperty", "#RERA", "#PropertyInvestment", "#UKInvestors"],
+        "titles": [
+            "How RERA Protects Dubai Property Buyers in {year} - and the 7 Questions to Ask First",
+            "Before You Buy in Dubai: The Buyer-Protection Checklist UK Investors Miss",
+        ],
+        "hook": "Dubai isn't the wild west it sometimes gets called - but the protections only help buyers who know they exist",
+        "excerpt": "Escrow accounts, RERA licensing and registration rules: how Dubai's buyer protections really work, plus the questions to ask any developer or agent.",
+        "intros": [
+            "Plenty of UK investors treat Dubai like the wild west. In reality it has one of the most prescriptive buyer-protection frameworks in the world - but only if you know what to look for and who to deal with. Here's the plain-English version, as it stands in {year}.",
+            "The difference between a good Dubai purchase and a horror story is almost never luck. It's whether the buyer understood the protections that already exist - and asked the right questions before paying a single dirham. Let's walk through both.",
+        ],
+        "sections": [
+            {
+                "heading": "The three protections that matter",
+                "bullets": [
+                    "**RERA licensing** - every broker and developer marketing in Dubai must be licensed by the Real Estate Regulatory Agency; check the licence number, don't just admire the brochure",
+                    "**Escrow accounts** - by law, off-plan buyer payments go into a project-specific escrow account, and developers are paid by the bank as construction milestones are certified",
+                    "**Oqood and title registration** - off-plan contracts are registered with the Dubai Land Department, and completed property transfers only happen through DLD, so ownership records are official, not private",
+                ],
+            },
+            {
+                "heading": "The 7 questions to ask before paying anything",
+                "bullets": [
+                    "1. Is the broker/developer RERA-licensed, and can you verify the number on the Dubai REST app?",
+                    "2. Is the project registered, and which bank holds its escrow account?",
+                    "3. What is the developer's track record on handover dates?",
+                    "4. What exactly are the payment milestones, and what happens if construction slips?",
+                    "5. What are the total fees - DLD transfer fee, trustee fees, service charges?",
+                    "6. If renting out, who manages it and what does management cost?",
+                    "7. How would I exit - what does resale look like for this community and unit type?",
+                ],
+            },
+            {
+                "heading": "Where SGJM fits in",
+                "paragraphs": [
+                    "We are educators first: we help UK investors understand markets in plain English. For Dubai, we **introduce interested investors to vetted, RERA-licensed partners** - we never take client money ourselves, and **any referral fee we receive is always disclosed** to you before you commit to anything. That's the standard we hold ourselves to, and the standard we recommend you demand from anyone else.",
+                ],
+            },
+        ],
+        "takeaways": [
+            "Verify RERA licences yourself - it takes a minute on the official app.",
+            "Off-plan payments belong in a project escrow account, never to a company account.",
+            "Registration with the Dubai Land Department is the buyer's friend; insist on it.",
+            "Ask the 7 questions before any reservation fee changes hands.",
+            "Only ever work with disclosed, licensed introducers - including us.",
+        ],
+    },
+    {
+        "slug": "dubai-offplan-vs-ready",
+        "topic_short": "Off-Plan vs Ready",
+        "category": "Dubai",
+        "categories": ["Dubai", "Strategy"],
+        "hashtags": ["#DubaiProperty", "#OffPlan", "#PropertyInvestment", "#GoldenVisa"],
+        "titles": [
+            "Dubai Off-Plan vs Ready Property in {year}: What UK Investors Get Wrong",
+            "Off-Plan or Ready? Choosing Your First Dubai Purchase Honestly",
+        ],
+        "hook": "Off-plan gets the headlines and ready gets the rent - the right answer depends on what you're actually trying to achieve",
+        "excerpt": "Payment plans, handover risk, immediate rental income and Golden Visa thresholds: an honest off-plan vs ready comparison for UK buyers.",
+        "intros": [
+            "Every week someone asks me whether they should buy off-plan in Dubai or buy a ready property that rents from day one. The honest answer: they're different strategies wearing the same postcode. Here's how to choose between them in {year}.",
+            "Off-plan marketing in Dubai is loud: '70% yields', 'guaranteed returns', 'pay 1% a month'. Ready property marketing is quiet: a tenanted flat with a number on it. The calm investor compares what each one actually delivers. Let's do exactly that.",
+        ],
+        "sections": [
+            {
+                "heading": "What off-plan actually gives you",
+                "bullets": [
+                    "**Staged payment plans** - typically 20% down, then construction-linked instalments, sometimes with post-handover plans",
+                    "**Capital growth potential** - buying today's price for a unit that completes in 2-4 years can work in rising cycles",
+                    "**New-build quality** - modern communities, amenities and energy standards",
+                    "**The catch** - delivery risk, oversupply risk, and no rental income until handover; your money is committed with no yield meanwhile",
+                ],
+            },
+            {
+                "heading": "What ready property actually gives you",
+                "bullets": [
+                    "**Immediate income** - a tenanted or tenable unit produces rent from completion of purchase",
+                    "**Verifiable numbers** - real service charges, real comparable rents, real building condition",
+                    "**Golden Visa route** - AED 2m of property ownership can support a 10-year residency application",
+                    "**The catch** - higher entry price, older stock may need maintenance, and less 'new-build premium' on resale",
+                ],
+            },
+            {
+                "heading": "How to choose honestly",
+                "paragraphs": [
+                    "If your priority is **cashflow now**, ready wins: you can underwrite it against actual rents and actual service charges. If your priority is **growth over a 3-5 year horizon** and you can hold without income, off-plan in a strong community with a proven developer is the classic play. And if someone quotes you a yield before you've asked which one they mean - walk away.",
+                    "Whichever you choose, the process is the same: RERA-licensed broker, escrow where applicable, DLD registration, and fees understood upfront. And take independent tax advice on how UK residency affects any of it.",
+                ],
+            },
+        ],
+        "takeaways": [
+            "Off-plan = growth bet with delayed income; ready = income now with verifiable numbers.",
+            "Only ever pay into escrow accounts on registered projects.",
+            "AED 2m of ownership can support a Golden Visa application - verify current rules.",
+            "Yield claims are meaningless unless they say 'gross', 'net', and 'of what'.",
+            "UK tax residency still applies to worldwide income - get professional advice.",
+        ],
+    },
 ]
 
 
