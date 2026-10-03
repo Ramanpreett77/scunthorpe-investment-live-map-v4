@@ -1,0 +1,65 @@
+name: Midweek post (LinkedIn)
+
+# Wednesday: re-shares ONE published article (the oldest not yet re-shared) to
+# LinkedIn - plus Facebook/Instagram where credentials exist - with a freshly
+# written hook, so the feed isn't silent between Monday's articles.
+#
+# Manual test: Actions tab -> "Midweek post (LinkedIn)" -> Run workflow.
+
+on:
+  schedule:
+    - cron: "10 9 * * WED" # Wed 09:10 UTC (10:10 UK during BST)
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "Optional: re-share a specific article slug (e.g. hmo-investing)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: midweek-post
+  cancel-in-progress: false
+
+jobs:
+  share:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install requests
+
+      - name: Pick article, write hook, publish
+        env:
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ vars.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}
+          SLUG_IN: ${{ inputs.slug }}
+        run: |
+          set -euo pipefail
+          cd bot
+          ARGS=""
+          if [ -n "$SLUG_IN" ]; then ARGS="--slug $SLUG_IN"; fi
+          python3 midweek_post.py --post --site-url "$SITE_URL" $ARGS
+
+      - name: Save rotation state
+        run: |
+          set -euo pipefail
+          git config user.name "midweek-bot"
+          git config user.email "midweek-bot@users.noreply.github.com"
+          git add bot/output/midweek-shared.json bot/output/midweek-latest.json bot/output/midweek-caption.txt
+          if git diff --cached --quiet; then
+            echo "No state change to commit."
+          else
+            git commit -m "Midweek share logged"
+            git push
+          fi
