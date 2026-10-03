@@ -1,18 +1,18 @@
 {
  "updated": "2026-10-01T13:42:56Z",
  "updated_uk": "01 Oct 2026, 14:42 UK",
- "checked": "2026-10-02T12:55:52Z",
- "checked_uk": "02 Oct 2026, 13:55 UK",
+ "checked": "2026-10-03T11:51:52Z",
+ "checked_uk": "03 Oct 2026, 12:51 UK",
  "sources": {
   "btg": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 current DN15-DN20 lots in Scunthorpe search (total=19 rows scanned) - zero-stock day or source layout change; verify manually if it persists for >1 week"
+   "detail": "0 current DN15-DN20 lots in Scunthorpe search (total=18 rows scanned) - zero-stock day or source layout change; verify manually if it persists for >1 week"
   },
   "savills": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 DN15-DN20 lots in 2 upcoming catalogues (140 scanned, 0 sold/withdrawn skipped)"
+   "detail": "0 DN15-DN20 lots in 2 upcoming catalogues (157 scanned, 0 sold/withdrawn skipped)"
   }
  },
  "lots": []
