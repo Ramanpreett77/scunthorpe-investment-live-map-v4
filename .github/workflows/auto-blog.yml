@@ -1,16 +1,46 @@
 name: Auto Blog Publisher
 
-# SGJM autopilot: every Monday 07:00 UTC - new article -> site rebuild -> social posts.
+# Publishes ONLY what you have approved.
+#
+# Triggers:
+#   * label "approved" added to a draft issue -> publish it
+#   * comment "/approve" on a draft issue     -> publish it
+#   * label "skip" / comment "/skip"          -> discard the draft, publish nothing
+#   * manual "Run workflow"                   -> publish the newest draft waiting
+#
+# The weekly draft itself is created by "Blog draft (approval queue)" on Saturdays.
+
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 7 * * MON"
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: blog-publish
+  cancel-in-progress: false
 
 jobs:
   publish:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.label.name == 'approved' &&
+       contains(github.event.issue.labels.*.name, 'approval-needed')) ||
+      (github.event_name == 'issue_comment' &&
+       contains(github.event.comment.body, '/approve') &&
+       contains(github.event.issue.labels.*.name, 'approval-needed') &&
+       (github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR'))
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    timeout-minutes: 20
+
     steps:
       - uses: actions/checkout@v4
 
@@ -18,44 +48,169 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
-        run: pip install requests pillow
+      - run: pip install requests pillow
 
-      - name: Generate article
-        run: cd bot && python3 blog_generator.py --ai --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}"
+      - name: Find the draft to publish
+        id: draft
         env:
-          BLOG_REGION: "Scunthorpe & North Lincolnshire"
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-
-      - name: Build carousel slides
-        run: cd bot && python3 carousel_builder.py --url-prefix "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}/assets/slides/"
-
-      - name: Build static website
-        run: cd bot && python3 build_site.py --out ../blog --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}"
-
-      - name: Commit to GitHub Pages
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          git config user.name "SGJM Blog Bot"
-          git config user.email "bot@users.noreply.github.com"
-          git add bot/_posts bot/output/slides blog
-          if ! git diff --cached --quiet; then
-            git commit -m "SGJM: new article + site rebuild [auto]"
-            git push
+          set -euo pipefail
+          DRAFT=""
+          if [ -n "${ISSUE_BODY:-}" ]; then
+            DRAFT=$(printf '%s' "$ISSUE_BODY" | grep -o 'DRAFT_PATH: [^ ]*' | head -1 | cut -d' ' -f2- || true)
+          fi
+          if [ -z "$DRAFT" ] || [ ! -f "$DRAFT" ]; then
+            DRAFT=$(ls -1t bot/_drafts/*.md 2>/dev/null | head -1 || true)
+          fi
+          MODE="none"
+          BASE=""
+          if [ -n "$DRAFT" ] && [ -f "$DRAFT" ]; then
+            MODE="new"
+            BASE=$(basename "$DRAFT")
+          elif [ -n "$DRAFT" ]; then
+            BASE=$(basename "$DRAFT")
+            if [ -f "bot/_posts/$BASE" ]; then MODE="republish"; fi
+          fi
+          echo "path=$DRAFT" >> "$GITHUB_OUTPUT"
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          if [ "$MODE" = "none" ]; then
+            echo "::warning::No draft waiting - nothing to publish."
           else
-            echo "Nothing new to commit."
+            echo "Publishing $BASE (mode=$MODE)"
           fi
 
-      - name: Publish carousels to social media (skips platforms without credentials)
+      - name: Move draft into the blog + restore its metadata
+        if: steps.draft.outputs.mode == 'new'
+        run: |
+          set -euo pipefail
+          DRAFT="${{ steps.draft.outputs.path }}"
+          BASE="${{ steps.draft.outputs.base }}"
+          META="${DRAFT%.md}.meta.json"
+          mkdir -p bot/_posts
+          mv "$DRAFT" "bot/_posts/$BASE"
+          if [ -f "$META" ]; then
+            cp "$META" bot/output/latest.json
+            rm -f "$META"
+          fi
+          echo "Moved $DRAFT -> bot/_posts/$BASE"
+
+      - name: Build carousel slides
+        if: steps.draft.outputs.mode != 'none'
+        run: |
+          cd bot
+          python3 carousel_builder.py --url-prefix "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}/assets/slides/"
+
+      - name: Build static website
+        if: steps.draft.outputs.mode != 'none'
+        run: |
+          cd bot
+          python3 build_site.py --posts _posts --out ../blog \
+            --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}"
+
+      - name: Commit + push
+        if: steps.draft.outputs.mode == 'new'
+        run: |
+          set -euo pipefail
+          git config user.name "SGJM Blog Bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add -A bot/_posts bot/_drafts
+          git add bot/output/slides bot/output/latest.json blog
+          if git diff --cached --quiet; then
+            echo "Nothing new to commit."
+          else
+            git commit -m "SGJM: published approved article [auto]"
+            git push
+          fi
+
+      - name: Publish to social media (skips platforms without credentials)
+        if: steps.draft.outputs.mode != 'none'
         env:
           LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID: ${{ vars.FACEBOOK_PAGE_ID }}
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
-        run: cd bot && python3 social_media_poster.py --platforms all --carousel --post
+        run: |
+          cd bot
+          python3 social_media_poster.py --platforms all --carousel --post
 
       - name: Reply to new comments
+        if: steps.draft.outputs.mode != 'none'
         env:
           LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID: ${{ vars.FACEBOOK_PAGE_ID }}
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: cd bot && python3 engagement_bot.py --platforms all --post
+        run: |
+          cd bot
+          python3 engagement_bot.py --platforms all --post
+
+      - name: Mark the issue as published
+        if: steps.draft.outputs.mode == 'new' && github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SLUG=$(echo "${{ steps.draft.outputs.base }}" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}-//; s/\.md$//')
+          URL="${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}/posts/${SLUG}.html"
+          gh issue comment "${{ github.event.issue.number }}" --body "Published.
+
+          * Live article: ${URL}
+          * LinkedIn / Facebook / Instagram: posted where credentials are configured (check the run log if anything looks missing)
+          * Check the Actions tab to confirm the run is green."
+          gh issue edit "${{ github.event.issue.number }}" --remove-label approval-needed --add-label published
+          gh issue close "${{ github.event.issue.number }}"
+
+  skip:
+    if: |
+      (github.event_name == 'issues' &&
+       github.event.label.name == 'skip' &&
+       contains(github.event.issue.labels.*.name, 'approval-needed')) ||
+      (github.event_name == 'issue_comment' &&
+       contains(github.event.comment.body, '/skip') &&
+       contains(github.event.issue.labels.*.name, 'approval-needed') &&
+       (github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Archive the draft (nothing is published)
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          set -euo pipefail
+          DRAFT=$(printf '%s' "${ISSUE_BODY:-}" | grep -o 'DRAFT_PATH: [^ ]*' | head -1 | cut -d' ' -f2- || true)
+          if [ -z "$DRAFT" ] || [ ! -f "$DRAFT" ]; then
+            DRAFT=$(ls -1t bot/_drafts/*.md 2>/dev/null | head -1 || true)
+          fi
+          git config user.name "draft-bot"
+          git config user.email "draft-bot@users.noreply.github.com"
+          if [ -n "$DRAFT" ] && [ -f "$DRAFT" ]; then
+            mkdir -p bot/_drafts/skipped
+            BASE=$(basename "$DRAFT")
+            mv "$DRAFT" "bot/_drafts/skipped/$BASE"
+            if [ -f "${DRAFT%.md}.meta.json" ]; then
+              mv "${DRAFT%.md}.meta.json" "bot/_drafts/skipped/${BASE%.md}.meta.json"
+            fi
+            git add -A bot/_drafts
+            if git diff --cached --quiet; then
+              echo "Nothing to archive."
+            else
+              git commit -m "Draft skipped: $BASE"
+              git push
+            fi
+            echo "Archived $BASE to bot/_drafts/skipped/"
+          else
+            echo "No draft file found - nothing to archive."
+          fi
+
+      - name: Close the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" --body "Skipped - nothing was published. The draft is archived in bot/_drafts/skipped/ if you want it later."
+          gh issue edit "${{ github.event.issue.number }}" --remove-label approval-needed --add-label skip
+          gh issue close "${{ github.event.issue.number }}"
