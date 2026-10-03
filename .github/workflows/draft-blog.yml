@@ -1,0 +1,157 @@
+name: Blog draft (approval queue)
+
+# Saturday evening: writes next week's article as a DRAFT and opens an issue for
+# your approval. NOTHING is published until you add the "approved" label to that
+# issue (which triggers "Auto Blog Publisher").
+#
+# Manual test: Actions tab -> "Blog draft (approval queue)" -> Run workflow.
+
+on:
+  schedule:
+    - cron: "0 18 * * SAT" # Sat 18:00 UTC (19:00 UK during BST) - new draft
+    - cron: "0 7 * * MON" # Mon 07:00 UTC - reminder only if still unapproved
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: "Optional topic slug (blank = pick automatically)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: blog-draft
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 18 * * SAT'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install requests
+
+      - name: Pick publish date + topic
+        id: pick
+        env:
+          TOPIC_IN: ${{ inputs.topic }}
+        run: |
+          set -euo pipefail
+          DATE=$(python3 bot/draft_flow.py --next-monday)
+          TOPIC="$TOPIC_IN"
+          if [ -z "$TOPIC" ]; then
+            TOPIC=$(python3 bot/draft_flow.py --pick-topic)
+          fi
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+          echo "topic=$TOPIC" >> "$GITHUB_OUTPUT"
+          echo "Drafting topic '$TOPIC' for $DATE"
+
+      - name: Generate draft (AI, with template fallback)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BLOG_REGION: "Scunthorpe & North Lincolnshire"
+        run: |
+          set -euo pipefail
+          cd bot
+          python3 blog_generator.py --ai \
+            --topic "${{ steps.pick.outputs.topic }}" \
+            --date "${{ steps.pick.outputs.date }}" \
+            --out _drafts \
+            --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}"
+          cp output/latest.json "_drafts/${{ steps.pick.outputs.date }}-${{ steps.pick.outputs.topic }}.meta.json"
+
+      - name: Commit draft (not published - drafts live outside _posts)
+        run: |
+          set -euo pipefail
+          git config user.name "draft-bot"
+          git config user.email "draft-bot@users.noreply.github.com"
+          git add bot/_drafts
+          if git diff --cached --quiet; then
+            echo "No draft changes to commit"
+          else
+            git commit -m "Draft: ${{ steps.pick.outputs.topic }} for ${{ steps.pick.outputs.date }} (awaiting approval)"
+            git push
+          fi
+
+      - name: Open approval issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          DRAFT="bot/_drafts/${{ steps.pick.outputs.date }}-${{ steps.pick.outputs.topic }}.md"
+          TITLE=$(python3 bot/draft_flow.py --title "$DRAFT")
+
+          gh label create approval-needed --color FBCA04 --description "Draft waiting for your approval" > /dev/null 2>&1 || true
+          gh label create approved --color 0E8A16 --description "Approve: publish this draft" > /dev/null 2>&1 || true
+          gh label create skip --color 6E7781 --description "Skip: discard this draft" > /dev/null 2>&1 || true
+          gh label create published --color 5319E7 --description "Published" > /dev/null 2>&1 || true
+          gh label create superseded --color D4C5F9 --description "Replaced by a newer draft" > /dev/null 2>&1 || true
+
+          # Close any older draft still waiting for a decision
+          for n in $(gh issue list --label approval-needed --state open --json number --jq '.[].number'); do
+            gh issue comment "$n" --body "Superseded by a newer draft - nothing was published from this one." || true
+            gh issue edit "$n" --remove-label approval-needed --add-label superseded || true
+            gh issue close "$n" || true
+          done
+
+          {
+            echo "## Draft ready for your approval"
+            echo ""
+            echo "**Article:** $TITLE"
+            echo ""
+            echo "**Planned publish date:** ${{ steps.pick.outputs.date }}"
+            echo ""
+            echo "**Edit the draft:** [bot/_drafts/${{ steps.pick.outputs.date }}-${{ steps.pick.outputs.topic }}.md](https://github.com/${{ github.repository }}/blob/main/$DRAFT) - click the pencil, edit, commit. Your edited version is what gets published."
+            echo ""
+            echo "---"
+            echo ""
+            echo "### To publish"
+            echo "Add the label **approved** to this issue (right-hand sidebar -> Labels). Publishing starts within a minute: blog article, then LinkedIn, then Facebook/Instagram where configured."
+            echo ""
+            echo "### To skip"
+            echo "Add the label **skip**, or comment \`/skip\`. Nothing is published."
+            echo ""
+            echo "---"
+            echo ""
+            echo "<details><summary><b>Read the full draft here</b></summary>"
+            echo ""
+            cat "$DRAFT"
+            echo ""
+            echo "</details>"
+            echo ""
+            echo "_Nothing is published until you approve. You can approve from the GitHub mobile app too._"
+            echo ""
+            echo "<!-- DRAFT_PATH: $DRAFT -->"
+          } > /tmp/issue.md
+
+          gh issue create \
+            --title "Approval needed: $TITLE" \
+            --label approval-needed \
+            --body-file /tmp/issue.md
+
+  remind:
+    if: github.event.schedule == '0 7 * * MON'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Nudge about the pending draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ISSUES=$(gh issue list --label approval-needed --state open --json number --jq '.[].number' 2>/dev/null || true)
+          if [ -z "$ISSUES" ]; then
+            echo "No draft waiting for approval - nothing to remind about."
+            exit 0
+          fi
+          for n in $ISSUES; do
+            gh issue comment "$n" --body "Reminder: this draft is still waiting for your decision. Add the **approved** label to publish it (blog + LinkedIn + Facebook/Instagram), or **skip** to discard it. Nothing publishes until you choose."
+          done
