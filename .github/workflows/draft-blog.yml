@@ -1,10 +1,12 @@
 name: Blog draft (approval queue)
 
-# Saturday evening: writes next week's article as a DRAFT and opens an issue for
-# your approval. NOTHING is published until you add the "approved" label to that
-# issue (which triggers "Auto Blog Publisher").
+# Saturday evening: writes next week's article as a DRAFT for a rotating
+# audience persona, and opens an issue for your approval. NOTHING is published
+# until you add the "approved" label (which triggers "Auto Blog Publisher").
 #
 # Manual test: Actions tab -> "Blog draft (approval queue)" -> Run workflow.
+#   * topic box blank  = best-fit topic for this week's persona
+#   * persona box blank = this week's persona in the rotation
 
 on:
   schedule:
@@ -13,7 +15,11 @@ on:
   workflow_dispatch:
     inputs:
       topic:
-        description: "Optional topic slug (blank = pick automatically)"
+        description: "Optional topic slug (blank = best fit for the persona)"
+        required: false
+        default: ""
+      persona:
+        description: "Optional persona id (blank = this week's rotation)"
         required: false
         default: ""
 
@@ -39,34 +45,42 @@ jobs:
 
       - run: pip install requests
 
-      - name: Pick publish date + topic
+      - name: Pick publish date + persona + topic
         id: pick
         env:
           TOPIC_IN: ${{ inputs.topic }}
+          PERSONA_IN: ${{ inputs.persona }}
         run: |
           set -euo pipefail
           DATE=$(python3 bot/draft_flow.py --next-monday)
-          TOPIC="$TOPIC_IN"
-          if [ -z "$TOPIC" ]; then
-            TOPIC=$(python3 bot/draft_flow.py --pick-topic)
+          PERSONA="$PERSONA_IN"
+          if [ -z "$PERSONA" ]; then
+            PERSONA=$(python3 bot/personas.py --for-week | awk '{print $1}')
           fi
           echo "date=$DATE" >> "$GITHUB_OUTPUT"
-          echo "topic=$TOPIC" >> "$GITHUB_OUTPUT"
-          echo "Drafting topic '$TOPIC' for $DATE"
+          echo "persona=$PERSONA" >> "$GITHUB_OUTPUT"
+          echo "topic=$TOPIC_IN" >> "$GITHUB_OUTPUT"
+          echo "Drafting for persona '$PERSONA' ($DATE)"
 
-      - name: Generate draft (AI, with template fallback)
+      - name: Generate draft (persona-aware, AI with template fallback)
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           BLOG_REGION: "Scunthorpe & North Lincolnshire"
         run: |
           set -euo pipefail
           cd bot
-          python3 blog_generator.py --ai \
-            --topic "${{ steps.pick.outputs.topic }}" \
+          TOPIC_ARG=""
+          if [ -n "${{ steps.pick.outputs.topic }}" ]; then
+            TOPIC_ARG="--topic ${{ steps.pick.outputs.topic }}"
+          fi
+          python3 persona_writer.py --ai \
+            --persona "${{ steps.pick.outputs.persona }}" \
+            $TOPIC_ARG \
             --date "${{ steps.pick.outputs.date }}" \
             --out _drafts \
             --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}"
-          cp output/latest.json "_drafts/${{ steps.pick.outputs.date }}-${{ steps.pick.outputs.topic }}.meta.json"
+          SLUG=$(python3 -c "import json;print(json.load(open('output/latest.json'))['slug'])")
+          cp output/latest.json "_drafts/${{ steps.pick.outputs.date }}-${SLUG}.meta.json"
 
       - name: Commit draft (not published - drafts live outside _posts)
         run: |
@@ -77,7 +91,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No draft changes to commit"
           else
-            git commit -m "Draft: ${{ steps.pick.outputs.topic }} for ${{ steps.pick.outputs.date }} (awaiting approval)"
+            git commit -m "Draft: ${{ steps.pick.outputs.persona }} for ${{ steps.pick.outputs.date }} (awaiting approval)"
             git push
           fi
 
@@ -86,8 +100,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          DRAFT="bot/_drafts/${{ steps.pick.outputs.date }}-${{ steps.pick.outputs.topic }}.md"
+          SLUG=$(python3 -c "import json;print(json.load(open('bot/output/latest.json'))['slug'])")
+          DRAFT="bot/_drafts/${{ steps.pick.outputs.date }}-${SLUG}.md"
+          META="bot/_drafts/${{ steps.pick.outputs.date }}-${SLUG}.meta.json"
           TITLE=$(python3 bot/draft_flow.py --title "$DRAFT")
+
+          # audience / focus / closing question, straight from the draft's metadata
+          readarray -t LINES < <(python3 - "$META" <<'PY'
+          import json, sys
+          m = json.load(open(sys.argv[1]))
+          p = m.get("persona", {}) or {}
+          print("**Audience:** " + (p.get("audience") or "(general)"))
+          print("**Focus:** " + (p.get("focus") or "-"))
+          print("**Closing question:** " + (p.get("question") or "-"))
+          print("**Engine:** " + (m.get("engine") or "-"))
+          PY
+          )
 
           gh label create approval-needed --color FBCA04 --description "Draft waiting for your approval" > /dev/null 2>&1 || true
           gh label create approved --color 0E8A16 --description "Approve: publish this draft" > /dev/null 2>&1 || true
@@ -96,7 +124,7 @@ jobs:
           gh label create superseded --color D4C5F9 --description "Replaced by a newer draft" > /dev/null 2>&1 || true
 
           # Close any older draft still waiting for a decision
-          for n in $(gh issue list --label approval-needed --state open --json number --jq '.[].number'); do
+          for n in $(gh issue list --label approval-needed --state open --json number --jq '.[].number' 2>/dev/null || true); do
             gh issue comment "$n" --body "Superseded by a newer draft - nothing was published from this one." || true
             gh issue edit "$n" --remove-label approval-needed --add-label superseded || true
             gh issue close "$n" || true
@@ -109,12 +137,13 @@ jobs:
             echo ""
             echo "**Planned publish date:** ${{ steps.pick.outputs.date }}"
             echo ""
-            echo "**Edit the draft:** [bot/_drafts/${{ steps.pick.outputs.date }}-${{ steps.pick.outputs.topic }}.md](https://github.com/${{ github.repository }}/blob/main/$DRAFT) - click the pencil, edit, commit. Your edited version is what gets published."
+            for l in "${LINES[@]}"; do echo "$l"; echo ""; done
+            echo "**Edit the draft:** [bot/_drafts/${{ steps.pick.outputs.date }}-${SLUG}.md](https://github.com/${{ github.repository }}/blob/main/$DRAFT) - click the pencil, edit, commit. Your edited version is what gets published."
             echo ""
             echo "---"
             echo ""
             echo "### To publish"
-            echo "Add the label **approved** to this issue (right-hand sidebar -> Labels). Publishing starts within a minute: blog article, then LinkedIn, then Facebook/Instagram where configured."
+            echo "Add the label **approved** to this issue (right-hand sidebar -> Labels). Publishing starts within a minute: LinkedIn native post (link in the first comment), blog article, Facebook/Instagram where configured."
             echo ""
             echo "### To skip"
             echo "Add the label **skip**, or comment \`/skip\`. Nothing is published."
@@ -153,5 +182,5 @@ jobs:
             exit 0
           fi
           for n in $ISSUES; do
-            gh issue comment "$n" --body "Reminder: this draft is still waiting for your decision. Add the **approved** label to publish it (blog + LinkedIn + Facebook/Instagram), or **skip** to discard it. Nothing publishes until you choose."
+            gh issue comment "$n" --body "Reminder: this draft is still waiting for your decision. Add the **approved** label to publish it, or **skip** to discard it. Nothing publishes until you choose."
           done
