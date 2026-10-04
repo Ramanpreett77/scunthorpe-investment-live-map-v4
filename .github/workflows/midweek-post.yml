@@ -1,8 +1,9 @@
 name: Midweek post (LinkedIn)
 
-# Wednesday: re-shares ONE published article (the oldest not yet re-shared) to
-# LinkedIn - plus Facebook/Instagram where credentials exist - with a freshly
-# written hook, so the feed isn't silent between Monday's articles.
+# Wednesday: re-shares ONE published article to LinkedIn as a NATIVE text post
+# (the article link goes in the first comment - link posts are throttled),
+# ending with a genuine question. Facebook/Instagram get the caption with the
+# link when their credentials are configured.
 #
 # Manual test: Actions tab -> "Midweek post (LinkedIn)" -> Run workflow.
 
@@ -15,6 +16,10 @@ on:
         description: "Optional: re-share a specific article slug (e.g. hmo-investing)"
         required: false
         default: ""
+      card:
+        description: "Use the old link-card format instead of native text? (true/false)"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -44,11 +49,13 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SITE_URL: ${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}
           SLUG_IN: ${{ inputs.slug }}
+          CARD_IN: ${{ inputs.card }}
         run: |
           set -euo pipefail
           cd bot
           ARGS=""
           if [ -n "$SLUG_IN" ]; then ARGS="--slug $SLUG_IN"; fi
+          if [ "$CARD_IN" = "true" ]; then ARGS="$ARGS --card"; fi
           python3 midweek_post.py --post --site-url "$SITE_URL" $ARGS
 
       - name: Save rotation state
