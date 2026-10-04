@@ -2,31 +2,34 @@
 # -*- coding: utf-8 -*-
 """Midweek post - keeps LinkedIn from going quiet between Monday articles.
 
-Picks ONE already-published article (the oldest one that has not been re-shared
-yet), writes a fresh hook for it (OpenAI when a key is available, otherwise a
-templated hook) and posts a link update to LinkedIn, plus Facebook/Instagram
-when those credentials are configured.
+Picks ONE already-published article (the oldest not yet re-shared), writes a
+fresh hook (OpenAI when available, templated otherwise) and posts it:
+
+  * LinkedIn  - NATIVE text post (no link in the body) + the link in the first
+                comment, ending with a genuine question. Link posts are
+                throttled by LinkedIn; native text reaches more people.
+  * Facebook / Instagram - caption WITH the link (normal for those platforms),
+                posted only when their credentials are configured.
 
 Rotation state: bot/output/midweek-shared.json (slug -> date last shared).
 The daily "scunthorpe-auction-watch" post and anything published in the last
---min-age-days (default 14) is never chosen.
+--min-age-days (default 5) is never chosen.
 
 Usage:
   python3 midweek_post.py                       # preview (no posting)
   python3 midweek_post.py --post                # publish
+  python3 midweek_post.py --post --card         # old-style LinkedIn link card
   python3 midweek_post.py --post --slug hmo-investing   # force a specific one
-
-Credentials (env): LINKEDIN_ACCESS_TOKEN, FACEBOOK_PAGE_ID,
-FACEBOOK_PAGE_ACCESS_TOKEN, OPENAI_API_KEY (optional).
 """
 import argparse
 import json
 import os
 import re
 import sys
-from datetime import date, timedelta
+from datetime import date
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
 POSTS_DIR = os.path.join(HERE, "_posts")
 OUT_DIR = os.path.join(HERE, "output")
 STATE_FILE = os.path.join(OUT_DIR, "midweek-shared.json")
@@ -44,13 +47,25 @@ FALLBACK_HOOKS = [
     "The bit most buyers skip - and regret:",
 ]
 
+QUESTIONS = {
+    "sourcing": "Where do you actually find your best deals - and how much of it is luck?",
+    "hmo": "Are you running HMOs in 2026, or has licensing put you off?",
+    "brr": "How many times have you managed to recycle the same deposit?",
+    "refinanc": "Have your refinance numbers moved this year - better or worse?",
+    "auction": "What is your maximum-offer rule of thumb at auction?",
+    "dubai": "UK or Dubai with the same money - where would you put it, and why?",
+    "buy-to-let": "If you were starting again today, would you still buy your first rental?",
+    "tenant": "Landlords - what is the one thing you wish you had checked before you bought?",
+}
+DEFAULT_QUESTION = "What would you want to know before making a move like this?"
+
 CATEGORY_TAGS = [
     ("dubai", "#DubaiProperty"),
     ("hmo", "#HMO"),
     ("brr", "#BRRR"),
     ("auction", "#PropertyAuction"),
-    ("buy-to-let", "#BuyToLet"),
     ("sourcing", "#PropertySourcing"),
+    ("buy-to-let", "#BuyToLet"),
 ]
 
 
@@ -109,7 +124,6 @@ def choose_post(posts, state, min_age_days, force_slug=None):
 
 # ------------------------------------------------------------------- writing ---
 def takeaway_lines(body, n=3):
-    """Use the article's own H2/H3 headings as the bullets."""
     heads = re.findall(r"^#{2,3}\s+(.+?)\s*$", body, re.M)
     heads = [re.sub(r"[*_`]", "", h) for h in heads]
     heads = [h for h in heads if not re.match(r"key takeaways?$", h, re.I)]
@@ -123,6 +137,15 @@ def hashtags_for(post):
         if needle in blob and tag not in tags:
             tags.append(tag)
     return tags[:5]
+
+
+def question_for(post, index=0):
+    blob = (post.get("categories", "") + " " + post["slug"]).lower()
+    for needle, q in QUESTIONS.items():
+        if needle in blob:
+            return q
+    keys = list(QUESTIONS.values())
+    return keys[index % len(keys)] if keys else DEFAULT_QUESTION
 
 
 def ai_hook(post):
@@ -143,53 +166,51 @@ def ai_hook(post):
         r = requests.post(
             "https://api.openai.com/v1/chat/completions",
             headers={"Authorization": "Bearer " + key},
-            json={
-                "model": os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
-                "temperature": 0.8,
-                "messages": [{"role": "user", "content": prompt}],
-            },
+            json={"model": os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+                  "temperature": 0.8,
+                  "messages": [{"role": "user", "content": prompt}]},
             timeout=60,
         )
         r.raise_for_status()
         text = r.json()["choices"][0]["message"]["content"].strip().strip('"')
         return text or None
-    except Exception as e:  # silent fallback, same philosophy as blog_generator
+    except Exception as e:
         print("  ! AI hook unavailable (%s) - using templated hook." % str(e)[:100])
         return None
 
 
-def build_caption(post, site_url, index=0):
+def build_native_text(post, site_url, question, index=0):
+    """LinkedIn native text: no link, ends with the question + hashtags."""
+    hook = ai_hook(post) or FALLBACK_HOOKS[index % len(FALLBACK_HOOKS)]
+    bullets = takeaway_lines(post["_body"])
+    parts = [hook, "", post.get("title", "").strip()]
+    if bullets:
+        parts += ["", "\n".join("→ " + b.rstrip(".") for b in bullets)]
+    if question:
+        parts += ["", question]
+    tags = " ".join(hashtags_for(post))
+    if tags:
+        parts += ["", tags]
+    return "\n".join(parts).strip()[:2800]
+
+
+def build_caption(post, site_url, question, index=0):
+    """Facebook / Instagram caption - link included (normal there)."""
     link = site_url.rstrip("/") + "/posts/%s.html" % post["slug"]
     hook = ai_hook(post) or FALLBACK_HOOKS[index % len(FALLBACK_HOOKS)]
     bullets = takeaway_lines(post["_body"])
     parts = [hook, "", post.get("title", "").strip()]
     if bullets:
         parts += ["", "\n".join("> " + b for b in bullets)]
-    parts += ["", "Read it here \U0001F449 " + link, "",
-              " ".join(hashtags_for(post))]
+    if question:
+        parts += ["", question]
+    parts += ["", "Read it here \U0001F449 " + link, "", " ".join(hashtags_for(post))]
     return "\n".join(parts)[:3000], link
 
 
 # ------------------------------------------------------------------ publishing ---
-def publish(caption, link, image_url):
-    """Post to every platform we have credentials for. Returns (results, failures)."""
+def publish_facebook_instagram(caption, link, image_url):
     results, failures = [], 0
-
-    li = os.environ.get("LINKEDIN_ACCESS_TOKEN")
-    if li:
-        try:
-            import linkedin_poster
-            urn = linkedin_poster.post_to_linkedin(caption, li)
-            results.append(("LinkedIn", "posted (%s)" % urn))
-        except SystemExit as ex:
-            results.append(("LinkedIn", "FAILED: %s" % ex))
-            failures += 1
-        except Exception as ex:
-            results.append(("LinkedIn", "FAILED: %s" % str(ex)[:200]))
-            failures += 1
-    else:
-        results.append(("LinkedIn", "SKIPPED - set LINKEDIN_ACCESS_TOKEN"))
-
     page_id = os.environ.get("FACEBOOK_PAGE_ID")
     fb_token = os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN")
     if page_id and fb_token:
@@ -215,8 +236,37 @@ def publish(caption, link, image_url):
     else:
         results.append(("Facebook", "SKIPPED - set FACEBOOK_PAGE_ID and FACEBOOK_PAGE_ACCESS_TOKEN"))
         results.append(("Instagram", "SKIPPED - needs the Facebook Page token"))
-
     return results, failures
+
+
+def publish_linkedin(post, site_url, question, link, index, native=True):
+    """Native (default) or legacy link-card post. Returns (result, ok)."""
+    token = os.environ.get("LINKEDIN_ACCESS_TOKEN")
+    if not token:
+        return ("LinkedIn", "SKIPPED - set LINKEDIN_ACCESS_TOKEN"), False
+    if not native:
+        try:
+            import linkedin_poster
+            text = build_caption(post, site_url, question, index)[0]
+            urn = linkedin_poster.post_to_linkedin(text, token)
+            return ("LinkedIn", "link-card posted (%s)" % urn), True
+        except SystemExit as ex:
+            return ("LinkedIn", "FAILED: %s" % ex), False
+        except Exception as ex:
+            return ("LinkedIn", "FAILED: %s" % str(ex)[:200]), False
+
+    import linkedin_native
+    text = build_native_text(post, site_url, question, index)
+    try:
+        urn, person = linkedin_native.post_text(text, token)
+    except SystemExit as ex:
+        return ("LinkedIn", "FAILED: %s" % ex), False
+    ok, detail = linkedin_native.add_comment(
+        urn, "Full article here 👉 " + link, token, person)
+    note = "native posted (%s); comment: %s" % (urn, "OK" if ok else "FAILED - %s" % detail)
+    if not ok:
+        print("::warning::LinkedIn link comment failed (%s) - add the link manually." % detail)
+    return ("LinkedIn", note), True
 
 
 def load_state():
@@ -233,6 +283,8 @@ def main():
     ap.add_argument("--site-url", default=os.environ.get("SITE_URL", DEFAULT_SITE))
     ap.add_argument("--min-age-days", type=int, default=5,
                     help="Never re-share anything published within this many days")
+    ap.add_argument("--card", action="store_true",
+                    help="Use the old LinkedIn link-card format instead of native text")
     args = ap.parse_args()
 
     posts = load_posts()
@@ -245,7 +297,10 @@ def main():
         print("No eligible article to re-share (all too recent or already shared).")
         return
 
-    caption, link = build_caption(post, args.site_url, len(state) % len(FALLBACK_HOOKS))
+    index = len(state)
+    question = question_for(post, index)
+    caption, link = build_caption(post, args.site_url, question, index)
+    native_text = build_native_text(post, args.site_url, question, index)
 
     meta = {
         "title": post.get("title", ""),
@@ -254,6 +309,7 @@ def main():
         "category": post.get("categories", ""),
         "excerpt": post.get("excerpt", ""),
         "hashtags": hashtags_for(post),
+        "question": question,
         "url_path": "/posts/%s.html" % post["slug"],
         "site_url": args.site_url,
         "source_url": link,
@@ -262,25 +318,36 @@ def main():
     with open(LATEST_FILE, "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2, ensure_ascii=False)
     with open(CAPTION_FILE, "w", encoding="utf-8") as f:
-        f.write(caption + "\n")
+        f.write("=== LINKEDIN (native, link goes in first comment) ===\n"
+                + native_text + "\n\n=== FACEBOOK / INSTAGRAM ===\n" + caption + "\n")
 
     print("Midweek pick: %s (%s)" % (post.get("title", post["slug"]), post["slug"]))
+    print("=" * 62)
+    print("LINKEDIN - NATIVE (%d chars, no link in body)" % len(native_text))
+    print("-" * 62)
+    print(native_text)
+    print("-" * 62)
+    print("First comment will carry: %s" % link)
+    print()
+    print("FACEBOOK / INSTAGRAM CAPTION")
     print("-" * 62)
     print(caption)
-    print("-" * 62)
+    print("=" * 62)
 
     if not args.post:
         print("(preview only - add --post to publish)")
         return
 
-    image = os.environ.get("MIDWEEK_IMAGE") or (
-        args.site_url.rstrip("/") + "/assets/og-image.jpg")
-    results, failures = publish(caption, link, image)
-    for platform, detail in results:
+    li_result, li_ok = publish_linkedin(post, args.site_url, question, link,
+                                        index, native=not args.card)
+    fb_results, fb_failures = publish_facebook_instagram(
+        caption, link, os.environ.get("MIDWEEK_IMAGE")
+        or (args.site_url.rstrip("/") + "/assets/og-image.jpg"))
+
+    for platform, detail in [li_result] + fb_results:
         print("%-10s %s" % (platform + ":", detail))
 
-    posted = any(d.startswith("posted") for _, d in results)
-    if posted:
+    if li_ok or any(d.startswith("posted") for _, d in fb_results):
         state[post["slug"]] = date.today().isoformat()
         with open(STATE_FILE, "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2, ensure_ascii=False)
@@ -288,8 +355,8 @@ def main():
     else:
         print("Nothing was posted - rotation state left unchanged (will retry).")
 
-    if failures:
-        sys.exit("%d platform(s) failed - see above." % failures)
+    if fb_failures:
+        sys.exit("%d Facebook/Instagram call(s) failed - see above." % fb_failures)
 
 
 if __name__ == "__main__":
