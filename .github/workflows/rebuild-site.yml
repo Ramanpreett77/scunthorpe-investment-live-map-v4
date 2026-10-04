@@ -1,0 +1,48 @@
+name: Rebuild blog site
+
+# Rebuilds the blog from bot/_posts using bot/build_site.py and commits the
+# result. Use it after changing the site design or when you want the blog
+# refreshed without publishing a new article.
+#
+# Actions tab -> "Rebuild blog site" -> Run workflow.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild-site
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Rebuild the blog
+        run: |
+          set -euo pipefail
+          cd bot
+          python3 build_site.py --posts _posts --out ../blog \
+            --site-url "${{ vars.SITE_URL || 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog' }}"
+
+      - name: Commit + push
+        run: |
+          set -euo pipefail
+          git config user.name "site-builder"
+          git config user.email "site-builder@users.noreply.github.com"
+          git add blog
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Blog rebuild (layout/design)"
+            git push
+          fi
