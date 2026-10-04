@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Deal Sourcing in 2026: Where the Best Property Deals Actually Come From"
-date: 2026-10-05
+date: 2026-10-06
 categories: Sourcing Strategy
 excerpt: "The channels that produce genuine below-market-value property, and how to tell a real deal from a deal-shaped illusion."
 ---
