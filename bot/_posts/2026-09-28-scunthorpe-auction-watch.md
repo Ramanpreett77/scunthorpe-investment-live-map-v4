@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Scunthorpe Auction Watch: A Quiet Week — and What That Means for Buyers"
-date: 2026-10-03
+date: 2026-10-04
 categories: Scunthorpe Auction Watch
 excerpt: "Week of 28 September 2026: no unsold DN15-DN20 auction lots tracked right now. Why quiet catalogues are an opportunity, and how to be first in line when stock returns."
 ---
