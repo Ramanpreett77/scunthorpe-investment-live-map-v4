@@ -1,8 +1,20 @@
 name: Engagement Bot
 
-# Twice daily: reply to new comments in a warm, human tone.
+# Replies to new comments on your posts.
+#
+# DELIBERATE DEFAULT: LinkedIn replies are OFF. For the first few months a reply
+# that reads like you beats an automated one - so this bot covers Facebook (and
+# Instagram via the Facebook token) only, and you answer LinkedIn yourself.
+# To let it reply on LinkedIn too, run it manually with platforms = linkedin
+# (or facebook,instagram,linkedin).
+
 on:
   workflow_dispatch:
+    inputs:
+      platforms:
+        description: "Platforms to reply on (linkedin,facebook,instagram)"
+        required: false
+        default: "facebook,instagram"
   schedule:
     - cron: "0 9,17 * * *"
 
@@ -26,4 +38,7 @@ jobs:
           FACEBOOK_PAGE_ID: ${{ vars.FACEBOOK_PAGE_ID }}
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: cd bot && python3 engagement_bot.py --platforms all --post
+          PLATFORMS: ${{ inputs.platforms || 'facebook,instagram' }}
+        run: |
+          cd bot
+          python3 engagement_bot.py --platforms "$PLATFORMS" --post
