@@ -1,18 +1,18 @@
 {
- "updated": "2026-10-01T13:42:56Z",
- "updated_uk": "01 Oct 2026, 14:42 UK",
- "checked": "2026-10-04T12:37:29Z",
- "checked_uk": "04 Oct 2026, 13:37 UK",
+ "updated": "2026-10-05T14:30:59Z",
+ "updated_uk": "05 Oct 2026, 15:30 UK",
+ "checked": "2026-10-05T14:30:59Z",
+ "checked_uk": "05 Oct 2026, 15:30 UK",
  "sources": {
   "btg": {
    "lots": 0,
-   "status": "warning",
-   "detail": "0 current DN15-DN20 lots in Scunthorpe search (total=18 rows scanned) - zero-stock day or source layout change; verify manually if it persists for >1 week"
+   "status": "error",
+   "detail": "HTTPError('419 Client Error: <none> for url: https://www.btgeddisonspropertyauctions.com/ajax/properties/ajax_search') | kept 0 previous lots (stale)"
   },
   "savills": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 DN15-DN20 lots in 2 upcoming catalogues (157 scanned, 0 sold/withdrawn skipped)"
+   "detail": "0 DN15-DN20 lots in 3 upcoming catalogues (192 scanned, 0 sold/withdrawn skipped)"
   }
  },
  "lots": []
