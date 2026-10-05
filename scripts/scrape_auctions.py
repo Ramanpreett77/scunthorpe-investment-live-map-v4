@@ -84,6 +84,18 @@ def robots_ok(session, url):
     return False if rp is False else rp.can_fetch(UA_TOKEN, url)
 
 
+
+def robots_delay(session, base):
+    """Crawl-delay requested in robots.txt for our user-agent (seconds), or None."""
+    rp = _robots.get(base)
+    if rp in (None, False):
+        return None
+    try:
+        return rp.crawl_delay(UA_TOKEN) or rp.crawl_delay("*")
+    except Exception:
+        return None
+
+
 def fetch(session, url, timeout=25):
     if not robots_ok(session, url):
         raise Blocked(f"robots.txt disallows (or could not be read) for {url}")
@@ -463,6 +475,245 @@ def scrape_savills(session):
     return lots, info
 
 
+# ------------------------------------------------ SDL Property Auctions ---
+# SDL's search page is JavaScript-only and robots.txt disallows its query
+# strings (task=, id=, start= ...), so this reader works from the *property
+# sitemap* instead: it lists every lot page, each of which is server-rendered
+# with the address, postcode, guide price and the auction it belongs to.
+# Only slug-matching candidates are fetched, keeping this to a few dozen polite
+# requests per run. Nothing disallowed by robots.txt is ever fetched.
+SDL_BASE = "https://www.sdlauctions.co.uk"
+SDL_SITEMAP = SDL_BASE + "/property-sitemap.xml"
+SDL_SLEEP = 1.0
+SDL_MAX_PAGES = 45
+SDL_KEYWORDS = [
+    # Scunthorpe + the villages and towns that surround it
+    "scunthorpe", "messingham", "bottesford", "ashby", "frodingham", "kirton",
+    "winterton", "crowle", "epworth", "alcborough", "burton-upon-stather",
+    "burton-on-stather", "appleby", "scotter", "hibaldstow", "brigg",
+    "wrawby", "barnetby", "ulceby", "immingham", "healing", "stallingborough",
+    "great-coates", "grasby", "caistor", "market-rasen", "louth", "barton",
+    "barrow", "goxhill", "gainsborough", "belton", "hatfield", "thorne",
+    "goole", "howden", "retford", "doncaster", "grimsby", "cleethorpes",
+    "lincoln", "lincolnshire",
+]
+SDL_PC_RE = re.compile(r"\bDN(1[5-9]|20)\s*\d[A-Z]{2}\b", re.I)
+
+
+def _sdl_candidates(session):
+    """Lot-page URLs whose slug mentions the local area."""
+    xml = fetch(session, SDL_SITEMAP)
+    urls = re.findall(r"<loc>([^<]+)</loc>", xml)
+    return sorted(set(u for u in urls if any(k in u.lower() for k in SDL_KEYWORDS)))
+
+
+def _sdl_lot(url, page, today):
+    """One SDL lot page -> lot record, {"_past": True}, or None if not ours."""
+    m = re.search(r"<h1[^>]*>(.*?)</h1>", page, re.S)
+    addr = re.sub(r"\s+", " ", re.sub("<[^>]+>", "", m.group(1))).strip() if m else ""
+    if not addr or not SDL_PC_RE.search(addr):
+        return None                      # not in the DN15-DN20 area
+    auc = re.search(r'href="(/auction/\d+/[^"]*?(\d{4}-\d{2}-\d{2})/?)"', page)
+    auc_slug = auc.group(1) if auc else ""
+    auc_date = auc.group(2) if auc else ""
+    if auc_date:
+        try:
+            if datetime.date.fromisoformat(auc_date) < today:
+                return {"_past": True}   # auction already held - not on offer now
+        except ValueError:
+            pass
+    gm = re.search(r"Guide\s*Price\s*£\s*([\d,]+)(\s*\+)?", page, re.I)
+    guide_txt = ("Guide Price £%s%s" % (gm.group(1), "+" if gm.group(2) else "")) if gm else ""
+    amount = money(guide_txt)
+    label = guide_txt or "Guide TBC"
+    img = re.search(r'property="og:image"\s+content="([^"]+)"', page)
+    desc = re.search(r'name="description"\s+content="([^"]*)"', page)
+    blurb = (ihtml.unescape(desc.group(1)) if desc else "").strip()[:600]
+    if auc_date:
+        blurb = (blurb + " (auction %s)" % auc_date).strip()
+    pid = re.search(r"/property/(\d+)/", url)
+    return {
+        "slug": "sdl-%s" % (pid.group(1) if pid else stable_id(url)),
+        "addr": ihtml.unescape(addr),
+        "status": "available",
+        "guide": amount,
+        "sold_price": 0,
+        "price_label": label,
+        "category": categorise(addr),
+        "fee": 0, "refurb": 0, "rent": 0, "gdv": 0,
+        "beds": 0, "type": "", "strategy": "Auction", "zone": "",
+        "lat": None, "lon": None, "geo_precision": "",
+        "blurb": blurb or "SDL Property Auctions lot - guide price, fees and legal pack on the lot page.",
+        "note": "Auto-scraped from SDL Property Auctions - verify guide, fees, auction date and legal pack on the current lot page.",
+        "source": "SDL Property Auctions",
+        "source_url": url,
+        "auction_date": auc_date,
+        "image": ihtml.unescape(img.group(1)) if img else "",
+    }
+
+
+def scrape_sdl(session):
+    lots, info = [], {"status": "ok", "detail": ""}
+    cands = _sdl_candidates(session)
+    if not cands:
+        raise RuntimeError("SDL: no local candidates in property sitemap - "
+                           "sitemap or slug pattern may have changed")
+    today = datetime.datetime.now(UK).date()
+    scanned = past = errors = 0
+    for url in cands[:SDL_MAX_PAGES]:
+        try:
+            page = fetch(session, url)
+        except Blocked:
+            raise
+        except Exception:
+            errors += 1
+            continue
+        time.sleep(SDL_SLEEP)
+        scanned += 1
+        lot = _sdl_lot(url, page, today)
+        if lot is None:
+            continue
+        if lot.get("_past"):
+            past += 1
+            continue
+        lots.append(lot)
+    if scanned and errors == scanned:
+        raise RuntimeError("SDL: every one of the %d candidate lot pages failed "
+                           "to load - possible layout/blocking change" % scanned)
+    info["detail"] = ("%d DN15-DN20 lot(s) from %d local candidates scanned "
+                      "(%d already-auctioned skipped%s)"
+                      % (len(lots), scanned, past,
+                         "; %d page error(s)" % errors if errors else ""))
+    if not lots:
+        info["status"] = "warning"
+        info["detail"] += (" - zero-stock day: no current local lots listed "
+                           "(not an error)")
+    return lots, info
+
+
+# ------------------------------------------------------------- Bond Wolfe ---
+# Bond Wolfe's listing page is JavaScript-driven, but the search it runs is a
+# POST to the site's own admin-ajax endpoint (action=get_properties) with a
+# nonce published in that page. That is what a browser does, so this does one
+# page load plus one search per seed location - no crawling.
+BW_BASE = "https://www.bondwolfe.com"
+BW_LISTING = BW_BASE + "/auctions/properties/"
+BW_SEEDS = [("Scunthorpe", "50"), ("Grimsby", "25"), ("Doncaster", "25")]
+BW_PC_RE = re.compile(r"\bDN(1[5-9]|20)\s*\d[A-Z]{2}\b", re.I)
+
+
+def _bw_cards(html):
+    """Cards from a get_properties response -> lot records (DN15-DN20 only)."""
+    lots = []
+    for block in html.split('<a href="')[1:]:
+        if "PropertyCard" not in block:
+            continue
+        href = block.split('"', 1)[0]
+        addr_m = re.search(r'class="PropertyCard-detail-description[^"]*">(.*?)</h5>', block, re.S)
+        addr = re.sub(r"\s+", " ", re.sub("<[^>]+>", "", addr_m.group(1))).strip() if addr_m else ""
+        if not addr:
+            continue
+        pc_m = re.search(r"([A-Z]{1,2}\d{1,2}\s*\d[A-Z]{2})\s*$", addr.upper())
+        if not (pc_m and BW_PC_RE.search(pc_m.group(1))):
+            continue                      # not in the DN15-DN20 area
+        lot_m = re.search(r'PropertyCard-detail-lotnum">\s*(?:Lot\s*)?(\d+)', block)
+        price_m = re.search(r"PropertyCard-detail-price.*?<h4>(.*?)</h4>", block, re.S)
+        price_txt = re.sub(r"\s+", " ", re.sub("<[^>]+>", "", price_m.group(1))).strip().rstrip("*").strip() if price_m else ""
+        date_m = re.search(r"Auction:\s*([^<]+)", block)
+        auc_date = ""
+        if date_m:
+            try:
+                dated = re.sub(r"(\d+)(st|nd|rd|th)", r"\1", date_m.group(1).strip())
+                auc_date = datetime.datetime.strptime(dated, "%d %b %Y").date().isoformat()
+            except ValueError:
+                auc_date = ""
+        tag_m = re.search(r'PropertyCard-detail-tagline">(.*?)</p>', block, re.S)
+        tagline = re.sub(r"\s+", " ", re.sub("<[^>]+>", "", tag_m.group(1))).strip() if tag_m else ""
+        img_m = re.search(r'<img src="([^"]+)"', block)
+        amount = money(price_txt)
+        lots.append({
+            "slug": "bondwolfe-%s" % (lot_m.group(1) if lot_m else stable_id(href)),
+            "addr": ihtml.unescape(addr),
+            "status": "available",
+            "guide": amount,
+            "sold_price": 0,
+            "price_label": price_txt or "Guide TBC",
+            "category": categorise(addr),
+            "fee": 0, "refurb": 0, "rent": 0, "gdv": 0,
+            "beds": 0, "type": "", "strategy": "Auction", "zone": "",
+            "lat": None, "lon": None, "geo_precision": "",
+            "blurb": (tagline + (" (auction %s)" % auc_date if auc_date else "")).strip()[:400]
+                     or "Bond Wolfe auction lot - guide price and legal pack on the lot page.",
+            "note": "Auto-scraped from Bond Wolfe - verify guide, fees, auction date and legal pack on the current lot page.",
+            "source": "Bond Wolfe",
+            "source_url": href,
+            "auction_date": auc_date,
+            "image": ihtml.unescape(img_m.group(1)) if img_m else "",
+        })
+    return lots
+
+
+def scrape_bondwolfe(session):
+    lots, info = [], {"status": "ok", "detail": ""}
+    page = fetch(session, BW_LISTING)
+    nonce = re.search(r'"ajaxnonce"\s*:\s*"([^"]+)"', page)
+    ajaxurl = re.search(r'"ajaxurl"\s*:\s*"([^"]+)"', page)
+    if not (nonce and ajaxurl):
+        raise RuntimeError("Bond Wolfe: search nonce/endpoint not found on the "
+                           "listings page - the site's search may have changed")
+    # robots.txt asks for a crawl delay; obey it (at least 3s)
+    try:
+        delay = max(3.0, float(robots_delay(session, BW_BASE) or 0))
+    except Exception:
+        delay = 10.0
+    headers = dict(UA)
+    headers.update({"X-Requested-With": "XMLHttpRequest", "Referer": BW_LISTING})
+    seen, live_seeds = set(), 0
+    for location, radius in BW_SEEDS:
+        page_no = 1
+        while page_no <= 3:                       # 48 per page is plenty for our area
+            data = {
+                "action": "get_properties", "page": page_no, "total_pages": 1,
+                "postsperpage": 48, "orderby": "", "location": location,
+                "radius": radius, "type": "", "minprice": "", "maxprice": "",
+                "auction": "", "status": "available", "get_map": "false",
+                "security": nonce.group(1),
+            }
+            r = session.post(ajaxurl.group(1), data=data, headers=headers, timeout=45)
+            if r.status_code in (401, 403, 429, 503):
+                raise Blocked(f"Bond Wolfe HTTP {r.status_code} (bot protection / rate limit)")
+            r.raise_for_status()
+            time.sleep(delay)
+            try:
+                payload = r.json().get("data") or {}
+            except ValueError:
+                raise RuntimeError("Bond Wolfe: search returned non-JSON")
+            html = payload.get("html") or ""
+            if "PropertyCard-detail-description" in html or "no properties were found" in html:
+                live_seeds += 1          # a real answer, whether or not it has cards
+            n_cards = html.count("PropertyCard-detail-description")
+            for lot in _bw_cards(html):
+                if lot["source_url"] in seen:
+                    continue
+                seen.add(lot["source_url"])
+                lots.append(lot)
+            try:
+                total_pages = int(payload.get("total_pages") or 1)
+            except (TypeError, ValueError):
+                total_pages = 1
+            if page_no >= total_pages or n_cards == 0:
+                break
+            page_no += 1
+    if not live_seeds:
+        raise RuntimeError("Bond Wolfe: no seed search returned a usable answer "
+                           "- the nonce may have expired or the search changed")
+    info["detail"] = ("%d DN15-DN20 lot(s) across %d seed search%s"
+                      % (len(lots), len(BW_SEEDS), "es" if len(BW_SEEDS) != 1 else ""))
+    if not lots:
+        info["status"] = "warning"
+        info["detail"] += (" - zero-stock day: Bond Wolfe currently has nothing "
+                           "in DN15-DN20 (not an error)")
+    return lots, info
 # ------------------------------------------------------------ geocoding
 def geocode(lots):
     """Bulk postcodes.io lookup (free, no key). Postcode-level precision only."""
@@ -517,20 +768,24 @@ def main():
             old_first[lot["slug"]] = lot["first_seen"]
 
     all_lots, sources, problems = [], {}, []
-    for name, label, fn in (("btg", "BTG Eddisons", scrape_btg),
-                                ("savills", "Savills", scrape_savills)):
+    # The site and the auto-generated Auction Watch article print these names
+    # as-is, so each source is keyed by its proper display name.
+    for label, fn in (("BTG Eddisons", scrape_btg),
+                      ("Savills", scrape_savills),
+                      ("Bond Wolfe", scrape_bondwolfe),
+                      ("SDL Property Auctions", scrape_sdl)):
         try:
             lots, info = fn(session)
-            sources[name] = {"lots": len(lots), **info}
-            print(f"{name}: [{info['status']}] {info['detail']}", flush=True)
+            sources[label] = {"lots": len(lots), **info}
+            print(f"{label}: [{info['status']}] {info['detail']}", flush=True)
         except Exception as e:
             status = "blocked" if isinstance(e, Blocked) else "error"
             kept = old_by_source.get(label, [])
             lots = kept
-            sources[name] = {"lots": len(kept), "status": status,
-                             "detail": f"{repr(e)[:250]} | kept {len(kept)} previous lots (stale)"}
-            problems.append(name)
-            print(f"{name} {status.upper()}: {e}", flush=True)
+            sources[label] = {"lots": len(kept), "status": status,
+                              "detail": f"{repr(e)[:250]} | kept {len(kept)} previous lots (stale)"}
+            problems.append(label)
+            print(f"{label} {status.upper()}: {e}", flush=True)
         all_lots += lots
 
     seen, lots = set(), []
