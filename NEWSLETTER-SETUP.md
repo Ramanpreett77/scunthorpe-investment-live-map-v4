@@ -1,3 +1,4 @@
+Status: live setup in progress.
 Weekly deal digest — setup guide
 This connects the existing "Get deals before they hit the market" form on your site to a
 Google Sheet of subscribers and a weekly AI-written email. Nothing in this guide costs money
