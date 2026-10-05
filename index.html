@@ -281,9 +281,9 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
         </div>
         <div class="input-group" style="margin-top:8px"><label>Areas of interest (comma separated) *</label><input id="reg_areas" maxlength="200" value="DN15, DN16, DN17" required></div>
         <input type="hidden" id="regDeal" value="">
-        <label style="display:flex;gap:6px;align-items:flex-start;font-size:10px;margin-top:8px"><input id="reg_consent" type="checkbox" style="margin-top:2px"> <span>I agree to be contacted about off-market and auction deals. Read the <a href="privacy-policy.html" target="_blank" rel="noopener">privacy policy</a>. *</span></label>
+        <label style="display:flex;gap:6px;align-items:flex-start;font-size:10px;margin-top:8px"><input id="reg_consent" type="checkbox" style="margin-top:2px"> <span>I agree to receive deal alerts and the weekly deal digest by email, and to be contacted about off-market and auction deals. I can unsubscribe at any time. Read the <a href="privacy-policy.html" target="_blank" rel="noopener">privacy policy</a>. *</span></label>
         <label class="honeypot" aria-hidden="true">Leave this field empty<input id="website" name="website" tabindex="-1" autocomplete="off"></label>
-        <button class="icon-btn" style="background:#0ea5e9;margin-top:8px" onclick="registerForDealAlerts(event)">🔔 Register for Deal Alerts</button>
+        <button id="regBtn" class="icon-btn" style="background:#0ea5e9;margin-top:8px" onclick="registerForDealAlerts(event)">🔔 Register for Deal Alerts</button>
         <div id="regMsg" style="font-size:11px;margin-top:6px"></div>
         <div id="regCount" style="font-size:9px;color:#64748b;margin-top:2px"></div>
       </div>
@@ -618,6 +618,9 @@ const PUBLIC_PIPELINE_KEY='public_pipeline_v1';
 const SITE_CONFIG=window.SITE_CONFIG||{};
 const COMPLIANCE={tradingName:SITE_CONFIG.tradingName||'[TRADING NAME]',contactEmail:SITE_CONFIG.contactEmail||'[EMAIL]',yourName:SITE_CONFIG.yourName||'[YOUR NAME]',icoRegistration:SITE_CONFIG.icoRegistration||'',dataAsOf:SITE_CONFIG.dataAsOf||'Sep 2026'};
 const REG_ENDPOINT=SITE_CONFIG.alertEndpoint||'';
+const SELLER_ENDPOINT=SITE_CONFIG.sellerEndpoint||REG_ENDPOINT||'';
+const REG_ENDPOINT_PLACEHOLDER='PASTE_APPS_SCRIPT_WEB_APP_URL_HERE';
+const regEndpointReady=()=>!!REG_ENDPOINT&&REG_ENDPOINT!==REG_ENDPOINT_PLACEHOLDER&&/^https?:\/\//.test(REG_ENDPOINT);
 const SHEET_CSV_URL=SITE_CONFIG.liveDealsCsvUrl||'';
 const DEAL_SCORE_WEIGHTS=Object.assign({discountToComps:25,grossYield:20,refurbRisk:15,demand:15,hmoDensityArticle4:15,dataConfidence:10},SITE_CONFIG.dealScoreWeights||{});
 function initAnalytics(){
@@ -1790,11 +1793,11 @@ function submitSellerLead(){
   if(!situation||!timeframe){alert('Please select your situation and timeframe.');return false;}
   if(notes.length>1000){alert('Please keep additional notes under 1000 characters.');return false;}
   if(!consent){alert('Please tick the consent box after reading the privacy policy.');return false;}
-  if(!REG_ENDPOINT){msg.innerHTML='<span style="color:#b45309">This form is not connected yet — add the endpoint in config.js before publishing.</span>';return false;}
+  if(!SELLER_ENDPOINT){msg.innerHTML='<span style="color:#b45309">This form is not connected yet — add the endpoint in config.js before publishing.</span>';return false;}
   const rec={kind:'seller',name,email,phone,address,situation,timeframe,notes,consent:true};
   try{sessionStorage.setItem('sell_form_last_submit',String(Date.now()));}catch(err){}
   msg.textContent='Sending…';
-  fetch(REG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(rec)})
+  fetch(SELLER_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(rec)})
     .then(()=>{trackAnalytics('seller_lead_submitted');msg.innerHTML='<span style="color:#16a34a"><b>Thank you — we\'ve received your details and will be in touch.</b></span>';})
     .catch(()=>{msg.innerHTML='<span style="color:#16a34a"><b>Thank you — we\'ve received your details and will be in touch.</b></span>';});
   return false;
@@ -1806,17 +1809,46 @@ function registerForDealAlerts(e){
   const bmin=Number(value('reg_min')),bmax=Number(value('reg_max'));
   const consent=document.getElementById('reg_consent').checked;
   const honeypot=value('website');
+  const msg=document.getElementById('regMsg');
+  const btn=document.getElementById('regBtn');
   const validStrategies=['Any','HMO Small','BRRR','Buy to Rent','Flip','R2SA'];
   let last=0;try{last=Number(sessionStorage.getItem('alert_form_last_submit')||0);}catch(err){}
+  // Honeypot: a real person never sees this field. Pretend it worked and send nothing.
+  if(honeypot){
+    if(msg)msg.innerHTML='<span style="color:#16a34a"><b>You\'re registered — check your inbox weekly.</b></span>';
+    return false;
+  }
   if(Date.now()-last<60000){alert('Please wait a minute before sending another registration.');return false;}
-  if(honeypot||name.length<2||name.length>100||!/^\S+@\S+\.\S+$/.test(email)||email.length>254){alert('Please enter your name and a valid email address.');return false;}
+  if(name.length<2||name.length>100||!/^\S+@\S+\.\S+$/.test(email)||email.length>254){alert('Please enter your name and a valid email address.');return false;}
   if(phone.length>40||!validStrategies.includes(strategy)||!areas||areas.length>200||!Number.isFinite(bmin)||!Number.isFinite(bmax)||bmin<0||bmax<0||bmax<bmin){alert('Please check the phone, areas and budget fields.');return false;}
   if(!consent){alert('Please tick the consent box after reading the privacy policy.');return false;}
-  if(!REG_ENDPOINT){document.getElementById('regMsg').innerHTML='<span style="color:#b45309">Alert registration is not configured yet.</span>';return false;}
-  const rec={name,email,phone,strategy,budgetMin:bmin,budgetMax:bmax,areas,deal:value('regDeal'),consent:true};
+  if(!regEndpointReady()){
+    if(msg)msg.innerHTML='<span style="color:#b45309"><b>Alerts are not live yet.</b> The registration service is still being set up — please check back shortly, or use the contact page and I\'ll add you manually.</span>';
+    return false;
+  }
+  // Field names must match the Subscribers sheet in apps-script/Code.gs.
+  const payload={name:name,email:email,phone:phone,strategy:strategy,budgetMin:bmin,budgetMax:bmax,areas:areas,consent:!!consent,website:'',deal:value('regDeal')};
   try{sessionStorage.setItem('alert_form_last_submit',String(Date.now()));}catch(err){}
-  document.getElementById('regMsg').textContent='Sending…';
-  fetch(REG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(rec)}).then(()=>{trackAnalytics('deal_alert_submitted');document.getElementById('regMsg').innerHTML='<span style="color:#16a34a"><b>Registration sent.</b> Thank you.</span>';}).catch(()=>{document.getElementById('regMsg').innerHTML='<span style="color:#dc2626">The registration could not be sent. Please try again later.</span>';});
+  if(btn){btn.disabled=true;btn.style.opacity='.6';}
+  if(msg)msg.textContent='Sending…';
+  const done=html=>{if(btn){btn.disabled=false;btn.style.opacity='';}if(msg)msg.innerHTML=html;};
+  // JSON body, no Content-Type header: Apps Script rejects preflighted CORS requests.
+  fetch(REG_ENDPOINT,{method:'POST',body:JSON.stringify(payload)})
+    .then(res=>{
+      if(!res||!res.ok)throw new Error('HTTP '+(res&&res.status));
+      return res.text().then(t=>{try{return JSON.parse(t);}catch(err){return {ok:true};}});
+    })
+    .then(data=>{
+      if(data&&data.ok===false){
+        done('<span style="color:#dc2626"><b>Sorry — that did not go through.</b> '+(data.error?String(data.error):'Please check your details and try again.')+'</span>');
+        return;
+      }
+      try{trackAnalytics('deal_alert_submitted');}catch(err){}
+      done('<span style="color:#16a34a"><b>You\'re registered — check your inbox weekly.</b></span>');
+    })
+    .catch(()=>{
+      done('<span style="color:#dc2626"><b>Registration failed.</b> Please check your connection and try again, or use the contact page.</span>');
+    });
   return false;
 }
 function drawDealPins(){
@@ -1837,5 +1869,5 @@ renderDeals();drawDealPins();updateRegCount();loadLiveDeals();
 document.getElementById('siteFooter').innerHTML=complianceFooterHTML();
 if(window.addEventListener)window.addEventListener('hashchange',checkDealLink);
 checkDealLink();
-</script></body>
+</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a45e5d41ebff3c70',t:'MTc5MTIyMzYyOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
