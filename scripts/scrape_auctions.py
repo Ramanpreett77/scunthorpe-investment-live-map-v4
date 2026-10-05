@@ -35,6 +35,7 @@ import hashlib
 import html as ihtml
 import json
 import os
+import random
 import re
 import sys
 import time
@@ -130,19 +131,47 @@ def categorise(addr):
 # Pugh Auctions has migrated/redirected old lot URLs. The current property
 # auction inventory is now served by BTG Eddisons, so use its live AJAX search
 # and retain the canonical current lot URL from the response HTML.
-def scrape_btg(session):
-    lots, info = [], {"status": "ok", "detail": ""}
-    listing_url = "https://www.btgeddisonspropertyauctions.com/properties"
-    page = fetch(session, listing_url)
+BTG_SEARCH_PATH = "/ajax/properties/ajax_search"
+
+
+def _btg_action_and_token(session, listing_url):
+    """Return (search endpoint, CSRF token) for the BTG Eddisons listings page.
+
+    Two quirks of their CDN/session setup have to be handled:
+      1. Cloudflare caches the listing HTML, so a cached copy carries a _token
+         that belongs to someone else's session -> the search then answers
+         419 "CSRF token mismatch".
+      2. The site only issues its session cookie on a POST response, never on a
+         GET, so a fresh GET arrives with no session at all.
+    Sequence used here (the same thing a browser does):
+      * warm the session with a benign POST (a 419 there is expected and
+        harmless - it is what sets the cookie),
+      * fetch the listing page uncached, carrying that session,
+      * read the _token out of that page.
+    robots.txt allows /ajax/ (only /adm and /ics/property_auctions are disallowed).
+    """
+    if not session.cookies:
+        try:
+            session.post("https://www.btgeddisonspropertyauctions.com" + BTG_SEARCH_PATH,
+                         data={"_token": "session-warmup"}, timeout=30)
+        except Exception:
+            pass
+    page = fetch(session, listing_url + "?cb=%d" % random.randint(10 ** 6, 10 ** 7))
     action_match = re.search(r'<form[^>]+data-listing-search-form[^>]+data-action="([^"]+)"', page, re.I)
     token_match = re.search(r'<input[^>]+name="_token"[^>]+value="([^"]+)"', page, re.I)
     if not action_match or not token_match:
         raise RuntimeError("BTG Eddisons: live search form/token not found")
-    action = ihtml.unescape(action_match.group(1))
+    return ihtml.unescape(action_match.group(1)), token_match.group(1)
+
+
+def scrape_btg(session):
+    lots, info = [], {"status": "ok", "detail": ""}
+    listing_url = "https://www.btgeddisonspropertyauctions.com/properties"
+    action, token = _btg_action_and_token(session, listing_url)
     data = {
         "auction_id": "", "catalogue_id": "", "prefiltered_id": "",
         "auction_type": "", "search_type": "global", "auction_date": "",
-        "_token": token_match.group(1), "lat": "", "lng": "",
+        "_token": token, "lat": "", "lng": "",
         "nesw_geometry": "", "location": "Scunthorpe", "radius": "30",
         "property_type": "", "min_price": "", "max_price": "",
         "date_added": "", "sort": "date", "limit": "50"
@@ -150,6 +179,13 @@ def scrape_btg(session):
     headers = dict(UA)
     headers.update({"X-Requested-With": "XMLHttpRequest", "Referer": listing_url})
     response = session.post(action, data=data, headers=headers, timeout=30)
+    if response.status_code == 419:
+        # session/token went out of sync (cached page issued the token):
+        # re-warm the session, fetch a fresh token and retry once.
+        print("btg: 419 CSRF mismatch - re-establishing session and retrying", flush=True)
+        action, token = _btg_action_and_token(session, listing_url)
+        data["_token"] = token
+        response = session.post(action, data=data, headers=headers, timeout=30)
     if response.status_code in (401, 403, 429, 503):
         raise Blocked(f"BTG Eddisons HTTP {response.status_code}")
     response.raise_for_status()
