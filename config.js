@@ -7,8 +7,13 @@ window.SITE_CONFIG = Object.freeze({
   contactEmail: '',
   // Leave blank until a valid ICO registration reference exists. Blank = hidden in the footer.
   icoRegistration: '',
-  // Paste the deployed, anonymous alert-only Apps Script web-app URL here.
-  alertEndpoint: 'https://script.google.com/macros/s/AKfycbzV-Z3j2lt_65uZ5ehp96eLujKVkNJQyCIAEgGPqH5ajoCxZamcEsjfQqOd13RMngTK/exec',
+  // Paste the deployed alert + newsletter Apps Script web-app URL here.
+  // See NEWSLETTER-SETUP.md step 5. Until a real URL replaces this placeholder
+  // the alert form shows "Alerts are not live yet" and sends nothing.
+  alertEndpoint: 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE',
+  // Seller-lead endpoint ("Sell your house fast" form). Kept separate so that
+  // changing the alert/newsletter endpoint never interrupts seller enquiries.
+  sellerEndpoint: 'https://script.google.com/macros/s/AKfycbzV-Z3j2lt_65uZ5ehp96eLujKVkNJQyCIAEgGPqH5ajoCxZamcEsjfQqOd13RMngTK/exec',
   // Optional read-only published CSV URL for the Deals tab. Never use a write-capable URL.
   liveDealsCsvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSc60UY3Lni2-oUuOEWJmYu4tZtdteJEmLSOXVMcB2NREWYaaRMo2sfZ5uXyWwFvjwjQSnRSe-25uSD/pub?gid=1535144288&single=true&output=csv',
   // Deal-score weights must total 100. These are display weights, not investment advice.
