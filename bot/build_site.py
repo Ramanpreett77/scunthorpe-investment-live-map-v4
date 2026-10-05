@@ -666,7 +666,33 @@ PRIVACY = """
 
 
 # ------------------------------------------------------------ md -> html ---
-def md_to_html(md):
+def resolve_link(target, post_links=None):
+    """Make a markdown link point at the right place from a post page
+    (which lives at blog/posts/<slug>.html).
+
+    - absolute (http, mailto, tel), anchors and root-absolute paths: unchanged
+    - "../x" in article copy means "out of the blog" (e.g. ../index.html is the
+      live auction map at the site root) -> ../../x from a post page
+    - a sibling article is already correct as written, including when the
+      content used its dated filename ("2026-01-01-foo.html" -> "foo.html",
+      which is how post pages are actually named)
+    - anything else is a blog-level page (contact.html, about.html, feed.xml)
+    """
+    t = (target or "").strip()
+    if not t or re.match(r"^(?:[a-z][a-z0-9+.-]*:|#|/)", t, re.I):
+        return t
+    if t.startswith("../"):
+        return "../../" + t[3:]
+    if post_links:
+        if t in post_links:
+            return t
+        undated = re.sub(r"^\d{4}-\d{2}-\d{2}-", "", t)
+        if undated in post_links:
+            return undated
+    return "../" + t
+
+
+def md_to_html(md, post_links=None):
     """Markdown -> HTML for article pages: headings, ordered + unordered lists,
     blockquotes, hrs, bold/italic, inline code and links, plus a styled
     'Key takeaways' callout."""
@@ -675,7 +701,13 @@ def md_to_html(md):
 
     def inline(s):
         s = html_mod.escape(s, quote=False)
-        s = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", r'<a href="\2" rel="noopener">\1</a>', s)
+
+        def link(m):
+            href = resolve_link(m.group(2), post_links)
+            ext = ' rel="noopener"' if re.match(r"^(?:https?:)?//", href) else ""
+            return '<a href="%s"%s>%s</a>' % (href, ext, m.group(1))
+
+        s = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", link, s)
         s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
         s = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"<em>\1</em>", s)
         s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
@@ -901,12 +933,13 @@ def main():
               "deal sourcing for Scunthorpe & North Lincolnshire.", home))
 
     # ------------------------------------------------------------- articles ---
+    post_links = {q["slug"] + ".html" for q in posts}
     for p in posts:
         tps = topics_for(p)
         icon = TOPIC_ICON.get(tps[0], "\U0001F3E1")
         accent = TOPIC_COLOUR.get(tps[0], DEFAULT_ACCENT)
         chips = "".join('<span class="chip">%s</span>' % html_mod.escape(t) for t in tps)
-        body_html = md_to_html(p["body"])
+        body_html = md_to_html(p["body"], post_links)
         rm = reading_minutes(p["body"])
         # related: same topic first, then newest others - never the same post
         same = [q for q in posts if q["slug"] != p["slug"] and
@@ -961,11 +994,12 @@ def main():
         '<a class="btn" href="index.html">Back to all articles</a></section>'))
 
     # ------------------------------------------------------------------ RSS ---
+    site_esc = html_mod.escape(site or "/")
     items = "".join(
         "<item><title>%s</title><link>%s/posts/%s.html</link>"
         "<guid>%s/posts/%s.html</guid><description>%s</description>"
         "<pubDate>%s</pubDate></item>" % (
-            html_mod.escape(p.get("title", "")), site, p["slug"], site, p["slug"],
+            html_mod.escape(p.get("title", "")), site_esc, p["slug"], site_esc, p["slug"],
             html_mod.escape(p.get("excerpt", "")), rfc822(p.get("date", p["_filedate"])))
         for p in posts[:15])
     open(os.path.join(out, "feed.xml"), "w", encoding="utf-8").write(
@@ -974,7 +1008,8 @@ def main():
         '<title>%s</title><link>%s</link><atom:link href="%s/feed.xml" rel="self" '
         'type="application/rss+xml"/><description>%s</description>'
         '<language>en-gb</language><lastBuildDate>%s</lastBuildDate>%s'
-        '</channel></rss>' % (BRAND, site or "/", site, TAGLINE,
+        '</channel></rss>' % (html_mod.escape(BRAND), site_esc, site_esc,
+                              html_mod.escape(TAGLINE),
                               rfc822(datetime.date.today().isoformat()), items))
 
     print("Site built into %s/ : %d article page(s), index with %d filter(s), "
