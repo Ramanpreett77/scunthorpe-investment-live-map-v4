@@ -378,23 +378,23 @@ SHELL = """<!DOCTYPE html>
 <meta name="description" content="@DESC@">
 <meta property="og:title" content="@TITLE@">
 <meta property="og:description" content="@DESC@">
-<meta property="og:image" content="assets/og-image.jpg">
+<meta property="og:image" content="@OGIMAGE@">
 <meta property="og:type" content="@OGTYPE@">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="@CANON@">
 <link rel="alternate" type="application/rss+xml" title="@BRAND@ - RSS" href="@FEED@">
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="@BASE@assets/css/style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127968;</text></svg>">
 @JSONLD@
 </head>
 <body>
 <header class="top"><nav>
-  <a class="logo" href="index.html">Property<span>Investment</span>Insights</a>
+  <a class="logo" href="@BASE@index.html">Property<span>Investment</span>Insights</a>
   <span class="links">
-    <a href="index.html#articles">Articles</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-    <a class="pill" href="contact.html">Free deal review</a>
+    <a href="@BASE@index.html#articles">Articles</a>
+    <a href="@BASE@about.html">About</a>
+    <a href="@BASE@contact.html">Contact</a>
+    <a class="pill" href="@BASE@contact.html">Free deal review</a>
   </span>
 </nav></header>
 @BODY@
@@ -407,14 +407,14 @@ SHELL = """<!DOCTYPE html>
     </div>
     <div>
       <h4>Read</h4>
-      <p><a href="index.html#articles">All articles</a></p>
-      <p><a href="about.html">About this blog</a></p>
-      <p><a href="feed.xml">RSS feed</a></p>
+      <p><a href="@BASE@index.html#articles">All articles</a></p>
+      <p><a href="@BASE@about.html">About this blog</a></p>
+      <p><a href="@BASE@feed.xml">RSS feed</a></p>
     </div>
     <div>
       <h4>Get in touch</h4>
-      <p><a href="contact.html">Contact &amp; enquiries</a></p>
-      <p><a href="privacy.html">Privacy policy</a></p>
+      <p><a href="@BASE@contact.html">Contact &amp; enquiries</a></p>
+      <p><a href="@BASE@privacy.html">Privacy policy</a></p>
       <p>Replies within one working day.</p>
     </div>
   </div>
@@ -470,7 +470,7 @@ document.addEventListener('submit', function (e) {
 });
 </script>
 <script>window.PB_ARTICLES = @ARTICLES@;</script>
-<script src="assets/js/chat.js"></script>
+<script src="@BASE@assets/js/chat.js"></script>
 </body>
 </html>
 """
@@ -841,12 +841,16 @@ def main():
             p.get("excerpt", "").replace('"', "'"))
         for p in posts)
 
-    def shell(title, desc, body, ogtype="website", canon="", jsonld=""):
-        return (SHELL.replace("@TITLE@", html_mod.escape(title))
+    def shell(title, desc, body, ogtype="website", canon="", jsonld="", base=""):
+        ogimage = (site + "/assets/og-image.jpg") if site else (base + "assets/og-image.jpg")
+        feed = (site + "/feed.xml") if site else (base + "feed.xml")
+        return (SHELL.replace("@BASE@", base)
+                .replace("@OGIMAGE@", ogimage)
+                .replace("@TITLE@", html_mod.escape(title))
                 .replace("@DESC@", html_mod.escape(desc or TAGLINE, quote=True))
                 .replace("@OGTYPE@", ogtype)
                 .replace("@CANON@", canon or (site + "/index.html"))
-                .replace("@FEED@", (site + "/feed.xml") if site else "feed.xml")
+                .replace("@FEED@", feed)
                 .replace("@BRAND@", BRAND)
                 .replace("@YEAR@", str(datetime.date.today().year))
                 .replace("@JSONLD@", jsonld)
@@ -935,7 +939,7 @@ def main():
             shell(p.get("title", "") + " - " + BRAND, p.get("excerpt", ""), page,
                   ogtype="article",
                   canon=(site + "/posts/%s.html" % p["slug"]) if site else "",
-                  jsonld=jsonld))
+                  jsonld=jsonld, base="../"))
 
     # --------------------------------------------------------- static pages ---
     open(os.path.join(out, "about.html"), "w", encoding="utf-8").write(
