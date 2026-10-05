@@ -1,0 +1,115 @@
+name: Remove Cloudflare junk (one-off)
+
+# One-off cleanup: strips Cloudflare download artefacts from two site files.
+# Fixes 3 things that got added when the files were downloaded through a preview:
+#   1. an email-decode.min.js <script> tag
+#   2. a Cloudflare beacon <script> block
+#   3. privacy-policy.html: cloudflare-protected email links -> plain mailto: links
+# It verifies the result and only then commits. It also deletes itself when done.
+# Actions tab -> "Remove Cloudflare junk (one-off)" -> Run workflow.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: remove-cf-junk
+  cancel-in-progress: false
+
+jobs:
+  strip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Strip artefacts and verify
+        run: |
+          python3 - <<'PY'
+          import pathlib, re, sys
+
+          EXPECTED_BYTES = {"index.html": 176690, "privacy-policy.html": 6624}
+          CONTACT_EMAIL = "ramanpreettsinghchhabra@gmail.com"
+
+          JUNK_TAG = ('<script data-cfasync="false" '
+                      'src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">'
+                      '</script>')
+          BEACON = re.compile(r"<script>\(function\(\)\{function c\(\).*?\}\)\(\);</script>", re.S)
+          PROTECTED_EMAIL = re.compile(
+              r'<a (id|class)="([^"]+)" href="/cdn-cgi/l/email-protection#[0-9a-f]+">'
+              r'<span class="__cf_email__" data-cfemail="[0-9a-f]+">'
+              r'\[email&#160;protected\]</span></a>'
+          )
+
+          problems = []
+
+          def clean(path):
+              p = pathlib.Path(path)
+              text = p.read_text(encoding="utf-8")
+              before = len(text.encode("utf-8"))
+              removed = []
+              if JUNK_TAG in text:
+                  text = text.replace(JUNK_TAG, "")
+                  removed.append("email-decode tag")
+              text, n = BEACON.subn("", text)
+              if n:
+                  removed.append("beacon block x%d" % n)
+              text, n = PROTECTED_EMAIL.subn(
+                  lambda m: '<a %s="%s" href="mailto:%s">%s</a>'
+                            % (m.group(1), m.group(2), CONTACT_EMAIL, CONTACT_EMAIL), text)
+              if n:
+                  removed.append("protected email link x%d" % n)
+              p.write_text(text, encoding="utf-8")
+              after = len(p.read_bytes())
+              print("  %s: %d -> %d bytes (removed: %s)"
+                    % (path, before, after, ", ".join(removed) or "nothing"))
+              left = [b for b in ("cdn-cgi", "email-protection", "__cf_email__", "cfasync")
+                      if b in text]
+              if left:
+                  problems.append("%s still contains %s" % (path, left))
+              if after != EXPECTED_BYTES[path]:
+                  problems.append("%s is %d bytes, expected %d"
+                                  % (path, after, EXPECTED_BYTES[path]))
+
+          print("Stripping Cloudflare artefacts:")
+          clean("index.html")
+          clean("privacy-policy.html")
+
+          idx = pathlib.Path("index.html").read_text(encoding="utf-8")
+          for marker in ("regEndpointReady", "PASTE_APPS_SCRIPT_WEB_APP_URL_HERE",
+                         "check your inbox weekly", "registerForDealAlerts"):
+              if marker not in idx:
+                  problems.append("index.html is missing expected content: " + marker)
+          priv = pathlib.Path("privacy-policy.html").read_text(encoding="utf-8")
+          if priv.count("mailto:" + CONTACT_EMAIL) != 2:
+              problems.append("privacy-policy.html should have exactly 2 mailto links")
+          if "Weekly deal digest emails" not in priv:
+              problems.append("privacy-policy.html is missing the deal-digest section")
+
+          if problems:
+              print("")
+              print("VERIFICATION FAILED - nothing will be committed:")
+              for p in problems:
+                  print("   x " + p)
+              sys.exit(1)
+          print("")
+          print("VERIFICATION PASSED: no Cloudflare artefacts left, sizes exact, site code intact.")
+          PY
+
+      - name: Commit, push and remove this one-off workflow
+        run: |
+          set -euo pipefail
+          if git diff --quiet && [ ! -f .github/workflows/remove-cf-junk.yml ]; then
+            echo "Nothing to do."
+            exit 0
+          fi
+          git config user.name "site-fixer"
+          git config user.email "site-fixer@users.noreply.github.com"
+          git rm -q .github/workflows/remove-cf-junk.yml
+          git add index.html privacy-policy.html
+          git diff --cached --quiet && { echo "No changes to commit."; exit 0; }
+          git commit -m "Remove Cloudflare artefacts from index.html and privacy-policy.html"
+          git push
+          echo "Done - files cleaned and the one-off workflow removed."
