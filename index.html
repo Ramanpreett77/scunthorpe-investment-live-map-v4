@@ -245,7 +245,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
         <div id="feedStatus" style="font-size:11px;color:#475569;margin-bottom:8px"></div>
         <div style="font-size:11px;font-weight:800;margin:6px 0 4px">🔍 Available now — Scunthorpe stock per auctioneer (one click each)</div>
         <div class="legal-grid">
-          <a class="legal-btn" href="https://www.google.com/search?q=site%3Asdlpropertyauctions.co.uk+Scunthorpe" target="_blank" rel="noopener">SDL Property Auctions<small>site search × Scunthorpe — lots + legal packs</small></a>
+          <a class="legal-btn" href="https://www.google.com/search?q=site%3Asdlauctions.co.uk+Scunthorpe" target="_blank" rel="noopener">SDL Property Auctions<small>site search × Scunthorpe — lots + legal packs</small></a>
           <a class="legal-btn" href="https://www.google.com/search?q=%28site%3Abondwolfe.com+OR+site%3Abondwolfeauctions.com%29+Scunthorpe" target="_blank" rel="noopener">Bond Wolfe<small>site search × Scunthorpe</small></a>
           <a class="legal-btn" href="https://www.google.com/search?q=site%3Aauctions.savills.co.uk+Scunthorpe" target="_blank" rel="noopener">Savills Auctions<small>site search × Scunthorpe</small></a>
           <a class="legal-btn" href="https://www.google.com/search?q=site%3Acliveemson.co.uk+Scunthorpe" target="_blank" rel="noopener">Clive Emson<small>site search × Scunthorpe</small></a>
@@ -254,14 +254,10 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
           <a class="legal-btn" href="https://www.google.com/search?q=site%3Aiamsold.co.uk+Scunthorpe" target="_blank" rel="noopener">iamSold (online)<small>site search × Scunthorpe</small></a>
           <a class="legal-btn" href="https://www.google.com/search?q=site%3Amchughandco.com+Scunthorpe" target="_blank" rel="noopener">McHugh &amp; Co (local)<small>site search × Scunthorpe</small></a>
         </div>
-        <div style="font-size:11px;font-weight:800;margin:8px 0 4px">📖 Browse all lots (then filter by area on their site)</div>
+        <div style="font-size:11px;font-weight:800;margin:8px 0 4px">📖 Search wider (all UK lots, then filter by area)</div>
         <div class="legal-grid">
           <a class="legal-btn legal-btn-dark" href="https://www.eigpropertyauctions.co.uk/search" target="_blank" rel="noopener">EIG — search ALL UK auctions<small>The industry database: type “Scunthorpe” on their search page</small></a>
-          <a class="legal-btn" href="https://www.bondwolfe.com/auctions/properties/" target="_blank" rel="noopener">Bond Wolfe — all lots<small>Filter by region on their site</small></a>
-          <a class="legal-btn" href="https://www.cliveemson.co.uk/properties/" target="_blank" rel="noopener">Clive Emson — all lots<small>Filter by region on their site</small></a>
           <a class="legal-btn" href="https://www.rightmove.co.uk/property-for-sale/find.html?searchLocation=Scunthorpe&amp;auction=true" target="_blank" rel="noopener">Rightmove — Scunthorpe + auction<small>Auction filter applied (if supported)</small></a>
-          <a class="legal-btn" href="https://www.auctionhouse.co.uk/" target="_blank" rel="noopener">Auction House — browse<small>Find your local branch lots</small></a>
-          <a class="legal-btn" href="https://www.pugh-auctions.co.uk/" target="_blank" rel="noopener">Pugh — browse<small>Online + livestream lots</small></a>
         </div>
         <div style="font-size:11px;font-weight:800;margin:8px 0 4px">✅ Sold at auction (results)</div>
         <div class="legal-grid">
@@ -1019,7 +1015,7 @@ function updateLegalPack(displayName,postcode,lat,lon,ward,zone){
   ];
   document.getElementById('lpLinks').innerHTML=links.map(l=>'<a class="legal-btn '+l.cls+'" href="'+l.u+'" target="_blank" rel="noopener">'+l.t+'<small>'+l.s+'</small></a>').join('');
   const auc=[
-    {t:'SDL Property Auctions',d:'sdlpropertyauctions.co.uk'},
+    {t:'SDL Property Auctions',d:'sdlauctions.co.uk'},
     {t:'Savills Auctions',d:'auctions.savills.co.uk'},
     {t:'Bond Wolfe',d:'bondwolfe.com'},
     {t:'Clive Emson',d:'cliveemson.co.uk'},
@@ -1652,7 +1648,9 @@ async function loadAutoStock(){
     backToDeals();drawDealPins();checkDealLink();
     const s=j.sources||{};
     const bits=Object.keys(s).map(k=>k.charAt(0).toUpperCase()+k.slice(1)+' '+(s[k].lots||0)).join(' · ');
-    const sourceWarnings=Object.keys(s).filter(k=>s[k].status&&s[k].status!=='ok').map(k=>k.charAt(0).toUpperCase()+k.slice(1)+' '+s[k].status).join(' · ');
+    // a quiet zero-stock day is normal (the scraper marks it "warning" for the run log);
+    // only a genuine error or block should surface to visitors.
+    const sourceWarnings=Object.keys(s).filter(k=>['error','blocked'].includes((s[k].status||'').toLowerCase())).map(k=>k+' '+(s[k].status||'')).join(' · ');
     const nA=lots.filter(d=>d.status==='available').length,nS=lots.filter(d=>d.status==='sold').length;
     const checkedText=j.checked_uk||j.updated_uk||j.updated||'unknown';
     const changedText=(j.updated_uk&&j.updated_uk!==checkedText)?' · last lot change '+j.updated_uk:'';
