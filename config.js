@@ -10,7 +10,7 @@ window.SITE_CONFIG = Object.freeze({
   // Paste the deployed alert + newsletter Apps Script web-app URL here.
   // See NEWSLETTER-SETUP.md step 5. Until a real URL replaces this placeholder
   // the alert form shows "Alerts are not live yet" and sends nothing.
-  alertEndpoint: 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE',
+  alertEndpoint: 'https://script.google.com/macros/s/AKfycbwW-cUQPnBaCd_IROf6WhSyQ3Kn90bqCOsmE7El2_5WiBFb6KwcKroAiYqGTDWxv5759Q/exec',
   // Seller-lead endpoint ("Sell your house fast" form). Kept separate so that
   // changing the alert/newsletter endpoint never interrupts seller enquiries.
   sellerEndpoint: 'https://script.google.com/macros/s/AKfycbzV-Z3j2lt_65uZ5ehp96eLujKVkNJQyCIAEgGPqH5ajoCxZamcEsjfQqOd13RMngTK/exec',
