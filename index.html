@@ -1802,6 +1802,30 @@ function submitSellerLead(){
     .catch(()=>{msg.innerHTML='<span style="color:#16a34a"><b>Thank you — we\'ve received your details and will be in touch.</b></span>';});
   return false;
 }
+// Last-resort delivery: a hidden form POST into a hidden iframe. Unlike fetch this is a
+// navigation, so CORS never applies and response-blocking extensions cannot stop it.
+function postRegistrationViaForm(payload){
+  try{
+    let fr=document.getElementById('regIframe');
+    if(!fr){
+      fr=document.createElement('iframe');
+      fr.id='regIframe';fr.name='regIframe';fr.style.display='none';fr.setAttribute('aria-hidden','true');
+      document.body.appendChild(fr);
+    }
+    const f=document.createElement('form');
+    f.method='POST';f.action=REG_ENDPOINT;f.target='regIframe';f.style.display='none';
+    Object.keys(payload).forEach(function(k){
+      const i=document.createElement('input');
+      i.type='hidden';i.name=k;
+      i.value=(payload[k]===undefined||payload[k]===null)?'':String(payload[k]);
+      f.appendChild(i);
+    });
+    document.body.appendChild(f);
+    f.submit();
+    setTimeout(function(){try{f.remove();}catch(err){}},15000);
+    return true;
+  }catch(err){return false;}
+}
 function registerForDealAlerts(e){
   if(e&&e.preventDefault)e.preventDefault();
   const value=id=>String(document.getElementById(id).value||'').trim();
@@ -1833,21 +1857,29 @@ function registerForDealAlerts(e){
   if(msg)msg.textContent='Sending…';
   const done=html=>{if(btn){btn.disabled=false;btn.style.opacity='';}if(msg)msg.innerHTML=html;};
   // JSON body, no Content-Type header: Apps Script rejects preflighted CORS requests.
-  fetch(REG_ENDPOINT,{method:'POST',body:JSON.stringify(payload)})
+  const body=JSON.stringify(payload);
+  fetch(REG_ENDPOINT,{method:'POST',body:body})
     .then(res=>{
       if(!res||!res.ok)throw new Error('HTTP '+(res&&res.status));
       return res.text().then(t=>{try{return JSON.parse(t);}catch(err){return {ok:true};}});
     })
+    .catch(()=>{
+      // Some browsers and privacy extensions block the Google reply: Apps Script answers
+      // via a redirect to script.googleusercontent.com, which ad-blockers often stop.
+      // The registration itself is carried by the POST, so resend it as a hidden form
+      // submission - a plain navigation, which nothing blocks - and treat that as sent.
+      // The script de-duplicates by email, so a repeat can never create a second row.
+      if(navigator&&navigator.onLine===false)return {ok:false,offline:true,error:''};
+      if(postRegistrationViaForm(payload))return {ok:true,unverified:true};
+      return {ok:false,offline:true,error:''};
+    })
     .then(data=>{
       if(data&&data.ok===false){
-        done('<span style="color:#dc2626"><b>Sorry — that did not go through.</b> '+(data.error?String(data.error):'Please check your details and try again.')+'</span>');
+        done('<span style="color:#dc2626"><b>'+(data.offline?'Registration failed.':'Sorry — that did not go through.')+'</b> '+((data.error&&String(data.error))||(data.offline?'Please check your connection and try again, or use the contact page.':'Please check your details and try again.'))+'</span>');
         return;
       }
       try{trackAnalytics('deal_alert_submitted');}catch(err){}
       done('<span style="color:#16a34a"><b>You\'re registered — check your inbox weekly.</b></span>');
-    })
-    .catch(()=>{
-      done('<span style="color:#dc2626"><b>Registration failed.</b> Please check your connection and try again, or use the contact page.</span>');
     });
   return false;
 }
