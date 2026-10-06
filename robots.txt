@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog/sitemap.xml
