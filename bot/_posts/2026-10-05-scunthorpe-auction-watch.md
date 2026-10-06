@@ -1,12 +1,12 @@
 ---
 layout: post
 title: "Scunthorpe Auction Watch: A Quiet Week — and What That Means for Buyers"
-date: 2026-10-05
+date: 2026-10-06
 categories: Scunthorpe Auction Watch
 excerpt: "Week of 05 October 2026: no unsold DN15-DN20 auction lots tracked right now. Why quiet catalogues are an opportunity, and how to be first in line when stock returns."
 ---
 
-*Updated automatically from live auction data on 05 Oct 2026, 16:37 UK (BTG: 0 lot(s), SAVILLS: 0 lot(s)). This page refreshes every day the data refreshes.*
+*Updated automatically from live auction data on 06 Oct 2026, 14:28 UK (BTG EDDISONS: 0 lot(s), BOND WOLFE: 0 lot(s), SDL PROPERTY AUCTIONS: 0 lot(s), SAVILLS: 0 lot(s)). This page refreshes every day the data refreshes.*
 
 Every week we track the auction catalogues covering Scunthorpe and the wider DN15-DN20 area - the same data that powers our [live auction stock map](../index.html). Here is this week's picture.
 
