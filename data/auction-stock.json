@@ -1,18 +1,28 @@
 {
- "updated": "2026-10-05T15:37:44Z",
- "updated_uk": "05 Oct 2026, 16:37 UK",
- "checked": "2026-10-05T15:37:44Z",
- "checked_uk": "05 Oct 2026, 16:37 UK",
+ "updated": "2026-10-06T13:28:44Z",
+ "updated_uk": "06 Oct 2026, 14:28 UK",
+ "checked": "2026-10-06T13:28:44Z",
+ "checked_uk": "06 Oct 2026, 14:28 UK",
  "sources": {
-  "btg": {
+  "BTG Eddisons": {
    "lots": 0,
    "status": "warning",
    "detail": "0 current DN15-DN20 lots in Scunthorpe search (total=18 rows scanned) - zero-stock day or source layout change; verify manually if it persists for >1 week"
   },
-  "savills": {
+  "Savills": {
+   "lots": 0,
+   "status": "blocked",
+   "detail": "Blocked('robots.txt disallows (or could not be read) for https://auctions.savills.co.uk/upcoming-auctions') | kept 0 previous lots (stale)"
+  },
+  "Bond Wolfe": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 DN15-DN20 lots in 3 upcoming catalogues (192 scanned, 0 sold/withdrawn skipped)"
+   "detail": "0 DN15-DN20 lot(s) across 3 seed searches - zero-stock day: Bond Wolfe currently has nothing in DN15-DN20 (not an error)"
+  },
+  "SDL Property Auctions": {
+   "lots": 0,
+   "status": "blocked",
+   "detail": "Blocked('HTTP 403 (bot protection / rate limit) for https://www.sdlauctions.co.uk/property-sitemap.xml') | kept 0 previous lots (stale)"
   }
  },
  "lots": []
