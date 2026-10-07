@@ -207,6 +207,11 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     today = datetime.date.today()
     stock = load_stock()
+    if not stock.get("lots"):
+        # Quiet week: publish nothing rather than an empty "quiet week" post.
+        # Existing posts are left untouched.
+        print("Auction Watch skipped: data/auction-stock.json holds 0 lots")
+        return
     body, mon = build_article(stock, today)
     slug = f"{mon.isoformat()}-scunthorpe-auction-watch"
     path = os.path.join(OUT_DIR, slug + ".md")

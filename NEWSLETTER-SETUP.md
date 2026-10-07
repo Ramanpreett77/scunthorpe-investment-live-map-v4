@@ -10,7 +10,7 @@ Visitor fills the form on your site
       ▼
 Google Apps Script  ──►  "Subscribers" tab in your Google Sheet
       │                         Timestamp | Name | Email | Phone | Strategy |
-      │                         BudgetMin | BudgetMax | Areas | Consent | Token | Status
+      │                         BudgetMin | BudgetMax | Areas | Consent | Token | Status | Source
       ▼  every Monday 8am
 OpenAI writes the digest from PUBLIC deal data only  ──►  Gmail sends it to every
 (never your subscribers' details)                          Active subscriber, each with
@@ -115,3 +115,16 @@ wording, shows "Alerts are not live yet" until Step 5, disables the button while
 still blocks submissions without consent and silently absorbs honeypot spam.
 `privacy-policy.html` — new "Weekly deal digest emails" section covering Google Sheets storage,
 Gmail sending, OpenAI using public deal data only, unsubscribe links and deletion requests.
+---
+October 2026 update — one subscriber list, quiet-week fallback, analytics
+- The blog subscribe box now posts to the SAME endpoint and Sheet as the deal-alert form.
+  New rows are tagged `Source` = `blog` (main-site rows say `deal-map`). Name is now
+  optional on both. If you update `Code.gs`, redeploy a **new version** (Deploy → Manage
+  deployments → edit → new version) or the URL keeps running the old code. The `Source`
+  header is added to your existing sheet automatically; old rows stay intact.
+- Quiet auctions no longer send an empty digest: the newsletter falls back to the 5 newest
+  blog posts, and skips sending (with a log line) only if both sources are empty.
+- The Auction Watch bot no longer publishes "quiet week" posts — it skips silently when
+  `data/auction-stock.json` holds zero lots. Existing posts are untouched.
+- Analytics: GoatCounter (cookieless) + Search Console. Full non-developer guide:
+  `ANALYTICS-SETUP.md`.

@@ -624,11 +624,18 @@ const regEndpointReady=()=>!!REG_ENDPOINT&&REG_ENDPOINT!==REG_ENDPOINT_PLACEHOLD
 const SHEET_CSV_URL=SITE_CONFIG.liveDealsCsvUrl||'';
 const DEAL_SCORE_WEIGHTS=Object.assign({discountToComps:25,grossYield:20,refurbRisk:15,demand:15,hmoDensityArticle4:15,dataConfidence:10},SITE_CONFIG.dealScoreWeights||{});
 function initAnalytics(){
-  const a=SITE_CONFIG.analytics||{};
-  if(!a.enabled||a.provider!=='plausible'||!a.scriptUrl||!a.domain)return;
-  window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)};
-  const script=document.createElement('script');script.defer=true;script.dataset.domain=a.domain;script.src=a.scriptUrl;document.head.appendChild(script);
+  // GoatCounter (cookieless). Loads ONLY when config.js sets goatcounterCode; nothing loads while blank.
+  var gcCode=String((typeof SITE_CONFIG!=='undefined'&&SITE_CONFIG.goatcounterCode)||'').trim();
+  if(!gcCode||/^(PASTE_|GOATCOUNTER_CODE|X+$)/i.test(gcCode))return;
+  try{
+    var script=document.createElement('script');
+    script.setAttribute('data-goatcounter','https://'+gcCode+'.goatcounter.com/count');
+    script.async=true;script.src='//gc.zgo.at/count.js';
+    document.head.appendChild(script);
+  }catch(err){}
 }
+// Guarded GoatCounter event (no-op if blocked/absent). Never pass personal data here.
+function gcEvent(path,title){try{if(window.goatcounter&&typeof window.goatcounter.count==='function')window.goatcounter.count({path:String(path),title:String(title||path),event:true});}catch(err){}}
 function trackAnalytics(event,props){if(typeof window.plausible==='function')window.plausible(event,props?{props:props}:undefined);}
 function homeEscape(value){return String(value==null?'':value).replace(/[&<>'"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]});}
 function configuredText(value){var text=String(value==null?'':value).trim();return text&& !/^\[[^\]]+\]$/.test(text)?text:'';}
@@ -1851,7 +1858,7 @@ function registerForDealAlerts(e){
     return false;
   }
   // Field names must match the Subscribers sheet in apps-script/Code.gs.
-  const payload={name:name,email:email,phone:phone,strategy:strategy,budgetMin:bmin,budgetMax:bmax,areas:areas,consent:!!consent,website:'',deal:value('regDeal')};
+  const payload={name:name,email:email,phone:phone,strategy:strategy,budgetMin:bmin,budgetMax:bmax,areas:areas,consent:!!consent,source:'deal-map',website:'',deal:value('regDeal')};
   try{sessionStorage.setItem('alert_form_last_submit',String(Date.now()));}catch(err){}
   if(btn){btn.disabled=true;btn.style.opacity='.6';}
   if(msg)msg.textContent='Sending…';
@@ -1879,6 +1886,7 @@ function registerForDealAlerts(e){
         return;
       }
       try{trackAnalytics('deal_alert_submitted');}catch(err){}
+      try{gcEvent('alert-form-submit','Deal alert signup');}catch(err){}
       done('<span style="color:#16a34a"><b>You\'re registered — check your inbox weekly.</b></span>');
     });
   return false;
@@ -1889,7 +1897,7 @@ function drawDealPins(){
     const mk=L.marker([d.lat,d.lon],{icon:L.divIcon({className:'',html:'<div style="background:'+st.bg+';color:'+st.fg+';padding:3px 8px;border-radius:12px;font-size:9px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)">'+st.label+'</div>',iconSize:[92,22]})});
     mk.addTo(dealsLayer);mk.bindPopup(publicDealAddress(d));if(mk.on)mk.on('click',()=>openDeal(d.slug));});
 }
-function checkDealLink(){const params=new URLSearchParams(location.search);const queryDeal=params.get('deal');if(queryDeal){openSharedDeal(queryDeal);return;}const m=(location.hash||'').match(/deal=([\w-]+)/);if(m)openDeal(m[1]);}
+function checkDealLink(){const params=new URLSearchParams(location.search);const queryDeal=params.get('deal');if(queryDeal){openSharedDeal(queryDeal);return;}const h=location.hash||'';if(h==='#deal-alerts'||h==='#regBox'){try{openDealsPanel();}catch(err){}var rb=document.getElementById('regBox');if(rb&&rb.scrollIntoView)setTimeout(function(){rb.scrollIntoView({behavior:'smooth',block:'start'});},150);return;}const m=h.match(/deal=([\w-]+)/);if(m)openDeal(m[1]);}
 function applyRefurbFromQuery(){const v=Number(new URLSearchParams(location.search).get('refurbTotal'));if(Number.isFinite(v)&&v>=0){renderRefurb();document.getElementById('yc_refurb').value=v;document.getElementById('br_refurb').value=v;calcYield();calcBRRR();}}
 
 // Init

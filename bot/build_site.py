@@ -268,6 +268,27 @@ footer .brand span{color:var(--gold)}
 footer .bar{max-width:var(--max);margin:30px auto 0;padding-top:18px;
   border-top:1px solid rgba(255,255,255,.09);font-size:.8rem;color:#74889e;text-align:center}
 @media(max-width:760px){footer .cols{grid-template-columns:1fr}}
+
+/* ---------- deal-map CTA ---------- */
+.dealbox{margin-top:30px;background:linear-gradient(135deg,#0b1f33,#14395c);color:#fff;
+  border-radius:14px;padding:26px;text-align:center}
+.dealbox h3{color:#fff;margin-bottom:6px}
+.dealbox p{color:#bccbdc;margin:6px 0 16px;font-size:.95rem}
+.dealbox .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.dealbox .fine{font-size:.75rem;color:#93a7bd;margin:12px 0 0}
+nav .links a.mapbtn{border:1px solid rgba(230,187,98,.5);color:var(--gold);
+  padding:7px 15px;border-radius:999px;font-weight:600;white-space:nowrap}
+nav .links a.mapbtn:hover{background:var(--gold);color:var(--ink)}
+@media(max-width:900px){nav .links a.mapbtn.hide-sm{display:none}}
+
+/* ---------- subscribe form ---------- */
+.subform{max-width:520px;margin:0 auto;text-align:left}
+.subform input[type=text],.subform input[type=email]{width:100%;border-radius:9px;border:none;padding:12px;margin:6px 0}
+.subform .consent{display:flex;gap:8px;align-items:flex-start;font-size:.78rem;color:#c8d4e2;margin-top:10px}
+.subform .consent input{width:auto;margin-top:3px;flex:0 0 auto}
+.subform .consent a{color:#fff}
+.subform .msg{font-size:.85rem;margin-top:10px;min-height:1.2em;text-align:center}
+.hp{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
 """
 
 # ------------------------------------------------------------- chat widget ---
@@ -368,6 +389,179 @@ CHAT_JS = r"""
 })();
 """
 
+# ------------------------------------------------------- shared blog include ---
+# Loaded on every blog page (see SHELL). Reads window.SITE_CONFIG from the
+# site-root config.js: GoatCounter + the Search Console tag load ONLY when
+# their config values are set. The subscribe form posts to the SAME endpoint
+# as the main site's deal-alert form. Never sends personal data to analytics.
+BLOG_SHARED_JS = r"""
+/* SGJM blog shared include: analytics + subscribe form (every blog page).
+ * Reads window.SITE_CONFIG from the site-root config.js.
+ * - GoatCounter loads ONLY when SITE_CONFIG.goatcounterCode is set.
+ * - The Search Console meta tag is injected ONLY when
+ *   SITE_CONFIG.gscVerification is set.
+ * - Never sends names, emails, phones, addresses or form values to analytics. */
+(function () {
+  'use strict';
+  var cfg = (typeof window !== 'undefined' && window.SITE_CONFIG) ? window.SITE_CONFIG : {};
+
+  function cleanCode(v) {
+    v = String(v == null ? '' : v).trim();
+    if (!v || /^(PASTE_|GOATCOUNTER_CODE|X+$)/i.test(v)) return '';
+    return v;
+  }
+
+  /* ---- GoatCounter (cookieless page views) ---- */
+  var gcCode = cleanCode(cfg.goatcounterCode);
+  if (gcCode && typeof document !== 'undefined') {
+    try {
+      var s = document.createElement('script');
+      s.setAttribute('data-goatcounter', 'https://' + gcCode + '.goatcounter.com/count');
+      s.async = true;
+      s.src = '//gc.zgo.at/count.js';
+      document.head.appendChild(s);
+    } catch (e) { /* analytics is optional - never break the page */ }
+  }
+
+  /* ---- Search Console verification (only when configured) ---- */
+  var gsc = String(cfg.gscVerification == null ? '' : cfg.gscVerification).trim();
+  if (gsc && !/^PASTE_/i.test(gsc) && typeof document !== 'undefined') {
+    try {
+      var m = document.createElement('meta');
+      m.setAttribute('name', 'google-site-verification');
+      m.setAttribute('content', gsc);
+      document.head.appendChild(m);
+    } catch (e2) { /* optional - never break the page */ }
+  }
+
+  /* ---- Guarded event helper (no-op if GoatCounter blocked/absent) ---- */
+  function gcEvent(path, title) {
+    try {
+      if (window.goatcounter && typeof window.goatcounter.count === 'function') {
+        window.goatcounter.count({ path: String(path), title: String(title || path), event: true });
+      }
+    } catch (e3) { /* analytics is optional */ }
+  }
+  window.sgjmEvent = gcEvent;
+
+  /* ---- data-gc click tracking (CTA + contact links) ---- */
+  try {
+    document.addEventListener('click', function (e) {
+      var el = (e.target && e.target.closest) ? e.target.closest('[data-gc]') : null;
+      if (!el) return;
+      var name = el.getAttribute('data-gc');
+      if (name) gcEvent(name, (el.textContent || name).trim().slice(0, 80));
+    });
+  } catch (e4) { /* optional */ }
+
+  /* ---- Blog subscribe form -> SAME endpoint as the deal-alert form ---- */
+  function endpointReady(url) {
+    url = String(url || '').trim();
+    return !!url && url !== 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE' && /^https?:\/\//.test(url);
+  }
+  function postViaForm(payload, endpoint) {
+    try {
+      var f = document.createElement('form');
+      f.method = 'POST'; f.action = endpoint; f.target = 'bsIframe'; f.style.display = 'none';
+      var fr = document.getElementById('bsIframe');
+      if (!fr) {
+        fr = document.createElement('iframe');
+        fr.name = 'bsIframe'; fr.id = 'bsIframe'; fr.style.display = 'none';
+        document.body.appendChild(fr);
+      }
+      Object.keys(payload).forEach(function (k) {
+        var i = document.createElement('input');
+        i.type = 'hidden'; i.name = k;
+        i.value = (payload[k] === undefined || payload[k] === null) ? '' : String(payload[k]);
+        f.appendChild(i);
+      });
+      document.body.appendChild(f);
+      f.submit();
+      setTimeout(function () { try { f.remove(); } catch (e) {} }, 15000);
+      return true;
+    } catch (e) { return false; }
+  }
+  function initForm() {
+    var form = document.getElementById('blog-subscribe');
+    if (!form) return;
+    var emailEl = document.getElementById('bs-email');
+    var nameEl = document.getElementById('bs-name');
+    var hpEl = document.getElementById('bs-website');
+    var consentEl = document.getElementById('bs-consent');
+    var btn = document.getElementById('bs-btn');
+    var msg = document.getElementById('bs-msg');
+    function say(html, ok) {
+      if (!msg) return;
+      msg.innerHTML = html;
+      msg.style.color = ok ? '#4ade80' : '#fca5a5';
+    }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = String(emailEl.value || '').trim();
+      var name = String(nameEl.value || '').trim();
+      var hp = String(hpEl.value || '').trim();
+      var consent = !!(consentEl && consentEl.checked);
+      /* Honeypot: bots fill it; humans never see it. Pretend success, store nothing. */
+      if (hp) {
+        say('<b>You are subscribed &mdash; check your inbox weekly.</b>', true);
+        form.reset();
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+        say('Please enter a valid email address.', false);
+        return;
+      }
+      if (name.length > 100) { say('Please shorten your name.', false); return; }
+      if (!consent) { say('Please tick the consent box so we can email you.', false); return; }
+      var endpoint = cfg.alertEndpoint || '';
+      if (!endpointReady(endpoint)) {
+        say('Subscriptions are not live yet &mdash; please check back shortly.', false);
+        return;
+      }
+      var payload = { name: name, email: email, phone: '', strategy: 'Any',
+        budgetMin: '', budgetMax: '', areas: '', consent: true, source: 'blog', website: '' };
+      if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
+      say('Sending&hellip;', true);
+      /* JSON body, NO Content-Type header: Apps Script rejects preflighted CORS. */
+      fetch(endpoint, { method: 'POST', body: JSON.stringify(payload) })
+        .then(function (res) {
+          if (!res || !res.ok) throw new Error('http');
+          return res.text().then(function (t) {
+            try { return JSON.parse(t); } catch (e) { return { ok: true }; }
+          });
+        })
+        .then(function (data) {
+          if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+          if (data && data.ok === false) {
+            var why = (data.error && String(data.error).replace(/[<>&]/g, '')) || 'Please try again.';
+            say('<b>Sorry &mdash; that did not go through.</b> ' + why, false);
+            return;
+          }
+          gcEvent('blog-subscribe-submit', 'Blog subscribe');
+          say('<b>You are subscribed &mdash; check your inbox weekly.</b>', true);
+          form.reset();
+        })
+        .catch(function () {
+          /* Apps Script answers via a redirect that ad-blockers sometimes stop;
+             the POST itself usually landed (the server de-dupes by email), so
+             resend as a plain hidden-form navigation, which nothing blocks. */
+          if (postViaForm(payload, endpoint)) {
+            if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+            gcEvent('blog-subscribe-submit', 'Blog subscribe');
+            say('<b>You are subscribed &mdash; check your inbox weekly.</b>', true);
+            form.reset();
+          } else {
+            if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+            say('<b>Sorry &mdash; that did not go through.</b> Please check your connection and try again.', false);
+          }
+        });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initForm);
+  else initForm();
+})();
+"""
+
 # ------------------------------------------------------------------- shell ---
 SHELL = """<!DOCTYPE html>
 <html lang="en-GB">
@@ -385,6 +579,14 @@ SHELL = """<!DOCTYPE html>
 <link rel="alternate" type="application/rss+xml" title="@BRAND@ - RSS" href="@FEED@">
 <link rel="stylesheet" href="@BASE@assets/css/style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127968;</text></svg>">
+<!-- Analytics (shared include): blog-shared.js reads the site-root config.js and
+     loads GoatCounter + the Search Console tag ONLY when goatcounterCode /
+     gscVerification are set. Nothing loads while they are blank. See
+     ANALYTICS-SETUP.md. Search Console verification placeholder (rendered only
+     when configured):
+     <meta name="google-site-verification" content="PASTE_TOKEN_HERE"> -->
+<script src="@BASE@../config.js"></script>
+<script src="@BASE@assets/js/blog-shared.js"></script>
 @JSONLD@
 </head>
 <body>
@@ -393,8 +595,10 @@ SHELL = """<!DOCTYPE html>
   <span class="links">
     <a href="@BASE@index.html#articles">Articles</a>
     <a href="@BASE@about.html">About</a>
-    <a href="@BASE@contact.html">Contact</a>
-    <a class="pill" href="@BASE@contact.html">Free deal review</a>
+    <a href="@BASE@contact.html" data-gc="blog-contact-click">Contact</a>
+    <a class="mapbtn hide-sm" data-gc="blog-cta-deal-map" href="@MAPLINK@">Live deal map</a>
+    <a class="mapbtn" data-gc="blog-cta-alerts" href="@ALERTSLINK@">Get deal alerts</a>
+    <a class="pill" data-gc="blog-contact-click" href="@BASE@contact.html">Free deal review</a>
   </span>
 </nav></header>
 @BODY@
@@ -408,12 +612,14 @@ SHELL = """<!DOCTYPE html>
     <div>
       <h4>Read</h4>
       <p><a href="@BASE@index.html#articles">All articles</a></p>
+      <p><a data-gc="blog-cta-deal-map" href="@MAPLINK@">Live deal map</a></p>
       <p><a href="@BASE@about.html">About this blog</a></p>
       <p><a href="@BASE@feed.xml">RSS feed</a></p>
     </div>
     <div>
       <h4>Get in touch</h4>
-      <p><a href="@BASE@contact.html">Contact &amp; enquiries</a></p>
+      <p><a href="@BASE@contact.html" data-gc="blog-contact-click">Contact &amp; enquiries</a></p>
+      <p><a data-gc="blog-cta-alerts" href="@ALERTSLINK@">Get deal alerts</a></p>
       <p><a href="@BASE@privacy.html">Privacy policy</a></p>
       <p>Replies within one working day.</p>
     </div>
@@ -510,15 +716,31 @@ HOME = """
   <aside class="ctabox" style="max-width:none;margin:0">
     <h2>Get every new breakdown first</h2>
     <p>One email a week: HMO yields, BRR examples, auction stock and lending updates. No spam.</p>
-    <form action="@NEWSLETTER_ACTION@" method="POST" data-fallback="@FB_EMAIL@" data-w3f="@W3F_KEY@" data-sheet="@SHEET_URL@" data-sheetsrc="homepage newsletter" style="max-width:480px;margin:0 auto;display:flex;gap:10px;flex-wrap:wrap">
-      <input type="hidden" name="_subject" value="New SGJM newsletter signup">
-      <input type="hidden" name="_captcha" value="false">
-      <input type="email" name="email" required placeholder="you@example.com" style="flex:1;min-width:200px;border-radius:9px;border:none;padding:12px">
-      <button class="btn" type="submit">Subscribe</button>
+    <form id="blog-subscribe" novalidate style="max-width:520px;margin:0 auto">
+      <div class="subform">
+        <input type="text" name="name" id="bs-name" maxlength="100" autocomplete="name" placeholder="Your name (optional)">
+        <input type="email" name="email" id="bs-email" maxlength="254" autocomplete="email" required placeholder="you@example.com">
+        <input type="text" name="website" id="bs-website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="Leave this field empty">
+        <label class="consent"><input type="checkbox" id="bs-consent"> <span>I agree to receive the weekly deal digest and blog updates by email. I can unsubscribe at any time. Read the <a href="privacy.html">privacy policy</a>.</span></label>
+        <div style="text-align:center;margin-top:14px"><button class="btn" id="bs-btn" type="submit">Subscribe</button></div>
+        <p class="msg" id="bs-msg" role="status" aria-live="polite"></p>
+      </div>
     </form>
-    <p style="font-size:.78rem;color:#c8d4e2;margin-top:10px">By subscribing you agree to our
-    <a href="privacy.html" style="color:#fff">privacy policy</a>. Unsubscribe any time.</p>
+    <p style="font-size:.78rem;color:#c8d4e2;margin-top:10px">One email a week.
+    <a href="privacy.html" style="color:#fff">Privacy policy</a>. Unsubscribe any time.</p>
   </aside>
+</section>
+
+<section class="wrap tight">
+  <div class="dealbox" style="max-width:none;margin:0">
+    <h3>See live Scunthorpe deals</h3>
+    <p>See live Scunthorpe deals and use the free yield, BRR and legal pack tools.</p>
+    <div class="row">
+      <a class="btn" data-gc="blog-cta-deal-map" href="@MAPLINK@">Live deal map</a>
+      <a class="btn ghost" data-gc="blog-cta-alerts" href="@ALERTSLINK@">Get deal alerts</a>
+    </div>
+    <p class="fine">General information only &mdash; not financial, tax or legal advice.</p>
+  </div>
 </section>
 
 <script>
@@ -579,6 +801,15 @@ POST_PAGE = """
       <a class="li" data-net="linkedin" href="#">LinkedIn</a>
       <a class="fb" data-net="facebook" href="#">Facebook</a>
       <a class="x" data-net="x" href="#">X</a>
+    </div>
+    <div class="dealbox">
+      <h3>See live Scunthorpe deals</h3>
+      <p>See live Scunthorpe deals and use the free yield, BRR and legal pack tools.</p>
+      <div class="row">
+        <a class="btn" data-gc="blog-cta-deal-map" href="@MAPLINK@">Live deal map</a>
+        <a class="btn ghost" data-gc="blog-cta-alerts" href="@ALERTSLINK@">Get deal alerts</a>
+      </div>
+      <p class="fine">General information only &mdash; not financial, tax or legal advice.</p>
     </div>
   </div>
 </div>
@@ -645,20 +876,38 @@ CONTACT = """
 PRIVACY = """
 <section class="wrap" style="max-width:760px">
   <h2 class="sec">Privacy Policy</h2>
-  <p class="sub">Last updated: September 2026</p>
+  <p class="sub">Last updated: October 2026</p>
+  <p style="margin:14px 0"><b>Who I am.</b> This blog is operated by the sole trader
+  <strong>Ramanpreett Singh Chhabra</strong>, trading as <strong>SGJ</strong>. Contact:
+  <a href="mailto:ramanpreettsinghchhabra@gmail.com">ramanpreettsinghchhabra@gmail.com</a>.</p>
   <p style="margin:14px 0"><b>What we collect.</b> If you use the contact form or the chat assistant's
   lead capture, we receive the name, email address and message you choose to share.
-  Newsletter sign-ups collect your email address only.</p>
+  Newsletter sign-ups collect your email address and, if you give it, your name.</p>
   <p style="margin:14px 0"><b>How we use it.</b> Solely to respond to your enquiry or send the
-  newsletter you requested. We never sell your data. Forms are processed by our email
-  form-delivery providers (Web3Forms and FormSubmit) on our behalf. Leads are also logged to a
-  private spreadsheet so no enquiry is ever lost.</p>
-  <p style="margin:14px 0"><b>Cookies & storage.</b> This site sets no advertising or tracking
+  weekly deal digest and blog updates you requested. We never sell your data. Contact-form
+  messages are delivered by our email form-delivery providers (Web3Forms and FormSubmit) on our
+  behalf. Newsletter sign-ups join the same subscriber list as the main site's deal-alert form:
+  your details are stored in a shared <b>Google Sheet</b> accessible only to me, and emails are
+  sent via <b>Google</b> (Gmail with Google Apps Script). Every email includes an
+  <b>unsubscribe link</b> that takes effect immediately.</p>
+  <p style="margin:14px 0"><b>AI assistance.</b> Digest text is drafted with the assistance of an AI
+  service (<b>OpenAI</b>) from public deal and blog data only. Your personal details are never sent
+  to OpenAI and are never used to generate email content.</p>
+  <p style="margin:14px 0"><b>How long I keep it.</b> I delete subscriber data after 24 months of
+  inactivity, or sooner when it is no longer needed. To have your details deleted at any time,
+  email me at the address above and I will remove your row from the subscriber list and confirm
+  when it is done.</p>
+  <p style="margin:14px 0"><b>Analytics.</b> I use GoatCounter, a privacy-friendly analytics service that
+  does not use cookies and does not collect names, emails or phone numbers. It records aggregate
+  page views and button clicks. I use Google Search Console to see which searches lead to this site.</p>
+  <p style="margin:14px 0"><b>Cookies &amp; storage.</b> This site sets no advertising or tracking
   cookies. When you leave details with the chat assistant they are passed to us (via our form
   provider) so we can respond, and a copy is kept in your own browser's local storage
   so nothing is lost if the page reloads.</p>
   <p style="margin:14px 0"><b>Your rights.</b> You may request a copy or deletion of any details
-  you've sent us at any time by emailing <a href="mailto:@EMAIL@">@EMAIL@</a>.</p>
+  you've sent us at any time by emailing <a href="mailto:ramanpreettsinghchhabra@gmail.com">ramanpreettsinghchhabra@gmail.com</a>.
+  You also have the right to complain to the UK Information Commissioner's Office (ICO) at
+  <a href="https://ico.org.uk/make-a-complaint/" target="_blank" rel="noopener">ico.org.uk/make-a-complaint</a>.</p>
   <p style="margin:14px 0"><b>Third-party links.</b> Articles link to external sites (e.g. social
   networks); their own privacy policies apply once you leave this site.</p>
 </section>
@@ -850,6 +1099,7 @@ def main():
         os.makedirs(os.path.join(out, d), exist_ok=True)
     open(os.path.join(out, "assets/css/style.css"), "w", encoding="utf-8").write(CSS)
     open(os.path.join(out, "assets/js/chat.js"), "w", encoding="utf-8").write(CHAT_JS)
+    open(os.path.join(out, "assets/js/blog-shared.js"), "w", encoding="utf-8").write(BLOG_SHARED_JS)
 
     # assets - work whether run from bot/ or the repo root
     for base in (HERE, os.getcwd()):
@@ -873,9 +1123,23 @@ def main():
             p.get("excerpt", "").replace('"', "'"))
         for p in posts)
 
+    def map_links(base):
+        """Absolute links to the live deal map + alert form (fall back to
+        relative paths when built without --site-url, e.g. local previews)."""
+        if site.endswith("/blog"):
+            root = site[:-len("/blog")]
+        elif site:
+            root = site
+        else:
+            root = ""
+        if root:
+            return root + "/", root + "/#deal-alerts"
+        return base + "../index.html", base + "../index.html#deal-alerts"
+
     def shell(title, desc, body, ogtype="website", canon="", jsonld="", base=""):
         ogimage = (site + "/assets/og-image.jpg") if site else (base + "assets/og-image.jpg")
         feed = (site + "/feed.xml") if site else (base + "feed.xml")
+        maplink, alertslink = map_links(base)
         return (SHELL.replace("@BASE@", base)
                 .replace("@OGIMAGE@", ogimage)
                 .replace("@TITLE@", html_mod.escape(title))
@@ -887,6 +1151,8 @@ def main():
                 .replace("@YEAR@", str(datetime.date.today().year))
                 .replace("@JSONLD@", jsonld)
                 .replace("@BODY@", body)
+                .replace("@MAPLINK@", maplink)
+                .replace("@ALERTSLINK@", alertslink)
                 .replace("@ARTICLES@", articles_json))
 
     def card(p, feature=False, prefix="posts/", related=False):
@@ -1012,8 +1278,23 @@ def main():
                               html_mod.escape(TAGLINE),
                               rfc822(datetime.date.today().isoformat()), items))
 
+    # ----------------------------------------------------------- sitemap ---
+    # Regenerated on every build so new posts appear automatically.
+    today_iso = datetime.date.today().isoformat()
+    sm_entries = [("index.html", today_iso), ("about.html", today_iso),
+                  ("contact.html", today_iso), ("privacy.html", today_iso)]
+    for p in posts:
+        sm_entries.append(("posts/%s.html" % p["slug"], p.get("date", p["_filedate"])))
+    sm = ['<?xml version="1.0" encoding="UTF-8"?>',
+          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for loc, lastmod in sm_entries:
+        sm.append("<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>"
+                  % (site_esc, loc, lastmod))
+    sm.append("</urlset>")
+    open(os.path.join(out, "sitemap.xml"), "w", encoding="utf-8").write("".join(sm))
+
     print("Site built into %s/ : %d article page(s), index with %d filter(s), "
-          "about/contact/privacy/404 + RSS." % (out, len(posts), len(ordered)))
+          "about/contact/privacy/404 + RSS + sitemap." % (out, len(posts), len(ordered)))
     print("Preview locally:  python3 -m http.server 8000 -d %s" % out)
 
 

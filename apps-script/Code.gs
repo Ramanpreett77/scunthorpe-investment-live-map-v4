@@ -29,7 +29,9 @@
  *    * Subscriber personal data is NEVER sent to OpenAI. The digest is written
  *      from public deal data only, then the same body is sent to everyone.
  *    * Sheet columns: Timestamp | Name | Email | Phone | Strategy | BudgetMin |
- *      BudgetMax | Areas | Consent | Token | Status
+ *      BudgetMax | Areas | Consent | Token | Status | Source
+ *      ('Source' is 'blog' or 'deal-map'; added automatically at the END of
+ *      existing sheets so old rows stay intact.)
  *    * Free Gmail sends about 100 emails/day; Google Workspace about 1,500.
  *      Above roughly 100 subscribers, move to a proper email platform
  *      (e.g. ConvertKit/Mailchimp) — see NEWSLETTER-SETUP.md.
@@ -53,6 +55,7 @@ var BUSINESS_FOOTER =
 // Public site + the deals file the digest is written from.
 var SITE_URL   = 'https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/';
 var DATA_URL   = SITE_URL + 'data/auction-stock.json';
+var FEED_URL   = SITE_URL + 'blog/feed.xml';   // fallback when the auctions are quiet
 var MAP_URL    = SITE_URL;
 
 // Sheet + AI settings
@@ -61,6 +64,7 @@ var OPENAI_MODEL    = 'gpt-4o-mini';
 var OPENAI_TEMPERATURE = 0.3;
 var EMAIL_SUBJECT   = 'Your weekly Scunthorpe deal digest';
 var MAX_LOTS_IN_PROMPT = 12;   // trimmed before sending to the AI
+var MAX_POSTS_IN_PROMPT = 5;   // blog fallback: newest posts only
 var EMAIL_BATCH_BUFFER = 5;    // stop this many emails short of the daily quota
 
 // ============================================================================
@@ -81,9 +85,9 @@ function doPost(e) {
     var name  = String(data.name || '').trim();
     var consent = data.consent === true || String(data.consent).toLowerCase() === 'true';
 
-    if (!isEmail_(email))          return json_({ ok: false, error: 'Please enter a valid email address.' });
-    if (!consent)                  return json_({ ok: false, error: 'Please tick the consent box so we can email you.' });
-    if (name.length < 2 || name.length > 100) return json_({ ok: false, error: 'Please enter your name.' });
+    if (!isEmail_(email)) return json_({ ok: false, error: 'Please enter a valid email address.' });
+    if (!consent)         return json_({ ok: false, error: 'Please tick the consent box so we can email you.' });
+    if (name.length > 100) name = name.substring(0, 100);   // name is optional (blog form)
 
     var lock = LockService.getScriptLock();
     lock.waitLock(10000);
@@ -113,7 +117,8 @@ function doPost(e) {
         String(data.areas || '').substring(0, 200),            // 8 Areas
         'Yes',                                                 // 9 Consent
         Utilities.getUuid(),                                   // 10 Token
-        'Active'                                               // 11 Status
+        'Active',                                              // 11 Status
+        String(data.source || '').substring(0, 40)             // 12 Source
       ]);
       return json_({ ok: true });
     } finally {
@@ -156,35 +161,66 @@ function doGet(e) {
 
 /**
  * Builds the digest body from the public deals file using OpenAI.
- * Only public deal data is sent — never subscriber details.
- * Returns the inner HTML (h2 / p / ul / li / strong only).
+ * Only public deal/blog data is sent — never subscriber details.
+ * When the auctions hold zero usable lots it falls back to the newest blog
+ * posts instead. Returns the inner HTML, or null when BOTH sources are empty
+ * (callers must then skip sending and log why).
  */
 function generateNewsletter_() {
   var key = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
   if (!key) throw new Error('OPENAI_API_KEY is not set in Script Properties.');
 
   var deals = fetchDeals_();
+  var prompt;
 
-  var prompt =
-    'You write a short weekly property deal digest email for investors looking at ' +
-    'Scunthorpe and North Lincolnshire, UK.\n\n' +
-    'STRICT RULES:\n' +
-    '- Use ONLY the data supplied below. Do not invent, estimate or embellish any ' +
-    'price, yield, rent, address, date or figure that is not in the data.\n' +
-    '- Never promise returns, guarantees or outcomes.\n' +
-    '- If the data contains no opportunities, say so plainly and briefly instead of ' +
-    'inventing any.\n' +
-    '- Write in plain British English, second person, no hype.\n\n' +
-    'OUTPUT FORMAT — return only HTML using <h2>, <p>, <ul>, <li> and <strong>. ' +
-    'No <html>, <body>, <head>, <style>, <a> or markdown.\n' +
-    '1. An <h2> heading.\n' +
-    '2. A two-sentence intro <p>.\n' +
-    '3. Up to 5 opportunities, each as: <li><strong>address</strong> — guide price, ' +
-    'strategy fit, one reason to look, and one thing to check (legal pack, tenure, ' +
-    'refurb condition or auction date).</li>\n' +
-    '4. A final <p> saying this is sourcing information and not financial advice, ' +
-    'and that figures must be verified on the lot page and legal pack.\n\n' +
-    'DATA (public auction stock, checked ' + deals.checked + '):\n' + deals.text;
+  if (deals.count > 0) {
+    prompt =
+      'You write a short weekly property deal digest email for investors looking at ' +
+      'Scunthorpe and North Lincolnshire, UK.\n\n' +
+      'STRICT RULES:\n' +
+      '- Use ONLY the data supplied below. Do not invent, estimate or embellish any ' +
+      'price, yield, rent, address, date or figure that is not in the data.\n' +
+      '- Never promise returns, guarantees or outcomes.\n' +
+      '- If the data contains no opportunities, say so plainly and briefly instead of ' +
+      'inventing any.\n' +
+      '- Write in plain British English, second person, no hype.\n\n' +
+      'OUTPUT FORMAT — return only HTML using <h2>, <p>, <ul>, <li> and <strong>. ' +
+      'No <html>, <body>, <head>, <style>, <a> or markdown.\n' +
+      '1. An <h2> heading.\n' +
+      '2. A two-sentence intro <p>.\n' +
+      '3. Up to 5 opportunities, each as: <li><strong>address</strong> — guide price, ' +
+      'strategy fit, one reason to look, and one thing to check (legal pack, tenure, ' +
+      'refurb condition or auction date).</li>\n' +
+      '4. A final <p> saying this is sourcing information and not financial advice, ' +
+      'and that figures must be verified on the lot page and legal pack.\n\n' +
+      'DATA (public auction stock, checked ' + deals.checked + '):\n' + deals.text;
+  } else {
+    // Quiet auctions: round up the newest blog posts instead of sending an
+    // empty digest or inventing content.
+    var posts = fetchBlogPosts_();
+    if (!posts.items.length) return null;
+    var lines = posts.items.map(function (p) {
+      return '- ' + p.title + '\n  URL: ' + p.link + '\n  Summary: ' + (p.desc || '(no summary)') ;
+    }).join('\n');
+    prompt =
+      'You write a short weekly property email for investors looking at ' +
+      'Scunthorpe and North Lincolnshire, UK. This week the auctions are quiet, ' +
+      'so the email rounds up the newest articles from the SGJM blog instead.\n\n' +
+      'STRICT RULES:\n' +
+      '- Use ONLY the data supplied below. Do not invent, estimate or embellish any ' +
+      'price, yield, rent, address, date or figure that is not in the data.\n' +
+      '- Never promise returns, guarantees or outcomes.\n' +
+      '- Write in plain British English, second person, no hype.\n\n' +
+      'OUTPUT FORMAT — return only HTML using <h2>, <p>, <ul>, <li>, <strong> and <a>. ' +
+      'No <html>, <body>, <head>, <style> or markdown.\n' +
+      '1. An <h2> heading.\n' +
+      '2. A short intro <p> saying the auctions are quiet this week so here is useful reading instead.\n' +
+      '3. One <li> per article: the <strong>title</strong> linked to its URL with <a>, ' +
+      'then a 1-2 sentence summary drawn only from its supplied summary.\n' +
+      '4. A final <p> saying this is sourcing information and not financial advice.\n\n' +
+      'DATA (newest SGJM blog posts' +
+      (posts.checked ? ', feed built ' + posts.checked : '') + '):\n' + lines;
+  }
 
   var res = UrlFetchApp.fetch('https://api.openai.com/v1/chat/completions', {
     method: 'post',
@@ -236,6 +272,9 @@ function sendTest() {
   var to = Session.getActiveUser().getEmail() || Session.getEffectiveUser().getEmail();
   if (!to) throw new Error('Could not work out your email address for the test send.');
   var body = generateNewsletter_();
+  if (!body) {
+    throw new Error('Nothing to send: both the auction stock and the blog feed are empty.');
+  }
   MailApp.sendEmail({
     to: to,
     subject: '[TEST] ' + EMAIL_SUBJECT,
@@ -280,6 +319,10 @@ function sendNewsletter() {
   }
 
   var body = generateNewsletter_();     // written once from public data
+  if (!body) {
+    Logger.log('Both the auction stock and the blog feed are empty — nothing sent this run.');
+    return 'Nothing to send — both the auction stock and the blog feed are empty.';
+  }
   var sent = 0, failed = 0;
   for (var j = 0; j < recipients.length; j++) {
     if (sent >= quota - EMAIL_BATCH_BUFFER) {
@@ -323,10 +366,24 @@ function getSubscribersSheet_() {
   if (!sheet) sheet = ss.insertSheet(SHEET_NAME);
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(['Timestamp', 'Name', 'Email', 'Phone', 'Strategy',
-                     'BudgetMin', 'BudgetMax', 'Areas', 'Consent', 'Token', 'Status']);
+                     'BudgetMin', 'BudgetMax', 'Areas', 'Consent', 'Token', 'Status', 'Source']);
     sheet.setFrozenRows(1);
+  } else {
+    ensureSourceColumn_(sheet);
   }
   return sheet;
+}
+
+/**
+ * Adds the 'Source' header in column 12 of an existing subscriber list if it
+ * is missing. Existing rows are never touched.
+ */
+function ensureSourceColumn_(sheet) {
+  var v = '';
+  if (sheet.getLastColumn() >= 12) {
+    v = String(sheet.getRange(1, 12).getValue() || '').trim();
+  }
+  if (v === '' || v === 'Source') sheet.getRange(1, 12).setValue('Source');
 }
 
 function fetchDeals_() {
@@ -352,12 +409,41 @@ function fetchDeals_() {
   }).join(', ');
 
   return {
+    count: rows.length,
     checked: data.checked_uk || data.updated_uk || 'recently',
     text: 'Lots (' + rows.length + ' available, showing up to ' + MAX_LOTS_IN_PROMPT + '):\n' +
           (lines.length ? lines.join('\n') : '(none — no live lots are listed right now)') +
           '\n\nAuction sources checked: ' + (sources || 'none') +
           '\nNote: zero lots means the auctions were quiet this week, not an error.'
   };
+}
+
+/**
+ * Reads the newest blog posts from the public RSS feed (fallback when the
+ * auctions hold zero usable lots). Never throws — returns {checked, items}.
+ */
+function fetchBlogPosts_() {
+  try {
+    var res = UrlFetchApp.fetch(FEED_URL + '?cb=' + new Date().getTime(),
+                                { muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) return { checked: '', items: [] };
+    var channel = XmlService.parse(res.getContentText()).getRootElement().getChild('channel');
+    if (!channel) return { checked: '', items: [] };
+    var built = '';
+    try { built = channel.getChildText('lastBuildDate') || ''; } catch (e0) {}
+    var items = [];
+    var entries = channel.getChildren('item') || [];
+    for (var i = 0; i < entries.length && items.length < MAX_POSTS_IN_PROMPT; i++) {
+      var title = '', link = '', desc = '';
+      try { title = entries[i].getChildText('title') || ''; } catch (e1) {}
+      try { link = entries[i].getChildText('link') || ''; } catch (e2) {}
+      try { desc = entries[i].getChildText('description') || ''; } catch (e3) {}
+      if (title && link) items.push({ title: title, link: link, desc: desc });
+    }
+    return { checked: built, items: items };
+  } catch (err) {
+    return { checked: '', items: [] };
+  }
 }
 
 function findRowByEmail_(sheet, email) {
@@ -404,12 +490,23 @@ function numberOrBlank_(v) {
   return (isFinite(n) && n >= 0) ? n : '';
 }
 
-/** Allows only h2, p, ul, li, strong — the tags the prompt is told to use. */
+/**
+ * Allows only h2, p, ul, li, strong and links — the tags the prompts may use.
+ * Links keep an http(s) href only; every other attribute is dropped. Stray
+ * closing tags left behind by dropped links are harmless in email clients.
+ */
 function sanitise_(html) {
   var out = String(html);
   out = out.replace(/```[a-z]*/gi, '');
-  out = out.replace(/<(script|style|iframe|form|input|img|a)\b[^>]*>/gi, '');
-  out = out.replace(/<\/?(?!\/?(?:h2|p|ul|li|strong)\b)[a-z][^>]*>/gi, '');
+  out = out.replace(/<(script|style|iframe|form|input|img)\b[^>]*>/gi, '');
+  out = out.replace(/<a\b[^>]*>/gi, function (tag) {
+    var m = tag.match(/href\s*=\s*("([^"]*)"|'([^']*)')/i);
+    var href = m ? (m[2] || m[3] || '') : '';
+    if (/^https?:\/\//i.test(href)) return '<a href="' + href + '">';
+    return '';
+  });
+  out = out.replace(/<(h2|p|ul|li|strong)\b[^>]*>/gi, '<$1>');
+  out = out.replace(/<\/?(?!\/?(?:h2|p|ul|li|strong|a)\b)[a-z][^>]*>/gi, '');
   return out.trim();
 }
 

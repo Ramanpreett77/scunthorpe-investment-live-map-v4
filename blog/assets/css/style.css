@@ -175,3 +175,24 @@ footer .brand span{color:var(--gold)}
 footer .bar{max-width:var(--max);margin:30px auto 0;padding-top:18px;
   border-top:1px solid rgba(255,255,255,.09);font-size:.8rem;color:#74889e;text-align:center}
 @media(max-width:760px){footer .cols{grid-template-columns:1fr}}
+
+/* ---------- deal-map CTA ---------- */
+.dealbox{margin-top:30px;background:linear-gradient(135deg,#0b1f33,#14395c);color:#fff;
+  border-radius:14px;padding:26px;text-align:center}
+.dealbox h3{color:#fff;margin-bottom:6px}
+.dealbox p{color:#bccbdc;margin:6px 0 16px;font-size:.95rem}
+.dealbox .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.dealbox .fine{font-size:.75rem;color:#93a7bd;margin:12px 0 0}
+nav .links a.mapbtn{border:1px solid rgba(230,187,98,.5);color:var(--gold);
+  padding:7px 15px;border-radius:999px;font-weight:600;white-space:nowrap}
+nav .links a.mapbtn:hover{background:var(--gold);color:var(--ink)}
+@media(max-width:900px){nav .links a.mapbtn.hide-sm{display:none}}
+
+/* ---------- subscribe form ---------- */
+.subform{max-width:520px;margin:0 auto;text-align:left}
+.subform input[type=text],.subform input[type=email]{width:100%;border-radius:9px;border:none;padding:12px;margin:6px 0}
+.subform .consent{display:flex;gap:8px;align-items:flex-start;font-size:.78rem;color:#c8d4e2;margin-top:10px}
+.subform .consent input{width:auto;margin-top:3px;flex:0 0 auto}
+.subform .consent a{color:#fff}
+.subform .msg{font-size:.85rem;margin-top:10px;min-height:1.2em;text-align:center}
+.hp{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}

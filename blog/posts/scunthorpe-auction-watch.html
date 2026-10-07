@@ -14,6 +14,14 @@
 <link rel="alternate" type="application/rss+xml" title="SGJM - RSS" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog/feed.xml">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127968;</text></svg>">
+<!-- Analytics (shared include): blog-shared.js reads the site-root config.js and
+     loads GoatCounter + the Search Console tag ONLY when goatcounterCode /
+     gscVerification are set. Nothing loads while they are blank. See
+     ANALYTICS-SETUP.md. Search Console verification placeholder (rendered only
+     when configured):
+     <meta name="google-site-verification" content="PASTE_TOKEN_HERE"> -->
+<script src="../../config.js"></script>
+<script src="../assets/js/blog-shared.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Scunthorpe Auction Watch: A Quiet Week — and What That Means for Buyers","datePublished":"2026-10-07","author":{"@type":"Organization","name":"SGJM"},"publisher":{"@type":"Organization","name":"SGJM"},"description":"Week of 05 October 2026: no unsold DN15-DN20 auction lots tracked right now. Why quiet catalogues are an opportunity, and how to be first in line when stock returns."}</script>
 </head>
 <body>
@@ -22,8 +30,10 @@
   <span class="links">
     <a href="../index.html#articles">Articles</a>
     <a href="../about.html">About</a>
-    <a href="../contact.html">Contact</a>
-    <a class="pill" href="../contact.html">Free deal review</a>
+    <a href="../contact.html" data-gc="blog-contact-click">Contact</a>
+    <a class="mapbtn hide-sm" data-gc="blog-cta-deal-map" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/">Live deal map</a>
+    <a class="mapbtn" data-gc="blog-cta-alerts" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/#deal-alerts">Get deal alerts</a>
+    <a class="pill" data-gc="blog-contact-click" href="../contact.html">Free deal review</a>
   </span>
 </nav></header>
 
@@ -58,6 +68,15 @@
       <a class="li" data-net="linkedin" href="#">LinkedIn</a>
       <a class="fb" data-net="facebook" href="#">Facebook</a>
       <a class="x" data-net="x" href="#">X</a>
+    </div>
+    <div class="dealbox">
+      <h3>See live Scunthorpe deals</h3>
+      <p>See live Scunthorpe deals and use the free yield, BRR and legal pack tools.</p>
+      <div class="row">
+        <a class="btn" data-gc="blog-cta-deal-map" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/">Live deal map</a>
+        <a class="btn ghost" data-gc="blog-cta-alerts" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/#deal-alerts">Get deal alerts</a>
+      </div>
+      <p class="fine">General information only &mdash; not financial, tax or legal advice.</p>
     </div>
   </div>
 </div>
@@ -121,12 +140,14 @@ document.querySelectorAll('.share a').forEach(function (a) {
     <div>
       <h4>Read</h4>
       <p><a href="../index.html#articles">All articles</a></p>
+      <p><a data-gc="blog-cta-deal-map" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/">Live deal map</a></p>
       <p><a href="../about.html">About this blog</a></p>
       <p><a href="../feed.xml">RSS feed</a></p>
     </div>
     <div>
       <h4>Get in touch</h4>
-      <p><a href="../contact.html">Contact &amp; enquiries</a></p>
+      <p><a href="../contact.html" data-gc="blog-contact-click">Contact &amp; enquiries</a></p>
+      <p><a data-gc="blog-cta-alerts" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/#deal-alerts">Get deal alerts</a></p>
       <p><a href="../privacy.html">Privacy policy</a></p>
       <p>Replies within one working day.</p>
     </div>

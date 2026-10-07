@@ -14,6 +14,14 @@
 <link rel="alternate" type="application/rss+xml" title="SGJM - RSS" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog/feed.xml">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127968;</text></svg>">
+<!-- Analytics (shared include): blog-shared.js reads the site-root config.js and
+     loads GoatCounter + the Search Console tag ONLY when goatcounterCode /
+     gscVerification are set. Nothing loads while they are blank. See
+     ANALYTICS-SETUP.md. Search Console verification placeholder (rendered only
+     when configured):
+     <meta name="google-site-verification" content="PASTE_TOKEN_HERE"> -->
+<script src="../config.js"></script>
+<script src="assets/js/blog-shared.js"></script>
 
 </head>
 <body>
@@ -22,27 +30,47 @@
   <span class="links">
     <a href="index.html#articles">Articles</a>
     <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-    <a class="pill" href="contact.html">Free deal review</a>
+    <a href="contact.html" data-gc="blog-contact-click">Contact</a>
+    <a class="mapbtn hide-sm" data-gc="blog-cta-deal-map" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/">Live deal map</a>
+    <a class="mapbtn" data-gc="blog-cta-alerts" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/#deal-alerts">Get deal alerts</a>
+    <a class="pill" data-gc="blog-contact-click" href="contact.html">Free deal review</a>
   </span>
 </nav></header>
 
 <section class="wrap" style="max-width:760px">
   <h2 class="sec">Privacy Policy</h2>
-  <p class="sub">Last updated: September 2026</p>
+  <p class="sub">Last updated: October 2026</p>
+  <p style="margin:14px 0"><b>Who I am.</b> This blog is operated by the sole trader
+  <strong>Ramanpreett Singh Chhabra</strong>, trading as <strong>SGJ</strong>. Contact:
+  <a href="mailto:ramanpreettsinghchhabra@gmail.com">ramanpreettsinghchhabra@gmail.com</a>.</p>
   <p style="margin:14px 0"><b>What we collect.</b> If you use the contact form or the chat assistant's
   lead capture, we receive the name, email address and message you choose to share.
-  Newsletter sign-ups collect your email address only.</p>
+  Newsletter sign-ups collect your email address and, if you give it, your name.</p>
   <p style="margin:14px 0"><b>How we use it.</b> Solely to respond to your enquiry or send the
-  newsletter you requested. We never sell your data. Forms are processed by our email
-  form-delivery providers (Web3Forms and FormSubmit) on our behalf. Leads are also logged to a
-  private spreadsheet so no enquiry is ever lost.</p>
-  <p style="margin:14px 0"><b>Cookies & storage.</b> This site sets no advertising or tracking
+  weekly deal digest and blog updates you requested. We never sell your data. Contact-form
+  messages are delivered by our email form-delivery providers (Web3Forms and FormSubmit) on our
+  behalf. Newsletter sign-ups join the same subscriber list as the main site's deal-alert form:
+  your details are stored in a shared <b>Google Sheet</b> accessible only to me, and emails are
+  sent via <b>Google</b> (Gmail with Google Apps Script). Every email includes an
+  <b>unsubscribe link</b> that takes effect immediately.</p>
+  <p style="margin:14px 0"><b>AI assistance.</b> Digest text is drafted with the assistance of an AI
+  service (<b>OpenAI</b>) from public deal and blog data only. Your personal details are never sent
+  to OpenAI and are never used to generate email content.</p>
+  <p style="margin:14px 0"><b>How long I keep it.</b> I delete subscriber data after 24 months of
+  inactivity, or sooner when it is no longer needed. To have your details deleted at any time,
+  email me at the address above and I will remove your row from the subscriber list and confirm
+  when it is done.</p>
+  <p style="margin:14px 0"><b>Analytics.</b> I use GoatCounter, a privacy-friendly analytics service that
+  does not use cookies and does not collect names, emails or phone numbers. It records aggregate
+  page views and button clicks. I use Google Search Console to see which searches lead to this site.</p>
+  <p style="margin:14px 0"><b>Cookies &amp; storage.</b> This site sets no advertising or tracking
   cookies. When you leave details with the chat assistant they are passed to us (via our form
   provider) so we can respond, and a copy is kept in your own browser's local storage
   so nothing is lost if the page reloads.</p>
   <p style="margin:14px 0"><b>Your rights.</b> You may request a copy or deletion of any details
-  you've sent us at any time by emailing <a href="mailto:hello@example.com">hello@example.com</a>.</p>
+  you've sent us at any time by emailing <a href="mailto:ramanpreettsinghchhabra@gmail.com">ramanpreettsinghchhabra@gmail.com</a>.
+  You also have the right to complain to the UK Information Commissioner's Office (ICO) at
+  <a href="https://ico.org.uk/make-a-complaint/" target="_blank" rel="noopener">ico.org.uk/make-a-complaint</a>.</p>
   <p style="margin:14px 0"><b>Third-party links.</b> Articles link to external sites (e.g. social
   networks); their own privacy policies apply once you leave this site.</p>
 </section>
@@ -57,12 +85,14 @@
     <div>
       <h4>Read</h4>
       <p><a href="index.html#articles">All articles</a></p>
+      <p><a data-gc="blog-cta-deal-map" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/">Live deal map</a></p>
       <p><a href="about.html">About this blog</a></p>
       <p><a href="feed.xml">RSS feed</a></p>
     </div>
     <div>
       <h4>Get in touch</h4>
-      <p><a href="contact.html">Contact &amp; enquiries</a></p>
+      <p><a href="contact.html" data-gc="blog-contact-click">Contact &amp; enquiries</a></p>
+      <p><a data-gc="blog-cta-alerts" href="https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/#deal-alerts">Get deal alerts</a></p>
       <p><a href="privacy.html">Privacy policy</a></p>
       <p>Replies within one working day.</p>
     </div>
