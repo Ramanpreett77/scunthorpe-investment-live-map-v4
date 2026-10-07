@@ -30,7 +30,7 @@ window.SITE_CONFIG = Object.freeze({
   // https://ramanpreet.goatcounter.com/count   See ANALYTICS-SETUP.md.
   goatcounterCode: 'propertyinvestmentinsights',
   // Google Search Console verification token. Nothing is rendered while this is blank.
-  gscVerification: '',
+  gscVerification: '"FBabWE-yr2BOoFQpfQEAEsFHpEi7zAJLKFrdqrIT4YQ"',
   areaCovered: '',
   feeStructure: Object.freeze({
     title: 'Fee structure',
