@@ -2,8 +2,6 @@
 /* SGJM blog shared include: analytics + subscribe form (every blog page).
  * Reads window.SITE_CONFIG from the site-root config.js.
  * - GoatCounter loads ONLY when SITE_CONFIG.goatcounterCode is set.
- * - The Search Console meta tag is injected ONLY when
- *   SITE_CONFIG.gscVerification is set.
  * - Never sends names, emails, phones, addresses or form values to analytics. */
 (function () {
   'use strict';
@@ -25,17 +23,6 @@
       s.src = '//gc.zgo.at/count.js';
       document.head.appendChild(s);
     } catch (e) { /* analytics is optional - never break the page */ }
-  }
-
-  /* ---- Search Console verification (only when configured) ---- */
-  var gsc = String(cfg.gscVerification == null ? '' : cfg.gscVerification).trim();
-  if (gsc && !/^PASTE_/i.test(gsc) && typeof document !== 'undefined') {
-    try {
-      var m = document.createElement('meta');
-      m.setAttribute('name', 'google-site-verification');
-      m.setAttribute('content', gsc);
-      document.head.appendChild(m);
-    } catch (e2) { /* optional - never break the page */ }
   }
 
   /* ---- Guarded event helper (no-op if GoatCounter blocked/absent) ---- */

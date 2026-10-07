@@ -35,9 +35,13 @@ Step 2 — Verify the blog in Google Search Console (10 minutes)
    `<meta name="google-site-verification" content="ABC123..." />`.
    Copy ONLY the token part (`ABC123...`).
 4. Open `config.js` (same link as Step 1), find `gscVerification: ''` and paste
-   the token between the quotes. Commit changes.
-5. Wait a minute for GitHub Pages to redeploy, then click **Verify** in Search Console.
-   (If it fails, wait 5 minutes and try again — the redeploy may still be running.)
+   ONLY the token between the single quotes (no `<meta...>`, no double quotes). Commit changes.
+5. The tag is baked into the blog pages the next time the blog bot builds — it rebuilds
+   automatically every day, so within 24 hours at most. Wait a minute for GitHub Pages
+   to redeploy, then click **Verify** in Search Console.
+   (If it fails, wait 5 minutes and try again — the redeploy may still be running.
+   Google reads the raw page without JavaScript, which is why the tag must be baked
+   into the HTML rather than added by a script.)
 
 Step 3 — Submit the sitemap and feed (2 minutes)
 1. In Search Console (with your blog property selected) → **Sitemaps** in the left menu.
@@ -70,6 +74,6 @@ Step 5 — Test both forms (5 minutes)
 Troubleshooting
 Symptom	Fix
 No visits in GoatCounter	The code in `config.js` must match your GoatCounter URL exactly. Also check you are not blocking it with an ad-blocker (blocking is fine — the site still works).
-Search Console won't verify	The token must be pasted in `config.js` AND committed AND the site redeployed (wait ~2 minutes) before clicking Verify.
+Search Console won't verify	The token must be pasted in `config.js` AND committed AND the blog rebuilt AND the site redeployed before clicking Verify. The blog rebuilds automatically every day — check the tag is live by viewing page source on any blog page and searching for `google-site-verification`.
 Blog form says "not live yet"	`config.js` still needs the Apps Script URL from NEWSLETTER-SETUP.md Step 5 (both forms share it).
 No `Source` column in the Sheet	Redeploy a new version (Step 4.3) and submit one test registration.

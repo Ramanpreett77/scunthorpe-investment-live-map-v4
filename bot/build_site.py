@@ -391,15 +391,15 @@ CHAT_JS = r"""
 
 # ------------------------------------------------------- shared blog include ---
 # Loaded on every blog page (see SHELL). Reads window.SITE_CONFIG from the
-# site-root config.js: GoatCounter + the Search Console tag load ONLY when
-# their config values are set. The subscribe form posts to the SAME endpoint
-# as the main site's deal-alert form. Never sends personal data to analytics.
+# site-root config.js: GoatCounter loads ONLY when its config value is set.
+# (The Search Console tag is NOT handled here - Google's verifier reads raw
+# HTML without JavaScript, so build_site.py bakes it into the static pages
+# instead.) The subscribe form posts to the SAME endpoint as the main site's
+# deal-alert form. Never sends personal data.
 BLOG_SHARED_JS = r"""
 /* SGJM blog shared include: analytics + subscribe form (every blog page).
  * Reads window.SITE_CONFIG from the site-root config.js.
  * - GoatCounter loads ONLY when SITE_CONFIG.goatcounterCode is set.
- * - The Search Console meta tag is injected ONLY when
- *   SITE_CONFIG.gscVerification is set.
  * - Never sends names, emails, phones, addresses or form values to analytics. */
 (function () {
   'use strict';
@@ -421,17 +421,6 @@ BLOG_SHARED_JS = r"""
       s.src = '//gc.zgo.at/count.js';
       document.head.appendChild(s);
     } catch (e) { /* analytics is optional - never break the page */ }
-  }
-
-  /* ---- Search Console verification (only when configured) ---- */
-  var gsc = String(cfg.gscVerification == null ? '' : cfg.gscVerification).trim();
-  if (gsc && !/^PASTE_/i.test(gsc) && typeof document !== 'undefined') {
-    try {
-      var m = document.createElement('meta');
-      m.setAttribute('name', 'google-site-verification');
-      m.setAttribute('content', gsc);
-      document.head.appendChild(m);
-    } catch (e2) { /* optional - never break the page */ }
   }
 
   /* ---- Guarded event helper (no-op if GoatCounter blocked/absent) ---- */
@@ -579,12 +568,13 @@ SHELL = """<!DOCTYPE html>
 <link rel="alternate" type="application/rss+xml" title="@BRAND@ - RSS" href="@FEED@">
 <link rel="stylesheet" href="@BASE@assets/css/style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127968;</text></svg>">
-<!-- Analytics (shared include): blog-shared.js reads the site-root config.js and
-     loads GoatCounter + the Search Console tag ONLY when goatcounterCode /
-     gscVerification are set. Nothing loads while they are blank. See
-     ANALYTICS-SETUP.md. Search Console verification placeholder (rendered only
-     when configured):
+<!-- GoatCounter loads from blog-shared.js using goatcounterCode in the site-root
+     config.js (nothing loads while blank). The Search Console tag is baked into
+     this static HTML at build time from gscVerification in config.js - Google's
+     verifier reads raw HTML without running JavaScript, so a JS-injected tag
+     would be invisible to it. Placeholder (tag omitted while unset):
      <meta name="google-site-verification" content="PASTE_TOKEN_HERE"> -->
+@GSC_TAG@
 <script src="@BASE@../config.js"></script>
 <script src="@BASE@assets/js/blog-shared.js"></script>
 @JSONLD@
@@ -1032,6 +1022,27 @@ def rfc822(iso):
     return d.strftime("%a, %d %b %Y 08:00:00 +0000")
 
 
+def read_gsc_token(out_dir):
+    """Search Console token from the site-root config.js.
+
+    config.js stays the single place the owner pastes the token; the tag is
+    baked into the static HTML because Google's verifier reads raw HTML
+    without running JavaScript. Returns '' while unset (tag omitted).
+    """
+    candidate = os.path.normpath(os.path.join(out_dir, os.pardir, "config.js"))
+    try:
+        text = open(candidate, encoding="utf-8").read()
+    except Exception:
+        return ""
+    m = re.search(r"gscVerification:\s*['\"]([^'\"]*)['\"]", text)
+    if not m:
+        return ""
+    token = m.group(1).strip()
+    if not token or token.upper().startswith("PASTE_"):
+        return ""
+    return token
+
+
 # ------------------------------------------------------------------ parsing ---
 def parse_post(path):
     text = open(path, encoding="utf-8").read()
@@ -1088,9 +1099,14 @@ def main():
     ap.add_argument("--contact-email", default="hello@example.com")
     ap.add_argument("--w3f-key", default="7d7560e5-c7f8-41fb-865d-9bbdd3dfb159")
     ap.add_argument("--sheet-url", default="https://script.google.com/macros/s/AKfycbyEU1RcmAaQOIGZF01Jk_bBJvm8XmlvjSgS16iR-nfJ9WEqcPL8pF7ne29Asm6lYCg0fA/exec")
+    ap.add_argument("--gsc-token", default=None,
+                    help="Search Console token (default: read gscVerification from config.js)")
     args = ap.parse_args()
 
     site = args.site_url.rstrip("/")
+    gsc_token = args.gsc_token or read_gsc_token(args.out)
+    gsc_tag = ('<meta name="google-site-verification" content="%s">' % gsc_token) if gsc_token else ""
+    print("search console tag: %s" % ("baked in" if gsc_token else "omitted (gscVerification blank)"))
     out = args.out
     posts = load_posts(args.posts)
     print("posts loaded: %d (unique slugs)" % len(posts))
@@ -1153,6 +1169,7 @@ def main():
                 .replace("@BODY@", body)
                 .replace("@MAPLINK@", maplink)
                 .replace("@ALERTSLINK@", alertslink)
+                .replace("@GSC_TAG@", gsc_tag)
                 .replace("@ARTICLES@", articles_json))
 
     def card(p, feature=False, prefix="posts/", related=False):
