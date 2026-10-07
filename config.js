@@ -28,7 +28,8 @@ window.SITE_CONFIG = Object.freeze({
   // Privacy-friendly, cookieless analytics (GoatCounter). Nothing loads while this is blank.
   // Your code is the first part of your GoatCounter URL: "ramanpreet" gives
   // https://ramanpreet.goatcounter.com/count   See ANALYTICS-SETUP.md.
-  goatcounterCode: '',
+  goatcounterCode: '<script data-goatcounter="https://propertyinvestmentinsights.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>',
   // Google Search Console verification token. Nothing is rendered while this is blank.
   gscVerification: '',
   areaCovered: '',
