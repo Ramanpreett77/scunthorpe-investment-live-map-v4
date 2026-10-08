@@ -196,3 +196,4 @@ nav .links a.mapbtn:hover{background:var(--gold);color:var(--ink)}
 .subform .consent a{color:#fff}
 .subform .msg{font-size:.85rem;margin-top:10px;min-height:1.2em;text-align:center}
 .hp{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+[hidden]{display:none!important}

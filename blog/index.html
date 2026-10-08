@@ -167,7 +167,7 @@
   <aside class="ctabox" style="max-width:none;margin:0">
     <h2>Get every new breakdown first</h2>
     <p>One email a week: HMO yields, BRR examples, auction stock and lending updates. No spam.</p>
-    <form id="blog-subscribe" novalidate style="max-width:520px;margin:0 auto">
+    <form id="blog-subscribe" novalidate hidden style="max-width:520px;margin:0 auto">
       <div class="subform">
         <input type="text" name="name" id="bs-name" maxlength="100" autocomplete="name" placeholder="Your name (optional)">
         <input type="email" name="email" id="bs-email" maxlength="254" autocomplete="email" required placeholder="you@example.com">
@@ -177,6 +177,7 @@
         <p class="msg" id="bs-msg" role="status" aria-live="polite"></p>
       </div>
     </form>
+    <p class="msg" id="bs-soon" style="text-align:center">Email alerts opening soon.</p>
     <p style="font-size:.78rem;color:#c8d4e2;margin-top:10px">One email a week.
     <a href="privacy.html" style="color:#fff">Privacy policy</a>. Unsubscribe any time.</p>
   </aside>

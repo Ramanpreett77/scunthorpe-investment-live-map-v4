@@ -6,6 +6,7 @@
 (function () {
   'use strict';
   var cfg = (typeof window !== 'undefined' && window.SITE_CONFIG) ? window.SITE_CONFIG : {};
+  var COLLECT_DATA_ENABLED = cfg.COLLECT_DATA_ENABLED === true; /* default false: forms stay closed */
 
   function cleanCode(v) {
     v = String(v == null ? '' : v).trim();
@@ -75,6 +76,16 @@
   function initForm() {
     var form = document.getElementById('blog-subscribe');
     if (!form) return;
+    var soon = document.getElementById('bs-soon');
+    if (!COLLECT_DATA_ENABLED) {
+      form.setAttribute('hidden', '');
+      form.style.display = 'none';
+      if (soon) { soon.removeAttribute('hidden'); soon.style.display = ''; }
+    } else {
+      form.removeAttribute('hidden');
+      form.style.display = '';
+      if (soon) { soon.setAttribute('hidden', ''); soon.style.display = 'none'; }
+    }
     var emailEl = document.getElementById('bs-email');
     var nameEl = document.getElementById('bs-name');
     var hpEl = document.getElementById('bs-website');
@@ -88,6 +99,8 @@
     }
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      /* COLLECT_DATA_ENABLED=false: collect nothing - not even into local variables. */
+      if (!COLLECT_DATA_ENABLED) { say('Email alerts opening soon.', false); return; }
       var email = String(emailEl.value || '').trim();
       var name = String(nameEl.value || '').trim();
       var hp = String(hpEl.value || '').trim();

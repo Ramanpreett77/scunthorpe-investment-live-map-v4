@@ -2,6 +2,14 @@
  * Do not put API keys, Sheet IDs with write access, or personal data here.
  */
 window.SITE_CONFIG = Object.freeze({
+  // PRE-REGISTRATION MODE: while true, sourcing services (sell panel, live-deal
+  // listings, fee wording, registration claims) stay hidden behind a notice.
+  // Set false ONLY once regulatory registrations are complete.
+  PRE_REGISTRATION_MODE: true,
+  // DATA COLLECTION: alert + newsletter forms work only while true. While false
+  // the forms are hidden, "Email alerts opening soon." shows instead, and no
+  // data is collected or sent anywhere.
+  COLLECT_DATA_ENABLED: false,
   tradingName: '',
   yourName: '',
   contactEmail: '',

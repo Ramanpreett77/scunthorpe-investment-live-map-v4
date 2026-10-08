@@ -111,6 +111,9 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
 .lp-flag-red{background:#fef2f2;border-color:#fecaca;color:#991b1b}
 .lp-flag-amber{background:#fffbeb;border-color:#fde68a;color:#92400e}
 .lp-flag-green{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+[hidden]{display:none!important}
+.prereg-notice{background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:10px 14px;font-size:13px;text-align:center}
+.collect-soon{font-size:13px;color:#475569;padding:10px 0}
 </style>
 </head>
 <body>
@@ -128,14 +131,15 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <span class="chip" onclick="quickSearch('Ashby High Street, Scunthorpe DN16 2JR')">Ashby</span>
       <span class="chip" onclick="quickSearch('Bottesford Road, Scunthorpe DN16 3DA')">Bottesford</span>
       <span class="chip" onclick="quickSearch('Gunness, Scunthorpe DN17 3DW')">Gunness</span>
-      <span class="chip" style="background:#0ea5e9;color:#000;border-color:#0ea5e9;font-weight:800" onclick="openDealsPanel()">🔥 LIVE DEALS</span>
-      <span class="chip" style="background:#dc2626;color:#fff;border-color:#dc2626;font-weight:800" onclick="openSellPanel()">🏠 SELL YOUR HOUSE</span>
+      <span class="chip" id="navDealsChip" hidden style="background:#0ea5e9;color:#000;border-color:#0ea5e9;font-weight:800" onclick="openDealsPanel()">🔥 LIVE DEALS</span>
+      <span class="chip" id="navSellChip" hidden style="background:#dc2626;color:#fff;border-color:#dc2626;font-weight:800" onclick="openSellPanel()">🏠 SELL YOUR HOUSE</span>
       <span class="chip" style="background:#7c3aed;color:#fff;border-color:#7c3aed" onclick="toggleHeatmap()" id="heatChip" title="Recolour zones by estimated gross yield">🌡️ Yield heat</span>
       <span class="chip" style="background:#f59e0b;color:#000;border-color:#f59e0b;font-weight:800" onclick="switchTab('legalpack');document.getElementById('panel-legalpack').scrollIntoView({behavior:'smooth'})" title="Get title, EPC, planning, flood + auction legal pack links for the searched address">📜 Legal Pack</span>
       <span class="chip" style="background:#16a34a;color:#fff;border-color:#16a34a" title="Live data: UK HPI + Land Registry + postcodes.io — Sep 2026">v5.3</span>
     </div>
   </div>
 </header>
+<div id="preregNotice" class="prereg-notice">This site currently offers free property information and tools. Property sourcing services will launch once our regulatory registrations are complete.</div>
 
 <main class="home-page" id="home">
   <div class="home-shell">
@@ -143,20 +147,20 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <div class="home-hero-copy">
         <div class="home-eyebrow">Property sourcing information and free due-diligence tools</div>
         <h1>Find, assess and review property opportunities.</h1>
-        <p>Use the free tools to explore locations, deal assumptions and due-diligence links. Browse the public deal view, or register for alerts when the alert service has been configured.</p>
+        <p id="heroCopy">Use the free tools to explore locations, deal assumptions and due-diligence links. Browse the public deal view, or register for alerts when the alert service has been configured.</p>
         <div class="home-actions">
-          <button class="home-button" onclick="openDealsAndAlerts()">Get deal alerts</button>
+          <button class="home-button" id="heroAlertsBtn" hidden onclick="openDealsAndAlerts()">Get deal alerts</button><span id="heroAlertsSoon" class="collect-soon">Email alerts opening soon.</span>
           <button class="home-button secondary" onclick="scrollToToolsApp()">Use the free tools</button>
         </div>
       </div>
     </section>
 
-    <section class="home-section" id="sell-teaser">
+    <section class="home-section" id="sell-teaser" hidden>
       <div class="home-section-head"><div><h2>Need to sell fast?</h2><p>Probate, arrears, a problem tenant, relocation, or a house that just needs too much work — tell us about it and we will see if it fits a cash-ready buyer on our list. No obligation, no fee to you as the seller.</p></div>
       <button class="home-button" onclick="openSellPanel()">Tell us about your property</button></div>
     </section>
 
-    <section class="home-section" id="deals">
+    <section class="home-section" id="deals" hidden>
       <div class="home-section-head"><div><h2>Deals</h2><p>Browse the currently configured public opportunities. Availability, figures and source information must be checked before relying on them.</p></div><button class="home-button" onclick="openDealsPanel()">View all deals</button></div>
       <div id="homeDealsGrid" class="home-deals-grid"><div class="home-deal-card"><p>Loading configured deals…</p></div></div>
     </section>
@@ -231,7 +235,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
 
   <div class="center">
     <div id="map"></div>
-    <div id="panel-deals" class="panel-deals">
+    <div id="panel-deals" class="panel-deals" hidden>
       <div class="deal-head">
         <h3>🔥 Live Deals — DN15 / DN16 / DN17</h3>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
@@ -269,6 +273,8 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
       <div id="dealsList" class="deal-grid"></div>
       <div id="dealDetail"></div>
       <div id="regBox" class="card" style="margin-top:12px">
+        <div id="regSoon" class="collect-soon">Email alerts opening soon.</div>
+        <div id="regFormWrap" hidden>
         <h2>📬 Get deals before they hit the market</h2>
         <div id="regNote" class="reg-note"></div>
         <div class="reg-grid">
@@ -286,6 +292,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
         <button id="regBtn" class="icon-btn" style="background:#0ea5e9;margin-top:8px" onclick="registerForDealAlerts(event)">🔔 Register for Deal Alerts</button>
         <div id="regMsg" style="font-size:11px;margin-top:6px"></div>
         <div id="regCount" style="font-size:9px;color:#64748b;margin-top:2px"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -491,7 +498,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
           <div class="input-group"><label>Flood risk</label><input id="dp_flood_risk" placeholder="unknown"></div>
           <div class="input-group"><label>Utilities</label><input id="dp_utilities" placeholder="unknown"></div>
           <div class="input-group"><label>Known issues</label><input id="dp_known_issues" placeholder="unknown"></div>
-          <div class="input-group"><label>Sourcing fee (£)</label><input id="dp_sourcing_fee" placeholder="[X]"></div>
+          <div class="input-group" id="dpFeeField" hidden><label>Sourcing fee (£)</label><input id="dp_sourcing_fee" placeholder="[X]"></div>
         </div>
         <button class="btn btn-blue" onclick="generateDealPack()">📄 Generate Deal Pack (Preview)</button>
         <button class="btn" onclick="window.print()">🖨️ Print to PDF</button>
@@ -501,7 +508,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
         <h2>📋 Deal Sourcing Starter Pack - Documents</h2>
         <div style="display:flex;flex-direction:column;gap:6px">
           <a class="btn" href="Compliance-Checklist.html" target="_blank">✅ Compliance Checklist (Article 4, HMO Licence, EPC, AML)</a>
-          <a class="btn" href="Fee-Agreement-Template.html" target="_blank">💷 Fee Agreement Template</a>
+          <a class="btn" id="feeAgreementLink" hidden href="Fee-Agreement-Template.html" target="_blank">💷 Fee Agreement Template</a>
           <a class="btn" href="Deal-Packaging-Template.html" target="_blank">📦 Deal Packaging Template (Full)</a>
         </div>
       </div>
@@ -572,7 +579,7 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
   </div>
 </div>
 <section class="home-info-grid" id="site-information">
-  <section class="home-section" id="fee-structure">
+  <section class="home-section" id="fee-structure" hidden>
     <h2 id="feeStructureTitle">Fee structure</h2>
     <div id="feeStructureContent"><p>Fee information will be shown here once configured.</p></div>
   </section>
@@ -585,8 +592,8 @@ h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#64748b;mar
   <h2>FAQ</h2>
   <details open><summary>What is this service?</summary><p>It provides property sourcing information, configurable deal alerts and browser-based tools for an initial review of property opportunities.</p></details>
   <details><summary>Are the figures financial advice or guaranteed returns?</summary><p>No. Figures are illustrative assumptions only. They are not financial advice, a valuation, a guarantee or a promise of returns.</p></details>
-  <details><summary>How do I receive deal alerts?</summary><p>Use the alert form in the Deals area, complete the required fields and give consent. The alert endpoint must be configured before submissions can be received.</p></details>
-  <details><summary>What does the fee cover?</summary><p>See the Fee structure section above. It remains a placeholder until the site owner completes the fee settings in config.js.</p></details>
+  <details id="faqAlerts" hidden><summary>How do I receive deal alerts?</summary><p>Use the alert form in the Deals area, complete the required fields and give consent. The alert endpoint must be configured before submissions can be received.</p></details>
+  <details id="faqFee" hidden><summary>What does the fee cover?</summary><p>See the Fee structure section above. It remains a placeholder until the site owner completes the fee settings in config.js.</p></details>
   <details><summary>Do I still need to do my own checks?</summary><p>Yes. Review the legal pack, title, planning, condition, costs, tax and finance with appropriate independent professional advice before proceeding.</p></details>
   <details><summary>How is my information handled?</summary><p>Read the <a href="privacy-policy.html">Privacy Policy</a> for alert submissions, optional analytics and browser storage information.</p></details>
 </section>
@@ -616,6 +623,9 @@ const PUBLIC_PIPELINE_KEY='public_pipeline_v1';
 
 // ===== PUBLIC CONFIGURATION (no secrets, Sheet IDs or personal data) =====
 const SITE_CONFIG=window.SITE_CONFIG||{};
+// Compliance flags (see config.js). PRE_REGISTRATION_MODE defaults true; COLLECT_DATA_ENABLED defaults false.
+const PRE_REGISTRATION_MODE=SITE_CONFIG.PRE_REGISTRATION_MODE!==false;
+const COLLECT_DATA_ENABLED=SITE_CONFIG.COLLECT_DATA_ENABLED===true;
 const COMPLIANCE={tradingName:SITE_CONFIG.tradingName||'[TRADING NAME]',contactEmail:SITE_CONFIG.contactEmail||'[EMAIL]',yourName:SITE_CONFIG.yourName||'[YOUR NAME]',icoRegistration:SITE_CONFIG.icoRegistration||'',dataAsOf:SITE_CONFIG.dataAsOf||'Sep 2026'};
 const REG_ENDPOINT=SITE_CONFIG.alertEndpoint||'';
 const SELLER_ENDPOINT=SITE_CONFIG.sellerEndpoint||REG_ENDPOINT||'';
@@ -1333,7 +1343,7 @@ function generateDealPack(){
     <p><b>Article 4:</b> ${zone&&zone.article4?'APPLIES - Planning required for small HMO from 26 Nov 2026':'Does not apply'} • <b>HMO Density:</b> See map - ${existingProps.filter(p=>haversine(lastLat,lastLon,p.lat,p.lon)<=500).length} deals within 500m</p>
     <h3>Investment Summary</h3>
     <p>Purchase £${purchase} + Refurb £${refurb} = Total £${(parseFloat(purchase)+parseFloat(refurb)).toLocaleString()} • GDV £${gdv} • Rent £${rent}/mo • Zone Avg Yield ${zone?zone.yield+'%':''} • Strategy ${packStrategy}${strategyRiskHTML(packStrategy)}</p>
-    <h3>Material Information</h3><table style="width:100%;border-collapse:collapse"><tr><th style="text-align:left">Item</th><th style="text-align:left">Value</th></tr><tr><td>Tenure</td><td>${material.tenure}</td></tr><tr><td>Council tax band</td><td>${material.councilTax}</td></tr><tr><td>EPC</td><td>${material.epc}</td></tr><tr><td>Construction</td><td>${material.construction}</td></tr><tr><td>Flood risk</td><td>${material.floodRisk}</td></tr><tr><td>Utilities</td><td>${material.utilities}</td></tr><tr><td>Known issues</td><td>${material.knownIssues}</td></tr></table><p><b>Sourcing fee: £${sourcingFee}</b></p>
+    <h3>Material Information</h3><table style="width:100%;border-collapse:collapse"><tr><th style="text-align:left">Item</th><th style="text-align:left">Value</th></tr><tr><td>Tenure</td><td>${material.tenure}</td></tr><tr><td>Council tax band</td><td>${material.councilTax}</td></tr><tr><td>EPC</td><td>${material.epc}</td></tr><tr><td>Construction</td><td>${material.construction}</td></tr><tr><td>Flood risk</td><td>${material.floodRisk}</td></tr><tr><td>Utilities</td><td>${material.utilities}</td></tr><tr><td>Known issues</td><td>${material.knownIssues}</td></tr></table>${PRE_REGISTRATION_MODE?'':'<p><b>Sourcing fee: £'+sourcingFee+'</b></p>'}
     <h3>Calculators</h3>
     <div>${document.getElementById('yc_output').innerHTML}</div>
     <div>${document.getElementById('br_output').innerHTML}</div>
@@ -1570,6 +1580,7 @@ function publicDealAddress(d){return dealAddressHidden(d)?'Address withheld':(d.
 function renderHomeDeals(){
   var grid=document.getElementById('homeDealsGrid');
   if(!grid)return;
+  if(PRE_REGISTRATION_MODE){grid.innerHTML='';return;}
   var list=dealsData.filter(function(d){return d.status!=='sold';}).slice(0,4);
   if(!list.length)list=dealsData.slice(0,4);
   if(!list.length){grid.innerHTML='<div class="home-deal-card"><p>No public deals are configured yet.</p></div>';return;}
@@ -1597,11 +1608,12 @@ function strategyRiskHTML(strategy){return /R2SA|joint[- ]?venture|\bJV\b/i.test
 function complianceFooterHTML(){const c=COMPLIANCE;const parts=[];
  if(c.tradingName&&c.tradingName.charAt(0)!=='[')parts.push('<b>'+c.tradingName+'</b>');
  if(c.contactEmail&&c.contactEmail.indexOf('@')>0)parts.push('Contact: <a href="mailto:'+c.contactEmail+'">'+c.contactEmail+'</a>');
- if(c.icoRegistration)parts.push('ICO registration: '+c.icoRegistration);
+ if(c.icoRegistration&&!PRE_REGISTRATION_MODE)parts.push('ICO registration: '+c.icoRegistration);
  parts.push('Sourcing information only. Figures are illustrative. Not financial or investment advice. Do your own due diligence.');
  return '<div class="compliance">'+parts.join('<br>')+'<br><a href="privacy-policy.html">Privacy Policy</a> · Data reference date: '+c.dataAsOf+'</div>';}
 function renderDeals(){
   const div=document.getElementById('dealsList');
+  if(PRE_REGISTRATION_MODE){div.innerHTML='';return;}
   div.innerHTML=dealsForDisplay().map(d=>{const st=STATUS[d.status]||STATUS.available;
     const guideTxt=d.guide?'£'+d.guide.toLocaleString():(d.price_label||'TBC');
     const profitTxt=d.gdv?('£'+((d.gdv||0)-d.guide-(d.fee||0)-(d.refurb||0)).toLocaleString()):'TBC';
@@ -1681,6 +1693,7 @@ function normalizeAutoLot(l){
 }
 function parseCSV(t){const rows=[];let row=[],v='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){v+='"';i++;}else q=false;}else v+=c;}else{if(c==='"')q=true;else if(c===','){row.push(v);v='';}else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(v);v='';if(row.some(x=>x!==''))rows.push(row);row=[];}else v+=c;}}if(v!==''||row.length){row.push(v);rows.push(row);}return rows;}
 function openDealsPanel(){
+  if(PRE_REGISTRATION_MODE)return;
   backToDeals();
   const panel=document.getElementById('panel-deals');
   panel.style.display='block';
@@ -1693,6 +1706,7 @@ function sharedAddressAcknowledged(slug){try{return sessionStorage.getItem('deal
 function acknowledgeSharedAddress(slug){try{sessionStorage.setItem('deal_address_ack_'+slug,'yes');}catch(e){}openSharedDeal(slug);}
 function shareWhatsAppUrl(d,hidden){const label=hidden?(d.zone||'Scunthorpe property opportunity'):(d.addr||'property opportunity');const url=location.origin+location.pathname+'?deal='+encodeURIComponent(d.slug)+(d.hideAddress?'&hide=1':'');return 'https://wa.me/?text='+encodeURIComponent('Property opportunity: '+label+' — '+url);}
 function openSharedDeal(slug){
+  if(PRE_REGISTRATION_MODE)return;
   const d=dealBySlug(slug);
   if(!d){
     const panel=document.getElementById('panel-deals'),detail=document.getElementById('dealDetail');
@@ -1721,6 +1735,7 @@ function openSharedDeal(slug){
   if(panel.scrollIntoView)panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function openDeal(slug){
+  if(PRE_REGISTRATION_MODE)return;
   const d=dealBySlug(slug);
   if(!d){
     const panel=document.getElementById('panel-deals'),detail=document.getElementById('dealDetail');
@@ -1774,6 +1789,7 @@ function loadDealIntoCalcs(slug){
   calcYield();calcBRRR();closeDealsPanel();switchTab('calc');
 }
 function reserveDeal(slug){
+  if(PRE_REGISTRATION_MODE)return;
   const d=dealBySlug(slug);if(!d)return;
   if(!currentDeal||currentDeal.slug!==slug)openDeal(slug);
   document.getElementById('regDeal').value=d.addr;
@@ -1785,9 +1801,10 @@ function updateRegCount(){
   const out=document.getElementById('regCount');
   if(out)out.textContent=REG_ENDPOINT?'Your details are sent to the alert registration service.':'Alert registration is not configured yet — add the endpoint in config.js before publishing.';
 }
-function openSellPanel(){document.getElementById('panel-deals').style.display='none';document.getElementById('panel-sell').style.display='block';trackAnalytics('sell_panel_opened');}
+function openSellPanel(){if(PRE_REGISTRATION_MODE)return;document.getElementById('panel-deals').style.display='none';document.getElementById('panel-sell').style.display='block';trackAnalytics('sell_panel_opened');}
 function closeSellPanel(){document.getElementById('panel-sell').style.display='none';}
 function submitSellerLead(){
+  if(PRE_REGISTRATION_MODE)return false;
   const value=id=>String(document.getElementById(id).value||'').trim();
   const name=value('sell_name'),email=value('sell_email'),phone=value('sell_phone'),address=value('sell_address'),
         situation=value('sell_situation'),timeframe=value('sell_timeframe'),notes=value('sell_notes'),honeypot=value('sell_website');
@@ -1835,6 +1852,7 @@ function postRegistrationViaForm(payload){
 }
 function registerForDealAlerts(e){
   if(e&&e.preventDefault)e.preventDefault();
+  if(!COLLECT_DATA_ENABLED){var soonMsg=document.getElementById('regMsg');if(soonMsg)soonMsg.textContent='Email alerts opening soon.';return false;}
   const value=id=>String(document.getElementById(id).value||'').trim();
   const name=value('reg_name'),email=value('reg_email'),phone=value('reg_phone'),strategy=value('reg_strategy'),areas=value('reg_areas');
   const bmin=Number(value('reg_min')),bmax=Number(value('reg_max'));
@@ -1893,6 +1911,7 @@ function registerForDealAlerts(e){
 }
 function drawDealPins(){
   dealsLayer.clearLayers();
+  if(PRE_REGISTRATION_MODE)return;
   dealsData.forEach(d=>{if(d.lat==null)return;const st=STATUS[d.status]||STATUS.available;
     const mk=L.marker([d.lat,d.lon],{icon:L.divIcon({className:'',html:'<div style="background:'+st.bg+';color:'+st.fg+';padding:3px 8px;border-radius:12px;font-size:9px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)">'+st.label+'</div>',iconSize:[92,22]})});
     mk.addTo(dealsLayer);mk.bindPopup(publicDealAddress(d));if(mk.on)mk.on('click',()=>openDeal(d.slug));});
@@ -1901,11 +1920,55 @@ function checkDealLink(){const params=new URLSearchParams(location.search);const
 function applyRefurbFromQuery(){const v=Number(new URLSearchParams(location.search).get('refurbTotal'));if(Number.isFinite(v)&&v>=0){renderRefurb();document.getElementById('yc_refurb').value=v;document.getElementById('br_refurb').value=v;calcYield();calcBRRR();}}
 
 // Init
+// ===== COMPLIANCE FLAGS (PRE_REGISTRATION_MODE / COLLECT_DATA_ENABLED) =====
+// Hides sourcing-service elements while pre-registration; restores them exactly
+// when the flags flip. Nothing gated here is deleted - only hidden or relocated.
+function applyComplianceFlags(){
+  function setHidden(id,hide){var n=document.getElementById(id);if(n){if(hide)n.setAttribute('hidden','');else n.removeAttribute('hidden');}}
+  // One short notice near the top while pre-registration mode is on.
+  setHidden('preregNotice',!PRE_REGISTRATION_MODE);
+  // Sourcing-service elements: hidden while PRE_REGISTRATION_MODE is true.
+  setHidden('navDealsChip',PRE_REGISTRATION_MODE);
+  setHidden('navSellChip',PRE_REGISTRATION_MODE);
+  setHidden('sell-teaser',PRE_REGISTRATION_MODE);
+  setHidden('deals',PRE_REGISTRATION_MODE);
+  setHidden('panel-deals',PRE_REGISTRATION_MODE);
+  setHidden('panel-sell',PRE_REGISTRATION_MODE);
+  setHidden('fee-structure',PRE_REGISTRATION_MODE);
+  setHidden('dpFeeField',PRE_REGISTRATION_MODE);
+  setHidden('feeAgreementLink',PRE_REGISTRATION_MODE);
+  setHidden('faqFee',PRE_REGISTRATION_MODE);
+  // Fee wording must not linger in the DOM while hidden.
+  if(PRE_REGISTRATION_MODE){var fc=document.getElementById('feeStructureContent');if(fc)fc.innerHTML='';}
+  // Forms: hidden while COLLECT_DATA_ENABLED is false; "opening soon" instead.
+  setHidden('regFormWrap',!COLLECT_DATA_ENABLED);
+  setHidden('regSoon',COLLECT_DATA_ENABLED);
+  setHidden('heroAlertsBtn',!COLLECT_DATA_ENABLED);
+  setHidden('heroAlertsSoon',COLLECT_DATA_ENABLED);
+  setHidden('faqAlerts',!COLLECT_DATA_ENABLED);
+  // Hero copy drops the deal-view/alerts sentence while pre-registration.
+  var hc=document.getElementById('heroCopy');
+  if(hc){if(hc.getAttribute('data-orig')===null)hc.setAttribute('data-orig',hc.textContent);
+    hc.textContent=PRE_REGISTRATION_MODE?'Use the free tools to explore locations, deal assumptions and due-diligence links.':hc.getAttribute('data-orig');}
+  // panel-sell is display:none in the original markup; keep it that way on restore.
+  if(!PRE_REGISTRATION_MODE){var ps=document.getElementById('panel-sell');if(ps)ps.style.display='none';}
+  // Auction search shortcuts + alert form stay reachable: move them out of the
+  // hidden deals panel into the home page while pre-registration, restore after.
+  var home=document.querySelector('#home .home-shell');
+  function moveOut(elId,slotId){var n=document.getElementById(elId);if(!n||!home)return;
+    var slot=document.getElementById(slotId);
+    if(!slot){slot=document.createElement('span');slot.id=slotId;slot.style.display='none';n.parentNode.insertBefore(slot,n);}
+    home.appendChild(n);}
+  function moveBack(elId,slotId){var n=document.getElementById(elId),slot=document.getElementById(slotId);if(!n||!slot)return;
+    slot.parentNode.insertBefore(n,slot);slot.parentNode.removeChild(slot);}
+  if(PRE_REGISTRATION_MODE){moveOut('auctionStockCard','preregSlotAuction');moveOut('regBox','preregSlotReg');}
+  else{moveBack('regBox','preregSlotReg');moveBack('auctionStockCard','preregSlotAuction');}
+}
 initAnalytics();renderHomeConfiguration();loadPublicPipeline();renderHomeDeals();renderRefurb();calcYield();calcBRRR();calcRent();calcSDLT();updateMaxOfferFields();applyRefurbFromQuery();renderLPChecklist();renderLPSavedList();
 zones.forEach(z=>{const poly=L.polygon(z.coords,{color:'#64748b',fillColor:'#64748b',fillOpacity:0.06,weight:1,dashArray:'6,4'}).addTo(zoneLayer).bindPopup(z.name);zonePolygons.push({z:z,poly:poly});});
 renderRentIntel();fetchHPI();
 document.getElementById('fullAddress').addEventListener('keydown',e=>{if(e.key==='Enter') searchFullAddress();});
-renderDeals();drawDealPins();updateRegCount();loadLiveDeals();
+renderDeals();drawDealPins();updateRegCount();loadLiveDeals();applyComplianceFlags();
 document.getElementById('siteFooter').innerHTML=complianceFooterHTML();
 if(window.addEventListener)window.addEventListener('hashchange',checkDealLink);
 checkDealLink();
