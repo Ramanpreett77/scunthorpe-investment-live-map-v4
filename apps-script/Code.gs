@@ -486,6 +486,7 @@ function isEmail_(v) {
 }
 
 function numberOrBlank_(v) {
+  if (v === '' || v === null || v === undefined) return '';
   var n = Number(v);
   return (isFinite(n) && n >= 0) ? n : '';
 }
