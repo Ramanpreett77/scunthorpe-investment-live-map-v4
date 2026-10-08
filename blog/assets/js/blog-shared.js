@@ -7,6 +7,7 @@
   'use strict';
   var cfg = (typeof window !== 'undefined' && window.SITE_CONFIG) ? window.SITE_CONFIG : {};
   var COLLECT_DATA_ENABLED = cfg.COLLECT_DATA_ENABLED === true; /* default false: forms stay closed */
+  var PRE_REGISTRATION_MODE = cfg.PRE_REGISTRATION_MODE !== false; /* default true: services hidden */
 
   function cleanCode(v) {
     v = String(v == null ? '' : v).trim();
@@ -72,6 +73,19 @@
       setTimeout(function () { try { f.remove(); } catch (e) {} }, 15000);
       return true;
     } catch (e) { return false; }
+  }
+  /* ---- Nav CTA gating: alerts need COLLECT, review needs live services ---- */
+  function initNavGating() {
+    if (!document.querySelectorAll) return;
+    function gate(selector, hide) {
+      var nodes = document.querySelectorAll(selector);
+      for (var i = 0; i < nodes.length; i++) {
+        if (hide) { nodes[i].setAttribute('hidden', ''); nodes[i].style.display = 'none'; }
+        else { nodes[i].removeAttribute('hidden'); nodes[i].style.display = ''; }
+      }
+    }
+    gate('a[data-gc="blog-cta-alerts"]', !COLLECT_DATA_ENABLED);
+    gate('a.pill[href*="contact"]', PRE_REGISTRATION_MODE);
   }
   function initForm() {
     var form = document.getElementById('blog-subscribe');
@@ -161,6 +175,7 @@
         });
     });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initForm);
-  else initForm();
+  function initAll() { initForm(); initNavGating(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll);
+  else initAll();
 })();
