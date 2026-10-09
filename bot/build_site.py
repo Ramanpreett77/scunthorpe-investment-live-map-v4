@@ -91,7 +91,7 @@ def topics_for(post):
 
 
 # ------------------------------------------------------------------ styles ---
-CSS = """
+CSS = r"""
 :root{
   --ink:#0b1f33; --ink-2:#12365a; --gold:#e6bb62; --gold-d:#c99d3f;
   --paper:#ffffff; --soft:#f4f7fb; --line:#e4eaf2; --text:#17263a; --muted:#5f6e80;
@@ -235,7 +235,7 @@ h2.sec:after{content:"";display:block;width:54px;height:3px;background:var(--gol
   border-radius:12px;padding:16px 22px 6px 26px;margin-top:26px}
 .sheet ul.tk-list{list-style:none;margin:0 0 14px 0;padding:0}
 .sheet ul.tk-list li{position:relative;padding-left:26px;margin:.6em 0}
-.sheet ul.tk-list li:before{content:"\\2713";position:absolute;left:0;top:0;
+.sheet ul.tk-list li:before{content:"\2713";position:absolute;left:0;top:0;
   color:#15803d;font-weight:800}
 .share{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);
   display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:.88rem;color:var(--muted)}
@@ -289,11 +289,18 @@ nav .links a.mapbtn:hover{background:var(--gold);color:var(--ink)}
 .subform .consent a{color:#fff}
 .subform .msg{font-size:.85rem;margin-top:10px;min-height:1.2em;text-align:center}
 .hp{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+[hidden]{display:none!important}
 """
 
 # ------------------------------------------------------------- chat widget ---
 CHAT_JS = r"""
 (function () {
+  var cfg = (typeof window !== 'undefined' && window.SITE_CONFIG) ? window.SITE_CONFIG : {};
+  var PRE_REGISTRATION_MODE = cfg.PRE_REGISTRATION_MODE !== false; /* default true */
+  var COLLECT_DATA_ENABLED = cfg.COLLECT_DATA_ENABLED === true; /* default false */
+  /* Pre-registration / closed collection: the assistant offers services and
+     harvests emails, so it stays completely off until both flags allow it. */
+  if (PRE_REGISTRATION_MODE || !COLLECT_DATA_ENABLED) return;
   var A = window.PB_ARTICLES || [];
   function find(re) { for (var i = 0; i < A.length; i++) if (re.test(A[i].title + A[i].cat)) return A[i]; return null; }
   var box = document.createElement('div');
@@ -354,7 +361,7 @@ CHAT_JS = r"""
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ accesskey: fk.dataset.w3f, subject: 'New chat lead - SGJM blog',
               email: m[0], message: 'Chat visitor left their email on ' + location.href }) });
-          var su = fk.dataset.sheet;
+          var su = fk ? fk.dataset.sheet : '';
           if (su) fetch(su, { method: 'POST', mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ source: 'chat assistant', email: m[0] }) });
@@ -404,6 +411,8 @@ BLOG_SHARED_JS = r"""
 (function () {
   'use strict';
   var cfg = (typeof window !== 'undefined' && window.SITE_CONFIG) ? window.SITE_CONFIG : {};
+  var COLLECT_DATA_ENABLED = cfg.COLLECT_DATA_ENABLED === true; /* default false: forms stay closed */
+  var PRE_REGISTRATION_MODE = cfg.PRE_REGISTRATION_MODE !== false; /* default true: services hidden */
 
   function cleanCode(v) {
     v = String(v == null ? '' : v).trim();
@@ -470,9 +479,56 @@ BLOG_SHARED_JS = r"""
       return true;
     } catch (e) { return false; }
   }
+  /* ---- Nav CTA gating: alerts need COLLECT, review needs live services ---- */
+  function initNavGating() {
+    if (!document.querySelectorAll) return;
+    function gate(selector, hide) {
+      var nodes = document.querySelectorAll(selector);
+      for (var i = 0; i < nodes.length; i++) {
+        if (hide) { nodes[i].setAttribute('hidden', ''); nodes[i].style.display = 'none'; }
+        else { nodes[i].removeAttribute('hidden'); nodes[i].style.display = ''; }
+      }
+    }
+    gate('a[data-gc="blog-cta-alerts"]', !COLLECT_DATA_ENABLED);
+    gate('a.pill[href*="contact"]', PRE_REGISTRATION_MODE);
+  }
+  /* ---- CTA copy swap: service offers need live services (auto-restores) ---- */
+  function initCtaSwap() {
+    if (!document.querySelectorAll || !PRE_REGISTRATION_MODE) return;
+    var nodes, i, h, p;
+    /* Post "second opinion" box -> reader-questions wording (Ask-a-question button kept). */
+    nodes = document.querySelectorAll('aside.ctabox');
+    for (i = 0; i < nodes.length; i++) {
+      if (nodes[i].querySelector('#blog-subscribe')) continue;
+      h = nodes[i].querySelector('h3');
+      if (h && /second opinion/i.test(h.textContent || '')) {
+        h.textContent = 'Have a question about this breakdown?';
+        p = nodes[i].querySelector('p');
+        if (p) p.textContent = 'Reader questions are welcome - use the contact page and we reply within one working day.';
+      }
+    }
+    /* About page: pre-launch wording drops "invest alongside us" + 24/7 assistant line. */
+    nodes = document.querySelectorAll('section.wrap p');
+    for (i = 0; i < nodes.length; i++) {
+      if (/invest alongside us/i.test(nodes[i].textContent || '')) {
+        nodes[i].innerHTML = 'Want to collaborate or advertise? <a href="contact.html">Get in touch</a> - ' +
+          'reader questions welcome too.';
+      }
+    }
+  }
   function initForm() {
     var form = document.getElementById('blog-subscribe');
     if (!form) return;
+    var soon = document.getElementById('bs-soon');
+    if (!COLLECT_DATA_ENABLED) {
+      form.setAttribute('hidden', '');
+      form.style.display = 'none';
+      if (soon) { soon.removeAttribute('hidden'); soon.style.display = ''; }
+    } else {
+      form.removeAttribute('hidden');
+      form.style.display = '';
+      if (soon) { soon.setAttribute('hidden', ''); soon.style.display = 'none'; }
+    }
     var emailEl = document.getElementById('bs-email');
     var nameEl = document.getElementById('bs-name');
     var hpEl = document.getElementById('bs-website');
@@ -486,6 +542,8 @@ BLOG_SHARED_JS = r"""
     }
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      /* COLLECT_DATA_ENABLED=false: collect nothing - not even into local variables. */
+      if (!COLLECT_DATA_ENABLED) { say('Email alerts opening soon.', false); return; }
       var email = String(emailEl.value || '').trim();
       var name = String(nameEl.value || '').trim();
       var hp = String(hpEl.value || '').trim();
@@ -546,8 +604,9 @@ BLOG_SHARED_JS = r"""
         });
     });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initForm);
-  else initForm();
+  function initAll() { initForm(); initNavGating(); initCtaSwap(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll);
+  else initAll();
 })();
 """
 
@@ -706,7 +765,7 @@ HOME = """
   <aside class="ctabox" style="max-width:none;margin:0">
     <h2>Get every new breakdown first</h2>
     <p>One email a week: HMO yields, BRR examples, auction stock and lending updates. No spam.</p>
-    <form id="blog-subscribe" novalidate style="max-width:520px;margin:0 auto">
+    <form id="blog-subscribe" novalidate hidden style="max-width:520px;margin:0 auto">
       <div class="subform">
         <input type="text" name="name" id="bs-name" maxlength="100" autocomplete="name" placeholder="Your name (optional)">
         <input type="email" name="email" id="bs-email" maxlength="254" autocomplete="email" required placeholder="you@example.com">
@@ -716,6 +775,7 @@ HOME = """
         <p class="msg" id="bs-msg" role="status" aria-live="polite"></p>
       </div>
     </form>
+    <p class="msg" id="bs-soon" style="text-align:center">Email alerts opening soon.</p>
     <p style="font-size:.78rem;color:#c8d4e2;margin-top:10px">One email a week.
     <a href="privacy.html" style="color:#fff">Privacy policy</a>. Unsubscribe any time.</p>
   </aside>
@@ -846,7 +906,7 @@ ABOUT = """
 CONTACT = """
 <section class="wrap" style="max-width:760px">
   <h2 class="sec">Contact & enquiries</h2>
-  <p class="sub">Sales, partnerships, advertising or reader questions - we reply within one working day.</p>
+  <p class="sub">Partnerships, advertising or reader questions - we reply within one working day.</p>
   <form action="@CONTACT_ACTION@" method="POST" data-fallback="@EMAIL@" data-w3f="@W3F_KEY@" data-sheet="@SHEET_URL@" data-sheetsrc="contact form">
     <input type="hidden" name="_subject" value="New SGJM website enquiry">
     <input type="hidden" name="_captcha" value="false">
@@ -854,13 +914,12 @@ CONTACT = """
       <input name="name" placeholder="Your name" required>
       <input name="email" type="email" placeholder="Email address" required>
     </div>
-    <input name="subject" placeholder="Subject (e.g. joint venture, advertising, question)">
+    <input name="subject" placeholder="Subject (e.g. advertising, question)">
     <textarea name="message" rows="6" placeholder="How can we help?" required></textarea>
     <button class="btn" type="submit">Send message</button>
     <p style="font-size:.78rem;color:#66707c;margin:10px 0 0">By submitting you agree to our <a href="privacy.html">privacy policy</a>.</p>
   </form>
-  <p style="margin-top:22px;font-size:.9rem;color:#66707c">Prefer email? Use the form above, or the chat assistant
-  (bottom right) can take your details - we reply within one working day.</p>
+  <p style="margin-top:22px;font-size:.9rem;color:#66707c">Prefer email? Use the form above - we reply within one working day.</p>
 </section>
 """
 PRIVACY = """

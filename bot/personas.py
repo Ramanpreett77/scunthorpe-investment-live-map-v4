@@ -16,8 +16,51 @@ Rotation: ISO week number % number of personas - deterministic, stateless,
 so Saturday's draft rotates through the six audiences week by week.
 """
 import datetime
+import os
+import re
 
 # --------------------------------------------------------------- personas ---
+# ----------------------------------------------- pre-registration CTA gating ---
+# While the site's config.js keeps PRE_REGISTRATION_MODE on, persona CTAs must
+# not offer services (sourcing work, deal reviews, "no fee" first looks): new
+# articles and LinkedIn first comments go through effective_cta(), which swaps
+# in PREREG_CTA. Flip the flag at launch and the original CTAs restore
+# automatically - no code change needed.
+PREREG_CTA = (
+    "I'm still pre-launch while registrations complete, so I can't take on "
+    "sourcing work yet - the free tools and weekly breakdowns are the best "
+    "place to start for now."
+)
+
+_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "..", "config.js")
+
+
+def preregistration_mode(path=None):
+    """True while config.js keeps PRE_REGISTRATION_MODE on (fail-safe: True)."""
+    try:
+        with open(path or _CONFIG_PATH, encoding="utf-8") as f:
+            text = f.read()
+    except OSError:
+        return True
+    m = re.search(r"PRE_REGISTRATION_MODE\s*:\s*(true|false)", text)
+    if not m:
+        return True
+    return m.group(1) == "true"
+
+
+def effective_cta(persona, prereg=None):
+    """Persona CTA honouring pre-registration mode.
+
+    `persona` may be a PERSONAS entry or a latest.json persona dict.
+    """
+    if prereg is None:
+        prereg = preregistration_mode()
+    if prereg:
+        return PREREG_CTA
+    return (persona.get("cta") or "").strip()
+
+
 PERSONAS = [
     {
         "id": "first-time-btl",

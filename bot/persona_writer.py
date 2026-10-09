@@ -114,6 +114,8 @@ def persona_prompt(title, topic, persona, year, region, question, cta):
         "- Never invent case studies, success stories, testimonials, named clients, "
         "completed deals or 'one of our clients' examples.\n"
         "- No personalised financial, tax or legal advice - signpost a professional.\n"
+        "- End with the given call to action and question only - do not add any other "
+        "call to action, contact invitation or offer of personal help.\n"
         "- Write 750-950 words. Plain English. Short paragraphs. UK spelling.\n"
         "- Return Markdown only: no title heading, no front matter.\n"
     )
@@ -127,7 +129,7 @@ def ai_body(title, topic, persona, year, region):
     try:
         import requests
         prompt = persona_prompt(title, topic, persona, year, region,
-                                persona["question"], persona["cta"])
+                                persona["question"], personas.effective_cta(persona))
         r = requests.post(
             "https://api.openai.com/v1/chat/completions",
             headers={"Authorization": "Bearer " + key},
@@ -233,7 +235,7 @@ def main():
             "audience": persona["audience"],
             "focus": persona["focus"],
             "question": persona["question"],
-            "cta": persona["cta"],
+            "cta": personas.effective_cta(persona),
             "linkedin_angle": persona["linkedin_angle"],
             "social_angle": persona["social_angle"],
         },

@@ -610,7 +610,7 @@ TOPICS = [
             "Off-plan payments belong in a project escrow account, never to a company account.",
             "Registration with the Dubai Land Department is the buyer's friend; insist on it.",
             "Ask the 7 questions before any reservation fee changes hands.",
-            "Only ever work with disclosed, licensed introducers - including us.",
+            "Only ever work with disclosed, licensed introducers.",
         ],
     },
     {
@@ -718,6 +718,8 @@ def ai_body(title, topic, year, region):
             "Use realistic but clearly illustrative example figures and state they "
             "are illustrative. End with a '## Key Takeaways' bullet list and a "
             "one-sentence disclaimer that this is not financial advice. "
+            "Do not end with a sales call to action, contact invitation or "
+            "offer of personal help. "
             "Return Markdown only (no title heading, no front matter)."
         )
         r = requests.post(

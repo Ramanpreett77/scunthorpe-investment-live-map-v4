@@ -87,6 +87,30 @@
     gate('a[data-gc="blog-cta-alerts"]', !COLLECT_DATA_ENABLED);
     gate('a.pill[href*="contact"]', PRE_REGISTRATION_MODE);
   }
+  /* ---- CTA copy swap: service offers need live services (auto-restores) ---- */
+  function initCtaSwap() {
+    if (!document.querySelectorAll || !PRE_REGISTRATION_MODE) return;
+    var nodes, i, h, p;
+    /* Post "second opinion" box -> reader-questions wording (Ask-a-question button kept). */
+    nodes = document.querySelectorAll('aside.ctabox');
+    for (i = 0; i < nodes.length; i++) {
+      if (nodes[i].querySelector('#blog-subscribe')) continue;
+      h = nodes[i].querySelector('h3');
+      if (h && /second opinion/i.test(h.textContent || '')) {
+        h.textContent = 'Have a question about this breakdown?';
+        p = nodes[i].querySelector('p');
+        if (p) p.textContent = 'Reader questions are welcome - use the contact page and we reply within one working day.';
+      }
+    }
+    /* About page: pre-launch wording drops "invest alongside us" + 24/7 assistant line. */
+    nodes = document.querySelectorAll('section.wrap p');
+    for (i = 0; i < nodes.length; i++) {
+      if (/invest alongside us/i.test(nodes[i].textContent || '')) {
+        nodes[i].innerHTML = 'Want to collaborate or advertise? <a href="contact.html">Get in touch</a> - ' +
+          'reader questions welcome too.';
+      }
+    }
+  }
   function initForm() {
     var form = document.getElementById('blog-subscribe');
     if (!form) return;
@@ -175,7 +199,7 @@
         });
     });
   }
-  function initAll() { initForm(); initNavGating(); }
+  function initAll() { initForm(); initNavGating(); initCtaSwap(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll);
   else initAll();
 })();

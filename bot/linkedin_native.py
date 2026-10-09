@@ -71,7 +71,9 @@ def build_first_comment(meta, persona=None):
     persona = persona or persona_of(meta)
     site = (meta.get("site_url") or "").rstrip("/")
     link = site + (meta.get("url_path") or "")
-    cta = (persona.get("cta") or "").strip()
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from personas import effective_cta  # noqa: E402
+    cta = effective_cta(persona)
     lines = ["Full article here 👉 " + link]
     if cta:
         lines += ["", cta]
@@ -183,7 +185,7 @@ def main():
         if p:
             meta.setdefault("persona", {})
             meta["persona"].update({"id": p["id"], "name": p["name"],
-                                    "question": p["question"], "cta": p["cta"]})
+                                    "question": p["question"], "cta": personas.effective_cta(p)})
 
     text = build_native_text(meta)
     comment = build_first_comment(meta)
