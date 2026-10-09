@@ -1,5 +1,11 @@
 
 (function () {
+  var cfg = (typeof window !== 'undefined' && window.SITE_CONFIG) ? window.SITE_CONFIG : {};
+  var PRE_REGISTRATION_MODE = cfg.PRE_REGISTRATION_MODE !== false; /* default true */
+  var COLLECT_DATA_ENABLED = cfg.COLLECT_DATA_ENABLED === true; /* default false */
+  /* Pre-registration / closed collection: the assistant offers services and
+     harvests emails, so it stays completely off until both flags allow it. */
+  if (PRE_REGISTRATION_MODE || !COLLECT_DATA_ENABLED) return;
   var A = window.PB_ARTICLES || [];
   function find(re) { for (var i = 0; i < A.length; i++) if (re.test(A[i].title + A[i].cat)) return A[i]; return null; }
   var box = document.createElement('div');
@@ -60,7 +66,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ accesskey: fk.dataset.w3f, subject: 'New chat lead - SGJM blog',
               email: m[0], message: 'Chat visitor left their email on ' + location.href }) });
-          var su = fk.dataset.sheet;
+          var su = fk ? fk.dataset.sheet : '';
           if (su) fetch(su, { method: 'POST', mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ source: 'chat assistant', email: m[0] }) });
