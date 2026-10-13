@@ -32,14 +32,13 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issues' &&
-       github.event.label.name == 'approved' &&
-       contains(github.event.issue.labels.*.name, 'approval-needed')) ||
+       github.event.label.name == 'approved') ||
       (github.event_name == 'issue_comment' &&
        contains(github.event.comment.body, '/approve') &&
-       contains(github.event.issue.labels.*.name, 'approval-needed') &&
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
-        github.event.comment.author_association == 'COLLABORATOR'))  runs-on: ubuntu-latest
+        github.event.comment.author_association == 'COLLABORATOR'))
+    runs-on: ubuntu-latest
     timeout-minutes: 20
 
     steps:
@@ -210,11 +209,9 @@ jobs:
   skip:
     if: |
       (github.event_name == 'issues' &&
-       github.event.label.name == 'skip' &&
-       contains(github.event.issue.labels.*.name, 'approval-needed')) ||
+       github.event.label.name == 'skip') ||
       (github.event_name == 'issue_comment' &&
        contains(github.event.comment.body, '/skip') &&
-       contains(github.event.issue.labels.*.name, 'approval-needed') &&
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR'))
