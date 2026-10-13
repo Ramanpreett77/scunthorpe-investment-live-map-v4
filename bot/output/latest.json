@@ -1,23 +1,35 @@
 {
-  "title": "Deal Sourcing in 2026: Where the Best Property Deals Actually Come From",
-  "slug": "sourcing-deals",
-  "date": "2026-10-05",
-  "category": "Sourcing",
-  "excerpt": "The channels that produce genuine below-market-value property, and how to tell a real deal from a deal-shaped illusion.",
-  "hook": "The best deals rarely make it to page one of Rightmove. Here's where serious investors actually find them",
+  "title": "HMO Investing in 2026: Yields, Licensing and What It Really Costs to Start",
+  "slug": "hmo-investing-2026",
+  "date": "2026-10-12",
+  "category": "HMO",
+  "excerpt": "Why HMOs deliver some of the strongest yields in UK property, what licensing and setup cost, and a worked example from Scunthorpe.",
+  "hook": "Single-let yields of 5-6% are fine. HMOs in the right area can genuinely deliver double digits gross. But there's work behind those numbers",
   "takeaways": [
-    "Buying well is the only part of the deal fully in your control.",
-    "Work several channels: auctions, direct-to-vendor, probate and networking.",
-    "Demand evidence for every bargain: comps, quotes and a proven exit.",
-    "Your reputation is your deal pipeline - be the buyer people call first."
+    "HMOs trade higher yields for more complexity - licensing, cost, management.",
+    "Check mandatory, additional and selective licensing for the exact address before buying.",
+    "Budget £15k-£45k for a typical conversion and price it with real quotes.",
+    "Gross yields of 10%+ are realistic; judge deals on the net figure after bills and management.",
+    "Self-manage with systems, or pay a specialist HMO agent - don't wing it."
   ],
   "hashtags": [
-    "#PropertyDeals",
-    "#UKProperty",
-    "#PropertyInvestment",
-    "#Sourcing"
+    "#HMO",
+    "#PropertyPortfolio",
+    "#BuyToLet"
   ],
-  "url_path": "/posts/sourcing-deals.html",
-  "file": "_drafts/2026-10-05-sourcing-deals.md",
-  "site_url": "https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog"
+  "url_path": "/posts/hmo-investing-2026.html",
+  "file": "_drafts/2026-10-12-hmo-investing-2026.md",
+  "site_url": "https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog",
+  "persona": {
+    "id": "portfolio-hmo",
+    "name": "Scaling portfolio landlord / HMO",
+    "audience": "landlord scaling to a portfolio or HMO",
+    "focus": "yield, licensing, refinancing and portfolio efficiency",
+    "question": "At what point did you decide single lets were no longer enough - and what changed?",
+    "cta": "I'm still pre-launch while registrations complete, so I can't take on sourcing work yet - the free tools and weekly breakdowns are the best place to start for now.",
+    "linkedin_angle": "technical and specific - lead with numbers, licensing and lender realities",
+    "social_angle": "practical local landlords group tone; focus on rules and yield"
+  },
+  "engine": "AI (gpt-4o-mini)",
+  "disclaimer": "This article is for general information only and is not financial, tax or legal advice. Tax treatment, licensing rules and lending criteria change frequently - always confirm current requirements with your local council and a qualified professional before acting. Any example figures are illustrative only."
 }
