@@ -1,6 +1,6 @@
 name: Midweek post (LinkedIn)
 
-# Wednesday: re-shares ONE published article to LinkedIn as a NATIVE text post
+# Thursday: re-shares ONE published article to LinkedIn as a NATIVE text post
 # (the article link goes in the first comment - link posts are throttled),
 # ending with a genuine question. Facebook/Instagram get the caption with the
 # link when their credentials are configured.
@@ -9,7 +9,7 @@ name: Midweek post (LinkedIn)
 
 on:
   schedule:
-    - cron: "10 9 * * THU" # THU 09:10 UTC (10:10 UK during BST)
+    - cron: "10 9 * * THU" # Thu 09:10 UTC (10:10 UK during BST)
   workflow_dispatch:
     inputs:
       slug:
