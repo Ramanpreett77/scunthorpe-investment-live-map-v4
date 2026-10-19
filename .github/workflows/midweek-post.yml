@@ -9,7 +9,7 @@ name: Midweek post (LinkedIn)
 
 on:
   schedule:
-    - cron: "10 9 * * WED" # Wed 09:10 UTC (10:10 UK during BST)
+    - cron: "10 9 * * THU" # THU 09:10 UTC (10:10 UK during BST)
   workflow_dispatch:
     inputs:
       slug:
