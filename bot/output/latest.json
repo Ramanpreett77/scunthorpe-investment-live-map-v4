@@ -1,7 +1,7 @@
 {
   "title": "Finding Below-Market Deals: How UK Investors Source Property Before the Crowd Does",
-  "slug": "sourcing-deals-2026",
-  "date": "2026-10-19",
+  "slug": "sourcing-deals-2026-10",
+  "date": "2026-10-26",
   "category": "Sourcing",
   "excerpt": "The channels that produce genuine below-market-value property, and how to tell a real deal from a deal-shaped illusion.",
   "hook": "The best deals rarely make it to page one of Rightmove. Here's where serious investors actually find them",
@@ -12,22 +12,22 @@
     "Your reputation is your deal pipeline - be the buyer people call first."
   ],
   "hashtags": [
-    "#PropertyAuction",
-    "#Refurbishment",
-    "#BRRR"
+    "#ProbateProperty",
+    "#QuickHouseSale",
+    "#Lincolnshire"
   ],
-  "url_path": "/posts/sourcing-deals-2026.html",
-  "file": "_drafts/2026-10-19-sourcing-deals-2026.md",
+  "url_path": "/posts/sourcing-deals-2026-10.html",
+  "file": "_drafts/2026-10-26-sourcing-deals-2026-10.md",
   "site_url": "https://ramanpreett77.github.io/scunthorpe-investment-live-map-v4/blog",
   "persona": {
-    "id": "cash-auction",
-    "name": "Cash buyer / auction & refurb",
-    "audience": "cash buyer working auctions and refurbishments",
-    "focus": "deal-finding, maximum-offer maths and refurb risk",
-    "question": "What is your rule of thumb for maximum offer on an auction lot?",
+    "id": "local-seller",
+    "name": "Local seller needing speed",
+    "audience": "homeowner who needs to sell quickly (probate, arrears, difficult tenant, heavy refurb)",
+    "focus": "speed, certainty and a clean, private sale with no fees to the seller",
+    "question": "If you are dealing with a property that needs a quick, private sale - what would help most?",
     "cta": "I'm still pre-launch while registrations complete, so I can't take on sourcing work yet - the free tools and weekly breakdowns are the best place to start for now.",
-    "linkedin_angle": "deal-room tone - maximum-offer maths, cat-and-mouse with the guide price",
-    "social_angle": "local and concrete - auction lots, refurb costs, areas to watch"
+    "linkedin_angle": "local and human; speak to the professional who refers these cases (solicitors, executors, agents)",
+    "social_angle": "gentle, local, plain - speed without pressure, privacy first"
   },
   "engine": "AI (gpt-4o-mini)",
   "disclaimer": "This article is for general information only and is not financial, tax or legal advice. Tax treatment, licensing rules and lending criteria change frequently - always confirm current requirements with your local council and a qualified professional before acting. Any example figures are illustrative only."
