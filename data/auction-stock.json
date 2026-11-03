@@ -1,8 +1,8 @@
 {
- "updated": "2026-10-23T11:53:06Z",
- "updated_uk": "23 Oct 2026, 12:53 UK",
- "checked": "2026-11-02T16:23:23Z",
- "checked_uk": "02 Nov 2026, 16:23 UK",
+ "updated": "2026-11-03T14:30:28Z",
+ "updated_uk": "03 Nov 2026, 14:30 UK",
+ "checked": "2026-11-03T14:30:28Z",
+ "checked_uk": "03 Nov 2026, 14:30 UK",
  "sources": {
   "BTG Eddisons": {
    "lots": 0,
@@ -12,12 +12,12 @@
   "Savills": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 DN15-DN20 lots in 3 upcoming catalogues (307 scanned, 40 sold/withdrawn skipped)"
+   "detail": "0 DN15-DN20 lots in 3 upcoming catalogues (312 scanned, 62 sold/withdrawn skipped)"
   },
   "Bond Wolfe": {
    "lots": 0,
-   "status": "warning",
-   "detail": "0 DN15-DN20 lot(s) across 3 seed searches - zero-stock day: Bond Wolfe currently has nothing in DN15-DN20 (not an error)"
+   "status": "error",
+   "detail": "ConnectionError(ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))) | kept 0 previous lots (stale)"
   },
   "SDL Property Auctions": {
    "lots": 0,
