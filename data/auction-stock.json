@@ -1,8 +1,8 @@
 {
  "updated": "2026-11-06T14:28:09Z",
  "updated_uk": "06 Nov 2026, 14:28 UK",
- "checked": "2026-11-06T14:28:09Z",
- "checked_uk": "06 Nov 2026, 14:28 UK",
+ "checked": "2026-11-07T13:23:28Z",
+ "checked_uk": "07 Nov 2026, 13:23 UK",
  "sources": {
   "BTG Eddisons": {
    "lots": 0,
@@ -12,7 +12,7 @@
   "Savills": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 DN15-DN20 lots in 2 upcoming catalogues (188 scanned, 0 sold/withdrawn skipped)"
+   "detail": "0 DN15-DN20 lots in 2 upcoming catalogues (195 scanned, 0 sold/withdrawn skipped)"
   },
   "Bond Wolfe": {
    "lots": 0,
@@ -22,7 +22,7 @@
   "SDL Property Auctions": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 DN15-DN20 lot(s) from 4 local candidates scanned (0 already-auctioned skipped) - zero-stock day: no current local lots listed (not an error)"
+   "detail": "0 DN15-DN20 lot(s) from 5 local candidates scanned (0 already-auctioned skipped) - zero-stock day: no current local lots listed (not an error)"
   }
  },
  "lots": []
