@@ -1,18 +1,18 @@
 {
- "updated": "2026-11-08T13:43:13Z",
- "updated_uk": "08 Nov 2026, 13:43 UK",
- "checked": "2026-11-08T13:43:13Z",
- "checked_uk": "08 Nov 2026, 13:43 UK",
+ "updated": "2026-11-09T16:42:40Z",
+ "updated_uk": "09 Nov 2026, 16:42 UK",
+ "checked": "2026-11-09T16:42:40Z",
+ "checked_uk": "09 Nov 2026, 16:42 UK",
  "sources": {
   "BTG Eddisons": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 current DN15-DN20 lots in Scunthorpe search (total=10 rows scanned) - zero-stock day or source layout change; verify manually if it persists for >1 week"
+   "detail": "0 current DN15-DN20 lots in Scunthorpe search (total=13 rows scanned) - zero-stock day or source layout change; verify manually if it persists for >1 week"
   },
   "Savills": {
    "lots": 0,
-   "status": "blocked",
-   "detail": "Blocked('robots.txt disallows (or could not be read) for https://auctions.savills.co.uk/upcoming-auctions') | kept 0 previous lots (stale)"
+   "status": "warning",
+   "detail": "0 DN15-DN20 lots in 2 upcoming catalogues (218 scanned, 0 sold/withdrawn skipped)"
   },
   "Bond Wolfe": {
    "lots": 0,
