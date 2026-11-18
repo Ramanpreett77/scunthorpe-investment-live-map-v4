@@ -1,8 +1,8 @@
 {
  "updated": "2026-11-09T16:42:40Z",
  "updated_uk": "09 Nov 2026, 16:42 UK",
- "checked": "2026-11-17T16:19:59Z",
- "checked_uk": "17 Nov 2026, 16:19 UK",
+ "checked": "2026-11-18T15:52:58Z",
+ "checked_uk": "18 Nov 2026, 15:52 UK",
  "sources": {
   "BTG Eddisons": {
    "lots": 0,
@@ -12,7 +12,7 @@
   "Savills": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 DN15-DN20 lots in 3 upcoming catalogues (384 scanned, 19 sold/withdrawn skipped)"
+   "detail": "0 DN15-DN20 lots in 3 upcoming catalogues (409 scanned, 29 sold/withdrawn skipped)"
   },
   "Bond Wolfe": {
    "lots": 0,
