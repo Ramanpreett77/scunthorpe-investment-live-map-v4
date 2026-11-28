@@ -1,8 +1,8 @@
 {
  "updated": "2026-11-09T16:42:40Z",
  "updated_uk": "09 Nov 2026, 16:42 UK",
- "checked": "2026-11-27T16:52:54Z",
- "checked_uk": "27 Nov 2026, 16:52 UK",
+ "checked": "2026-11-28T15:44:57Z",
+ "checked_uk": "28 Nov 2026, 15:44 UK",
  "sources": {
   "BTG Eddisons": {
    "lots": 0,
@@ -22,7 +22,7 @@
   "SDL Property Auctions": {
    "lots": 0,
    "status": "warning",
-   "detail": "0 DN15-DN20 lot(s) from 11 local candidates scanned (0 already-auctioned skipped) - zero-stock day: no current local lots listed (not an error)"
+   "detail": "0 DN15-DN20 lot(s) from 10 local candidates scanned (0 already-auctioned skipped; 1 page error(s)) - zero-stock day: no current local lots listed (not an error)"
   }
  },
  "lots": []
